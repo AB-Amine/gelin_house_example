@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { randomBytes, randomUUID, createHash } from 'node:crypto';
 import assert from 'node:assert/strict';
+import { testFatuDatabase } from './test-fatu-db.mjs';
 const password = randomBytes(24).toString('hex');
 const databaseDir = await mkdtemp(path.join(tmpdir(), 'gelin-pg-'));
 const cluster = new EmbeddedPostgres({
@@ -14,6 +15,8 @@ const cluster = new EmbeddedPostgres({
   password,
   persistent: false,
   autoRehydrateSymlinks: true,
+  // Avoid orphaned PostgreSQL 18 I/O workers holding native files open on Windows.
+  postgresFlags: process.platform === 'win32' ? ['-c', 'io_method=sync'] : [],
   onLog: () => {},
   onError: () => {},
 });
@@ -39,10 +42,10 @@ try {
     'create schema extensions; create extension btree_gist with schema extensions',
   );
   for (const file of (await readdir('supabase/migrations'))
-    .filter((f) => f.endsWith('.sql'))
+    .filter((f) => f.endsWith('.sql') && !f.includes('single_admin'))
     .sort())
     await client.query(await readFile(`supabase/migrations/${file}`, 'utf8'));
-  await check('all migrations apply to PostgreSQL', async () => {
+  await check('base and booking migrations apply to PostgreSQL', async () => {
     assert.equal(
       (
         await client.query(
@@ -568,6 +571,15 @@ try {
         ).rows[0].n,
         1,
       );
+      assert.equal(
+        (
+          await client.query(
+            "select token_expires_at=ends_at+interval '90 days' valid from appointments where id=$1",
+            [b.id],
+          )
+        ).rows[0].valid,
+        true,
+      );
       assert.equal((await quote([s1], start)).total_minor, 12000);
     },
   );
@@ -945,6 +957,110 @@ try {
       }
     },
   );
+  await check(
+    'single-admin upgrade preserves accounts and removes access distinctions',
+    async () => {
+      const before = (
+        await client.query('select id,active from admin_profiles order by id')
+      ).rows;
+      await client.query(
+        await readFile(
+          'supabase/migrations/202611110008_single_admin.sql',
+          'utf8',
+        ),
+      );
+      assert.deepEqual(
+        (await client.query('select id,active from admin_profiles order by id'))
+          .rows,
+        before,
+      );
+      assert.equal(
+        (
+          await client.query(
+            "select count(*)::int n from admin_profiles where role<>'owner'",
+          )
+        ).rows[0].n,
+        0,
+      );
+      await assert.rejects(
+        () =>
+          client.query("update admin_profiles set role='staff' where id=$1", [
+            staffUser,
+          ]),
+        /single_admin_access/,
+      );
+      await client.query('update admin_profiles set active=true where id=$1', [
+        staffUser,
+      ]);
+      await client.query('set role authenticated');
+      try {
+        await client.query(
+          "select set_config('request.jwt.claim.sub',$1,false)",
+          [staffUser],
+        );
+        assert.equal(
+          (await client.query('select staff_role() r')).rows[0].r,
+          'owner',
+        );
+        assert.equal(
+          (
+            await client.query('select can_read_appointment($1) allowed', [
+              first.id,
+            ])
+          ).rows[0].allowed,
+          true,
+        );
+        await client.query('select admin_note($1,$2)', [
+          first.id,
+          'Updated by equal administrator',
+        ]);
+        await client.query(
+          "select admin_stats(now()-interval '1 day',now()+interval '60 days')",
+        );
+      } finally {
+        await client.query('reset role');
+      }
+    },
+  );
+  await check(
+    'single-admin access preserves last administrator and rejects inactive accounts',
+    async () => {
+      await client.query('update admin_profiles set active=(id=$1)', [owner]);
+      await client.query('set role authenticated');
+      try {
+        await client.query(
+          "select set_config('request.jwt.claim.sub',$1,false)",
+          [owner],
+        );
+        await assert.rejects(
+          () =>
+            client.query("select owner_update_access($1,'owner',false)", [
+              owner,
+            ]),
+          /LAST_OWNER/,
+        );
+        await assert.rejects(
+          () =>
+            client.query("select owner_update_access($1,'manager',true)", [
+              owner,
+            ]),
+          /INVALID_INPUT/,
+        );
+        await client.query(
+          "select set_config('request.jwt.claim.sub',$1,false)",
+          [staffUser],
+        );
+        await assert.rejects(
+          () =>
+            client.query('select admin_note($1,$2)', [first.id, 'Forbidden']),
+          /FORBIDDEN/,
+        );
+      } finally {
+        await client.query('reset role');
+      }
+    },
+  );
+  await testFatuDatabase(client, check);
   console.log(
     `${passed} database integration checks passed. Auth/Storage HTTP integrations still require Supabase.`,
   );

@@ -7,7 +7,7 @@ export const getCatalog = cache(
     const db = publicDb();
     if (!db) return { catalog: emptyCatalog, unavailable: true };
     try {
-      const { data, error } = await db.rpc('public_catalog');
+      const { data, error } = await db.rpc('fatu_catalog');
       if (error) throw error;
       return { catalog: data as Catalog, unavailable: false };
     } catch {

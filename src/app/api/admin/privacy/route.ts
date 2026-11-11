@@ -6,7 +6,7 @@ import { body, failure, ok, sameOrigin } from '@/lib/http';
 export async function POST(req: NextRequest) {
   try {
     sameOrigin(req);
-    await requireStaff(true, true);
+    await requireStaff();
     const v = z
       .object({ id: z.uuid(), reason: z.string().trim().min(5).max(300) })
       .parse(await body(req));

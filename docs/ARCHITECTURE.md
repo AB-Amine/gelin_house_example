@@ -1,4 +1,15 @@
+> **Current Fatu implementation:** see [Fatu setup](FATU_SETUP.md), [implementation phases](FATU_IMPLEMENTATION.md) and [validation](FATU_VALIDATION.md). The predecessor details below are retained for history and may describe older routes or test counts.
+
 ﻿# Implemented architecture
+
+**11 November update:** migration `202611110008_single_admin.sql` replaces the
+original owner/manager/staff distinctions with equal full administrator access.
+It converts existing profiles to the fixed legacy `owner` value used internally
+by the SQL functions and rejects any other value. Inactive accounts remain inactive;
+the last active administrator is protected. Resource staff remain scheduling data.
+The guest-management API now binds every mutation/slot request to the booking ID
+displayed in the tab, and migration 009 updates guest-link expiry on reschedule.
+For current launch instructions see [ZERO_DH_LAUNCH.md](ZERO_DH_LAUNCH.md).
 
 ## Runtime boundaries
 
@@ -44,14 +55,13 @@ exceptional hours. Closures apply to the whole salon or one resource.
 
 ## Authentication, authorization and guest access
 
-Supabase SSR cookies and `auth.getUser()` validate staff sessions. The proxy
-refreshes sessions on admin/auth routes, but server operations remain the actual
-permission boundary. Roles are owner, manager and staff. The owner alone manages
-settings, staff-account access and customer anonymization. Managers manage normal
-operations/content. Staff can read assigned appointments and associated customer
-records and mark in-progress, completed or no-show statuses only on those
-appointments. A staff resource can be linked to one admin identity. RLS enforces
-this scope on appointments, items, allocations, customer records and history.
+Supabase SSR cookies and `auth.getUser()` validate administrator sessions. The
+proxy refreshes sessions on admin/auth routes, but server operations remain the
+permission boundary. Every active administrator has the same complete access to
+settings, account access, privacy operations, content and appointments. There is
+no role selection. Migration 008 normalizes existing accounts to a fixed internal
+`owner` value, allowing the original RLS and transaction permission checks to keep
+working without a data/schema rewrite. Scheduling staff do not need an account.
 
 The calendar provides day, week, month and list views with navigation, search,
 provider filtering and closure indicators. Appointment details show snapshot

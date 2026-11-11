@@ -7,15 +7,15 @@ import { failure, ok, sameOrigin, limitedBody } from '@/lib/http';
 export async function POST(req: NextRequest) {
   try {
     sameOrigin(req);
-    await requireStaff(true);
-    const bytes = await limitedBody(req, 6 * 1024 * 1024);
+    await requireStaff();
+    const bytes = await limitedBody(req, 4 * 1024 * 1024 + 64000);
     const form = await new Response(new Uint8Array(bytes), {
       headers: { 'content-type': req.headers.get('content-type') ?? '' },
     }).formData();
     const file = form.get('file');
     if (
       !(file instanceof File) ||
-      file.size > 5 * 1024 * 1024 ||
+      file.size > 4 * 1024 * 1024 ||
       !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)
     )
       throw Error('INVALID_INPUT');

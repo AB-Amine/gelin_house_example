@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import {useI18n} from './locale-provider';
 import { CustomerPrivacy } from './customer-privacy';
 import { AppointmentNote } from './appointment-note';
 import { entities, type Field } from '@/lib/admin-config';
@@ -15,6 +16,7 @@ import {
   type Status,
 } from '@/lib/domain';
 export function Logout() {
+  const{t}=useI18n();
   const [error, setError] = useState('');
   const router = useRouter();
   return (
@@ -26,16 +28,16 @@ export function Logout() {
             await api('/api/auth/logout', {});
             router.replace('/admin/login');
             router.refresh();
-          } catch (e) {
-            setError(errorMessage(e));
+          } catch {
+            setError('common.error');
           }
         }}
       >
-        Se déconnecter
+        {t('auth.logout')}
       </button>
       {error && (
         <p role="alert" className="error">
-          {error}
+          {t(error)}
         </p>
       )}
     </>
@@ -79,6 +81,14 @@ export function AuthForm({
         <p className="notice">
           L’accès sécurisé nécessite la configuration Supabase. Consultez le
           guide de déploiement du projet.
+          {process.env.NODE_ENV === 'development' && (
+            <>
+              <br />
+              <Link className="text-link" href="/admin/preview">
+                Ouvrir l’atelier local interactif ↗
+              </Link>
+            </>
+          )}
         </p>
       )}
       {error && (
@@ -134,16 +144,23 @@ export function AuthForm({
   );
 }
 type Row = Record<string, unknown>;
-function initial(fields: Field[], row?: Row) {
+function shortAddress(value: string) { return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
+function initial(fields: Field[], row?: Row, refs: Record<string, Row[]> = {}) {
   return Object.fromEntries(
     fields.map((f) => [
       f.key,
       row?.[f.key] ??
-        (f.type === 'checkbox'
-          ? false
-          : f.type === 'number'
-            ? (f.min ?? 0)
-            : ''),
+        (f.options?.length
+          ? f.key === 'weekday'
+            ? Number(f.options[0].value)
+            : f.options[0].value
+          : f.ref && !f.nullable
+            ? (refs[f.ref]?.[0]?.id ?? '')
+            : f.type === 'checkbox'
+              ? false
+              : f.type === 'number'
+                ? (f.min ?? 0)
+                : ''),
     ]),
   );
 }
@@ -165,13 +182,17 @@ export function EntityManager({
   rows,
   refs,
   canEdit,
-  owner = false,
+  localPreview = false,
+  onSave,
+  onRemove,
 }: {
   slug: string;
   rows: Row[];
   refs: Record<string, Row[]>;
   canEdit: boolean;
-  owner?: boolean;
+  localPreview?: boolean;
+  onSave?: (row: Row) => Promise<void>;
+  onRemove?: (id: string) => Promise<void>;
 }) {
   const config = entities[slug];
   const router = useRouter();
@@ -179,7 +200,7 @@ export function EntityManager({
     slug === 'settings' ? (rows[0] ?? null) : null,
   );
   const [values, setValues] = useState<Row>(() =>
-    initial(config.fields, slug === 'settings' ? rows[0] : undefined),
+    initial(config.fields, slug === 'settings' ? rows[0] : undefined, refs),
   );
   const [open, setOpen] = useState(slug === 'settings');
   const [busy, setBusy] = useState(false);
@@ -191,7 +212,7 @@ export function EntityManager({
   function openForm(row?: Row) {
     setAffected([]);
     setEdit(row ?? null);
-    setValues(initial(config.fields, row));
+    setValues(initial(config.fields, row, refs));
     setOpen(true);
     setError('');
     setMessage('');
@@ -216,11 +237,16 @@ export function EntityManager({
       }
       if (edit) payload.id = edit.id;
       if (slug === 'settings') payload.id = 1;
-      await api(`/api/admin/${slug}`, payload);
-      setMessage('Modifications enregistrées.');
+      if (onSave) await onSave(payload);
+      else await api(`/api/admin/${slug}`, payload);
+      setMessage(
+        localPreview
+          ? 'Modifications enregistrées dans ce navigateur.'
+          : 'Modifications enregistrées.',
+      );
       setAffected([]);
       setOpen(false);
-      router.refresh();
+      if (!localPreview) router.refresh();
     } catch (e) {
       setError(errorMessage(e));
       setAffected(e instanceof ApiError ? e.affected : []);
@@ -232,11 +258,12 @@ export function EntityManager({
     setBusy(true);
     setError('');
     try {
-      await api(`/api/admin/${slug}`, { id }, 'DELETE');
+      if (onRemove) await onRemove(id);
+      else await api(`/api/admin/${slug}`, { id }, 'DELETE');
       setConfirmDelete(null);
       setMessage('Élément retiré.');
       setAffected([]);
-      router.refresh();
+      if (!localPreview) router.refresh();
     } catch (e) {
       setError(errorMessage(e));
       setAffected(e instanceof ApiError ? e.affected : []);
@@ -344,8 +371,30 @@ export function EntityManager({
                   </>
                 ) : (
                   <>
-                    {f.label}
-                    {f.type === 'textarea' ? (
+                    {localPreview ? ({image_path:'Image de présentation',hero_image_path:'Image d’accueil',logo_path:'Logo',path:'Image de la galerie'} as Record<string,string>)[f.key] ?? f.label : f.label}
+                    {localPreview &&
+                    [
+                      'image_path',
+                      'hero_image_path',
+                      'logo_path',
+                      'path',
+                    ].includes(f.key) ? (
+                      <select
+                        value={String(values[f.key] ?? '')}
+                        onChange={(e) =>
+                          setValues({ ...values, [f.key]: e.target.value })
+                        }
+                      >
+                        <option value="">
+                          Choisir une image de la galerie
+                        </option>
+                        {(refs.gallery ?? []).map((g) => (
+                          <option key={String(g.id)} value={String(g.path)}>
+                            {String(g.alt ?? 'Image')}
+                          </option>
+                        ))}
+                      </select>
+                    ) : f.type === 'textarea' ? (
                       <textarea
                         value={String(values[f.key] ?? '')}
                         onChange={(e) =>
@@ -408,15 +457,10 @@ export function EntityManager({
                             'title',
                           ].includes(f.key)
                         }
-                        onChange={(e) =>
-                          setValues({
-                            ...values,
-                            [f.key]:
-                              f.type === 'number' && e.target.value !== ''
-                                ? Number(e.target.value)
-                                : e.target.value,
-                          })
-                        }
+                        onChange={(e) => {
+                          const value = f.type === 'number' && e.target.value !== '' ? Number(e.target.value) : e.target.value;
+                          setValues(previous => ({...previous,[f.key]:value,...(f.key === 'name' && !edit && config.fields.some(field => field.key === 'slug') && (!previous.slug || previous.slug === shortAddress(String(previous.name ?? ''))) ? {slug:shortAddress(String(value))} : {})}));
+                        }}
                       />
                     )}
                   </>
@@ -481,35 +525,64 @@ export function EntityManager({
                 </div>
               )}
             </div>
-            <dl>
-              {config.fields.map((f) => (
-                <div style={{ display: 'contents' }} key={f.key}>
-                  <dt>{f.label}</dt>
-                  <dd>
-                    {f.ref
-                      ? String(
-                          refs[f.ref]?.find((r) => r.id === row[f.key])?.name ??
-                            row[f.key] ??
-                            'Salon',
-                        )
-                      : typeof row[f.key] === 'boolean'
-                        ? row[f.key]
-                          ? 'Oui'
-                          : 'Non'
-                        : String(row[f.key] ?? '—')}
-                  </dd>
-                </div>
-              ))}
-            </dl>
+            <div className="entity-summary">
+              {typeof row.duration_minutes === 'number' && (
+                <span>{row.duration_minutes} min</span>
+              )}
+              {typeof row.price_minor === 'number' && (
+                <span>{money(row.price_minor)}</span>
+              )}
+              {typeof row.published === 'boolean' && (
+                <span>
+                  {row.published ? 'Publié sur le site' : 'Brouillon'}
+                </span>
+              )}
+              {typeof row.active === 'boolean' && (
+                <span>{row.active ? 'Actif' : 'Inactif'}</span>
+              )}
+            </div>
+            {!!row.description && <p>{String(row.description)}</p>}
+            <details className="entity-details">
+              <summary>Informations complètes</summary>
+              <dl>
+                {config.fields.map((f) => (
+                  <div style={{ display: 'contents' }} key={f.key}>
+                    <dt>{f.label}</dt>
+                    <dd>
+                      {f.ref
+                        ? String(
+                            refs[f.ref]?.find((r) => r.id === row[f.key])
+                              ?.name ??
+                              row[f.key] ??
+                              'Salon',
+                          )
+                        : localPreview &&
+                            typeof row[f.key] === 'string' &&
+                            String(row[f.key]).startsWith('data:image/')
+                          ? 'Image enregistrée dans ce navigateur'
+                          : typeof row[f.key] === 'boolean'
+                            ? row[f.key]
+                              ? 'Oui'
+                              : 'Non'
+                            : String(row[f.key] ?? '—')}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </details>
             {slug === 'customers' && (
               <Link
                 className="text-link"
-                href={`/admin/appointments?customer=${row.id}`}
+                href={
+                  localPreview
+                    ? '/admin/preview?section=appointments'
+                    : `/admin/appointments?customer=${row.id}`
+                }
               >
                 Voir les rendez-vous ↗
               </Link>
             )}
-            {slug === 'customers' && owner && (
+            {slug === 'customers' && canEdit && !localPreview && (
               <CustomerPrivacy id={String(row.id)} />
             )}
           </article>
@@ -522,6 +595,7 @@ export function EntityManager({
   );
 }
 export function ImageUpload() {
+  const{t}=useI18n();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -541,20 +615,19 @@ export function ImageUpload() {
           const result = await response.json();
           if (!response.ok) throw Error(result.error);
           setMessage(result.path);
-        } catch (e) {
-          setError(errorMessage(e));
+        } catch {
+          setError('common.error');
         } finally {
           setBusy(false);
         }
       }}
     >
-      <h2>Ajouter une photographie</h2>
+      <h2>{t('admin.upload')}</h2>
       <p className="small">
-        Photo autorisée uniquement. JPEG, PNG ou WebP · 5 Mo maximum. Le
-        téléversement ne publie pas automatiquement la photo.
+        {t('admin.uploadNote')}
       </p>
       <label>
-        Fichier
+        {t('admin.file')}
         <input
           name="file"
           type="file"
@@ -563,17 +636,17 @@ export function ImageUpload() {
         />
       </label>
       <button className="button secondary" disabled={busy}>
-        {busy ? 'Téléversement…' : 'Téléverser'}
+        {t(busy?'common.loading':'admin.uploadAction')}
       </button>
       {message && (
         <p className="success">
-          Copiez ce chemin dans le formulaire de galerie :{' '}
+          {t('admin.uploadPath')}{' '}
           <code>{message}</code>
         </p>
       )}
       {error && (
         <p className="error" role="alert">
-          {error}
+          {t(error)}
         </p>
       )}
     </form>
@@ -606,13 +679,7 @@ export type AppointmentRow = {
     resources: { name: string } | null;
   }[];
 };
-export function AppointmentList({
-  rows,
-  role,
-}: {
-  rows: AppointmentRow[];
-  role: string;
-}) {
+export function AppointmentList({ rows }: { rows: AppointmentRow[] }) {
   const router = useRouter();
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
@@ -777,18 +844,11 @@ export function AppointmentList({
                     </p>
                   </div>
                 ))}
-              {role !== 'staff' && (
-                <AppointmentNote id={row.id} initial={row.internal_notes} />
-              )}
+              <AppointmentNote id={row.id} initial={row.internal_notes} />
             </details>
             <div className="record-actions">
               {transitions[row.status]
-                .filter(
-                  (s) =>
-                    s !== 'cancelled_by_customer' &&
-                    (role !== 'staff' ||
-                      ['in_progress', 'completed', 'no_show'].includes(s)),
-                )
+                .filter((s) => s !== 'cancelled_by_customer')
                 .map((s) => (
                   <button
                     className="button secondary"
@@ -802,18 +862,17 @@ export function AppointmentList({
                     {statusLabels[s]}
                   </button>
                 ))}
-              {role !== 'staff' &&
-                ['pending', 'confirmed'].includes(row.status) && (
-                  <button
-                    className="button secondary"
-                    onClick={() => {
-                      setSelected({ id: row.id, action: 'reschedule' });
-                      setReason('');
-                    }}
-                  >
-                    Déplacer
-                  </button>
-                )}
+              {['pending', 'confirmed'].includes(row.status) && (
+                <button
+                  className="button secondary"
+                  onClick={() => {
+                    setSelected({ id: row.id, action: 'reschedule' });
+                    setReason('');
+                  }}
+                >
+                  Déplacer
+                </button>
+              )}
               <button
                 className="button secondary"
                 onClick={async () => {

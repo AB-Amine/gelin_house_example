@@ -6,19 +6,17 @@ import { privileged, sessionDb } from '@/lib/supabase';
 export async function POST(req: NextRequest) {
   try {
     sameOrigin(req);
-    const owner = await requireStaff(true, true);
+    const owner = await requireStaff();
     const input = z
       .discriminatedUnion('action', [
         z.object({
           action: z.literal('invite'),
           email: z.email(),
           name: z.string().trim().min(2).max(120),
-          role: z.enum(['manager', 'staff']),
         }),
         z.object({
           action: z.literal('update'),
           id: z.uuid(),
-          role: z.enum(['owner', 'manager', 'staff']),
           active: z.boolean(),
         }),
       ])
@@ -28,7 +26,7 @@ export async function POST(req: NextRequest) {
         await sessionDb()
       ).rpc('owner_update_access', {
         p_id: input.id,
-        p_role: input.role,
+        p_role: 'owner',
         p_active: input.active,
       });
       if (error) throw error;
@@ -41,7 +39,7 @@ export async function POST(req: NextRequest) {
     if (error || !data.user) throw Error('INVITE_FAILED');
     const { error: insertError } = await db
       .from('admin_profiles')
-      .insert({ id: data.user.id, display_name: input.name, role: input.role });
+      .insert({ id: data.user.id, display_name: input.name, role: 'owner' });
     if (insertError) {
       throw insertError;
     }

@@ -1,7 +1,9 @@
+'use client';
 import Link from 'next/link';
+import { useI18n } from './locale-provider';
 import { Temporal } from '@js-temporal/polyfill';
 import { type calendarWindow } from '@/lib/calendar';
-import { dateLabel, timeLabel, statusLabels, type Status } from '@/lib/domain';
+import { type Status } from '@/lib/domain';
 export type CalendarEntry = {
   reference: string;
   starts_at: string;
@@ -32,9 +34,9 @@ type Exception = {
   opens: string;
   closes: string;
 };
-const businessDate = (instant: string) =>
+const businessDateAt = (instant: string, timezone: string) =>
   Temporal.Instant.from(instant)
-    .toZonedDateTimeISO('Africa/Casablanca')
+    .toZonedDateTimeISO(timezone)
     .toPlainDate()
     .toString();
 export function Calendar({
@@ -46,6 +48,7 @@ export function Calendar({
   resource,
   query,
   preview = false,
+  timezone = 'Africa/Casablanca',
 }: {
   window: ReturnType<typeof calendarWindow>;
   rows: CalendarEntry[];
@@ -55,7 +58,12 @@ export function Calendar({
   resource: string;
   query: string;
   preview?: boolean;
+  timezone?: string;
 }) {
+  const { t, locale, date, time } = useI18n();
+  const businessDate = (instant: string) => businessDateAt(instant, timezone);
+  const dateLabel = (value: string) => date(value, { timeZone: timezone });
+  const timeLabel = (value: string) => time(value, timezone);
   function dayLink(day: string) {
     return `${preview ? '/admin/preview' : '/admin/calendar'}?${new URLSearchParams({ ...(preview ? { section: 'calendar' } : {}), date: day, view: 'day', resource, q: query })}`;
   }
@@ -87,20 +95,20 @@ export function Calendar({
             ? opening
                 .map((h) => `${h.opens.slice(0, 5)}–${h.closes.slice(0, 5)}`)
                 .join(' / ')
-            : 'Salon fermé'}
+            : t('calendar.closed')}
           {resource && (
             <>
               {' '}
-              · Équipe :{' '}
+              · {t('admin.providers')} :{' '}
               {intervals(day, resource)
                 .map((h) => `${h.opens.slice(0, 5)}–${h.closes.slice(0, 5)}`)
-                .join(' / ') || 'Indisponible'}
+                .join(' / ') || t('common.unavailable')}
             </>
           )}
         </p>
         {dayClosures.map((c, i) => (
           <div className="calendar-block" key={i}>
-            Indisponible · {c.reason}
+            {t('common.unavailable')} · {c.reason}
             <small>
               {dateLabel(c.starts_at)} → {dateLabel(c.ends_at)}
             </small>
@@ -120,8 +128,8 @@ export function Calendar({
               {timeLabel(a.starts_at)}
               {!compact && ` → ${timeLabel(a.ends_at)}`}
             </strong>
-            <span>{a.customers?.name ?? 'Cliente'}</span>
-            <small>{statusLabels[a.status]}</small>
+            <span>{a.customers?.name ?? t('nav.client')}</span>
+            <small>{t(`status.${a.status}`)}</small>
             {!compact && (
               <>
                 <small>
@@ -140,11 +148,11 @@ export function Calendar({
         ))}
         {compact && appointments.length > 3 && (
           <Link className="text-link" href={dayLink(day)}>
-            + {appointments.length - 3} rendez-vous
+            + {appointments.length - 3} {t('admin.bookings')}
           </Link>
         )}
         {!appointments.length && !compact && (
-          <p className="small">Aucun rendez-vous.</p>
+          <p className="small">{t('client.noBookings')}</p>
         )}
       </>
     );
@@ -155,20 +163,15 @@ export function Calendar({
         className="calendar-scroll"
         tabIndex={0}
         role="region"
-        aria-label={`Calendrier ${period.view === 'month' ? 'mensuel' : 'hebdomadaire'}`}
+        aria-label={t('admin.calendar')}
       >
         <div className={`calendar-grid ${period.view}`}>
-          {[
-            'Lundi',
-            'Mardi',
-            'Mercredi',
-            'Jeudi',
-            'Vendredi',
-            'Samedi',
-            'Dimanche',
-          ].map((day) => (
+          {[5, 6, 7, 8, 9, 10, 11].map((day) => (
             <div className="calendar-weekday" key={day}>
-              {day}
+              {new Intl.DateTimeFormat(locale, {
+                weekday: 'long',
+                timeZone: 'UTC',
+              }).format(new Date(Date.UTC(2026, 0, day)))}
             </div>
           ))}
           {period.view === 'month' &&
@@ -204,7 +207,7 @@ export function Calendar({
         .map((day) => (
           <section className="record" key={day}>
             <h2>
-              {Temporal.PlainDate.from(day).toLocaleString('fr-MA', {
+              {Temporal.PlainDate.from(day).toLocaleString(locale, {
                 weekday: 'long',
                 day: 'numeric',
                 month: 'long',
@@ -214,7 +217,7 @@ export function Calendar({
           </section>
         ))}
       {period.view === 'list' && !rows.length && (
-        <p className="empty-state">Aucun rendez-vous sur cette période.</p>
+        <p className="empty-state">{t('client.noBookings')}</p>
       )}
     </div>
   );

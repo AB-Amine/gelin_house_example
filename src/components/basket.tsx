@@ -7,6 +7,7 @@ import {
   type ReactNode,
 } from 'react';
 import Link from 'next/link';
+import {useI18n} from './locale-provider';
 type Basket = {
   ids: string[];
   add: (id: string) => void;
@@ -76,11 +77,15 @@ export function useBasket() {
   return value;
 }
 export function BasketLink() {
+  const{t}=useI18n();
   const { ids } = useBasket();
   return (
-    <Link className="basket-link" href="/reservation">
-      Ma sélection{' '}
-      <span aria-label={`${ids.length} prestations`}>{ids.length}</span>
+    <Link
+      className={`basket-link ${ids.length ? 'has-items' : 'is-empty'}`}
+      href="/reservation"
+    >
+      {t('basket.title')}{' '}
+      <span>{ids.length}</span>
     </Link>
   );
 }
@@ -92,6 +97,7 @@ export function AddService({
   disabled?: boolean;
 }) {
   const { ids, add, remove } = useBasket();
+  const{t}=useI18n();
   const selected = ids.includes(id);
   return (
     <button
@@ -101,10 +107,10 @@ export function AddService({
       aria-pressed={selected}
     >
       {disabled
-        ? 'Indisponible'
+        ? t('common.unavailable')
         : selected
-          ? 'Retirer de ma sélection'
-          : 'Choisir cette prestation'}
+          ? t('services.selected')
+          : t('services.choose')}
       <span aria-hidden> {selected ? '−' : '+'}</span>
     </button>
   );

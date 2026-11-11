@@ -1,15 +1,30 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { api, errorMessage } from '@/lib/client';
+import { demoRequest } from '@/lib/demo-booking';
+import { useLocalCatalog } from '@/lib/demo-store';
 import {
   dateLabel,
+  emptyCatalog,
   money,
   statusLabels,
   timeLabel,
   type ManagedBooking,
   type Settings,
 } from '@/lib/domain';
-export function ManageBooking({ settings }: { settings: Settings | null }) {
+export function ManageBooking({
+  settings: initialSettings,
+  demo = false,
+}: {
+  settings: Settings | null;
+  demo?: boolean;
+}) {
+  const settings = useLocalCatalog({
+    ...emptyCatalog,
+    settings: initialSettings,
+    demo,
+  }).settings;
+  const request = demo ? demoRequest : api;
   const [booking, setBooking] = useState<ManagedBooking | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -24,7 +39,7 @@ export function ManageBooking({ settings }: { settings: Settings | null }) {
         const token = location.hash.slice(1);
         history.replaceState(null, '', location.pathname);
         setBooking(
-          await api<ManagedBooking>(
+          await request<ManagedBooking>(
             '/api/manage',
             token ? { action: 'exchange', token } : undefined,
             token ? 'POST' : 'GET',
@@ -35,17 +50,20 @@ export function ManageBooking({ settings }: { settings: Settings | null }) {
       }
     }
     void load();
-  }, []);
+  }, [request]);
   async function change(action: 'reschedule' | 'cancelled_by_customer') {
     if (!booking) return;
     setBusy(true);
     setError('');
     try {
-      await api('/api/manage', {
+      await request('/api/manage', {
         action,
+        id: booking.id,
         ...(action === 'reschedule' ? { start } : {}),
       });
-      setBooking(await api<ManagedBooking>('/api/manage', undefined, 'GET'));
+      setBooking(
+        await request<ManagedBooking>('/api/manage', undefined, 'GET'),
+      );
       setSlots([]);
       setStart('');
       setCancel(false);
@@ -141,7 +159,11 @@ export function ManageBooking({ settings }: { settings: Settings | null }) {
                       setError('');
                       try {
                         setSlots(
-                          await api('/api/manage', { action: 'slots', date }),
+                          await request('/api/manage', {
+                            action: 'slots',
+                            id: booking.id,
+                            date,
+                          }),
                         );
                         setSearched(true);
                       } catch (e) {

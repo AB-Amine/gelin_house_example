@@ -1,7 +1,8 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { api, errorMessage } from '@/lib/client';
+import {api} from '@/lib/client';
+import {useI18n} from './locale-provider';
 export function AppointmentNote({
   id,
   initial,
@@ -9,6 +10,7 @@ export function AppointmentNote({
   id: string;
   initial: string;
 }) {
+  const{t}=useI18n();
   const [note, setNote] = useState(initial),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(''),
@@ -24,15 +26,15 @@ export function AppointmentNote({
           await api('/api/admin/appointments', { action: 'note', id, note });
           setSaved(true);
           router.refresh();
-        } catch (e) {
-          setError(errorMessage(e));
+        } catch {
+          setError('common.error');
         } finally {
           setBusy(false);
         }
       }}
     >
       <label>
-        Note interne du salon
+        {t('field.notes')}
         <textarea
           value={note}
           maxLength={5000}
@@ -43,16 +45,16 @@ export function AppointmentNote({
         />
       </label>
       <button className="button secondary" disabled={busy}>
-        Enregistrer la note
+        {t('common.save')}
       </button>
       {saved && (
         <p className="success" role="status">
-          Note enregistrée.
+          {t('common.saved')}
         </p>
       )}
       {error && (
         <p className="error" role="alert">
-          {error}
+          {t(error)}
         </p>
       )}
     </form>

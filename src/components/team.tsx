@@ -1,12 +1,14 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { api, errorMessage } from '@/lib/client';
+import {api,ApiError} from '@/lib/client';
+import {useI18n} from './locale-provider';
 export function Team({
   rows,
 }: {
   rows: { id: string; display_name: string; role: string; active: boolean }[];
 }) {
+  const{t}=useI18n();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
@@ -16,12 +18,10 @@ export function Team({
     setError('');
     try {
       await api('/api/admin/team', payload);
-      setMessage(
-        'Accès mis à jour. Une invitation nécessite une livraison e-mail configurée dans Supabase.',
-      );
+      setMessage('common.saved');
       router.refresh();
     } catch (e) {
-      setError(errorMessage(e));
+      setError(e instanceof ApiError?`error.${e.code}`:'common.error');
     } finally {
       setBusy(false);
     }
@@ -30,10 +30,10 @@ export function Team({
     <>
       {error && (
         <p className="error" role="alert">
-          {error}
+          {t(error)===error?t('common.error'):t(error)}
         </p>
       )}
-      {message && <p className="success">{message}</p>}
+      {message && <p className="success">{t(message)}</p>}
       <form
         className="admin-form"
         onSubmit={(e) => {
@@ -42,24 +42,20 @@ export function Team({
           void update({ action: 'invite', ...Object.fromEntries(f.entries()) });
         }}
       >
-        <h2>Inviter un membre</h2>
+        <h2>{t('admin.invite')}</h2>
+        <p>
+          {t('admin.equalAccess')}
+        </p>
         <label>
-          Nom
+          {t('field.name')}
           <input name="name" required minLength={2} />
         </label>
         <label>
-          E-mail
+          {t('auth.email')}
           <input type="email" name="email" required />
         </label>
-        <label>
-          Rôle
-          <select name="role">
-            <option value="staff">Personnel</option>
-            <option value="manager">Responsable</option>
-          </select>
-        </label>
         <button className="button" disabled={busy}>
-          Créer l’invitation
+          {t('admin.invite')}
         </button>
       </form>
       <div className="record-list">
@@ -73,30 +69,22 @@ export function Team({
               void update({
                 action: 'update',
                 id: row.id,
-                role: f.get('role'),
                 active: f.get('active') === 'on',
               });
             }}
           >
             <h2>{row.display_name}</h2>
-            <label>
-              Rôle
-              <select name="role" defaultValue={row.role}>
-                <option value="owner">Propriétaire</option>
-                <option value="manager">Responsable</option>
-                <option value="staff">Personnel</option>
-              </select>
-            </label>
+            <p>{t('nav.admin')}</p>
             <label className="checkbox-label">
               <input
                 type="checkbox"
                 name="active"
                 defaultChecked={row.active}
               />
-              Accès actif
+              {t('field.active')}
             </label>
             <button className="button secondary" disabled={busy}>
-              Enregistrer les droits
+              {t('common.save')}
             </button>
           </form>
         ))}

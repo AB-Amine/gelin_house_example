@@ -1,21 +1,23 @@
-import Link from 'next/link';
+﻿import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getStaff } from '@/lib/auth';
 import { publicConfig } from '@/lib/supabase';
-import { AuthForm } from '@/components/admin';
+import { FatuAdminAuth } from '@/components/fatu-admin-auth';
+import { getI18n } from '@/lib/i18n/server';
+import { FatuWordmark } from '@/components/fatu-shell';
+import { LanguageSwitcher } from '@/components/locale-provider';
 export default async function Login() {
   if (await getStaff()) redirect('/admin');
+  const { t } = await getI18n();
   return (
-    <main id="main" className="login-wrap">
-      <span className="eyebrow">GELIN HOUSE · ESPACE PRIVÉ</span>
-      <h1>
-        Bienvenue
-        <br />à la maison.
-      </h1>
-      <p>L’espace de gestion du salon.</p>
-      <AuthForm configured={!!publicConfig()} />
-      <Link href="/" className="text-link">
-        ← Retour au site
+    <main id="main" className="fatu-admin-login">
+      <FatuWordmark />
+      <LanguageSwitcher />
+      <h1>{t('admin.title')}</h1>
+      <p>{t('admin.equalAccess')}</p>
+      <FatuAdminAuth configured={!!publicConfig()} />
+      <Link className="fatu-text-link" href="/">
+        {t('admin.visit')} ↗
       </Link>
     </main>
   );

@@ -11,6 +11,7 @@ import {
 } from '@/lib/http';
 import { privileged } from '@/lib/supabase';
 import type { ManagedBooking } from '@/lib/domain';
+import {requireClient} from '@/lib/client-auth';
 async function current() {
   const token = (await cookies()).get('gh-booking')?.value;
   if (!token || !/^[a-f0-9]{64}$/.test(token)) throw Error('FORBIDDEN');
@@ -39,12 +40,18 @@ export async function POST(req: NextRequest) {
           action: z.literal('exchange'),
           token: z.string().regex(/^[a-f0-9]{64}$/),
         }),
-        z.object({ action: z.literal('cancelled_by_customer') }),
+        z.object({ action: z.literal('cancelled_by_customer'), id: z.uuid() }),
+        z.object({ action: z.literal('claim'), id: z.uuid() }),
         z.object({
           action: z.literal('reschedule'),
+          id: z.uuid(),
           start: z.iso.datetime({ offset: true }),
         }),
-        z.object({ action: z.literal('slots'), date: z.iso.date() }),
+        z.object({
+          action: z.literal('slots'),
+          id: z.uuid(),
+          date: z.iso.date(),
+        }),
       ])
       .parse(await body(req));
     if (input.action === 'exchange') {
@@ -63,6 +70,15 @@ export async function POST(req: NextRequest) {
       return ok(data);
     }
     const { booking, hash } = await current();
+    // Another tab may have exchanged a different link into the shared cookie.
+    // Never mutate a booking other than the one the user reviewed in this tab.
+    if (input.id !== booking.id) throw Error('FORBIDDEN');
+    if(input.action==='claim'){
+      const{user}=await requireClient();
+      const{error}=await privileged().rpc('claim_guest_booking',{p_user:user.id,p_token_hash:hash});
+      if(error)throw error;
+      return ok({success:true});
+    }
     if (input.action === 'slots') {
       const { data, error } = await privileged().rpc('available_slots', {
         p_services: booking.items.map((i) => i.service_id),

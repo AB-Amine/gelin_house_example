@@ -1,4 +1,6 @@
 node_modules/
+.tools/
+.npm-cache/
 .next/
 out/
 dist/

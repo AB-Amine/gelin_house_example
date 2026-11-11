@@ -1,86 +1,58 @@
-﻿# GELIN HOUSE
+﻿# Fatu Makeup Artist
 
-A French salon website and private operations dashboard built with Next.js,
-React, strict TypeScript and Supabase PostgreSQL/Auth/Storage.
+An editorial makeup artist website, administrator workspace and private client portal built on the existing Next.js / React / TypeScript / Supabase project.
 
-## Current result
+- [Setup, content onboarding and zero-DH launch](docs/FATU_SETUP.md)
+- [Implementation phases and architecture](docs/FATU_IMPLEMENTATION.md)
+- [Validation and external checks](docs/FATU_VALIDATION.md)
+- [Initial repository audit](docs/FATU_PHASE_0_AUDIT.md)
 
-The public pages, persistent multi-service selection, transactional booking engine,
-secure guest management, staff authentication, role-based administration,
-service/category/offer/content/gallery management, scheduling, customer records,
-privacy anonymization and operational reporting are implemented in this workspace.
-Seven SQL migrations define persistent storage, RLS/grants and transactional APIs.
+## Run locally
 
-**External setup is still required before real bookings can be accepted.** No
-salon Supabase project, owner account, real business catalog or production domain
-has been configured. The app runs without credentials with explicit empty states
-and booking disabled. No invented business details, prices, staff or photographs
-are published. See [the implementation report](docs/IMPLEMENTATION_REPORT.md) for
-verification results, unexecuted tests and deliberate version-one limits.
-
-## Start locally on Windows
-
-Tested with Node.js 24.18.0. Node.js 24 or newer is required.
+Use Node.js 24 or newer. In PowerShell, use `npm.cmd` when script execution policy blocks `npm.ps1`.
 
 ```powershell
-cd E:\exemplaire_gelin_house
 npm.cmd ci
-Copy-Item .env.example .env.local
+if (-not (Test-Path .env.local)) { Copy-Item .env.example .env.local }
 npm.cmd run dev
 ```
 
-Open **http://127.0.0.1:3000**. Administration: **/admin/login**.
-To inspect the administration design without Supabase, open
-**http://127.0.0.1:3000/admin/preview** while running `npm.cmd run dev`.
-This development-only, read-only preview uses clearly labeled fictional data;
-it does not sign in, modify records, or enable real admin access. Production
-builds return 404 for this route.
-Keep `APP_URL` equal to the exact browser origin. Use `npm.cmd` in PowerShell
-when execution policy blocks `npm.ps1`; no policy change is necessary.
+Open **http://127.0.0.1:3000**. Public pages work without credentials with honest onboarding states. Real bookings, contact saving and authentication need Supabase. The development-only **/admin/preview** lets you inspect the design and edit browser-only preview content; it never publishes to the public website or creates real reservations. Production returns 404 for this route.
 
-To connect the database, fill `.env.local` privately, then run:
+Real administrator login: **/admin/login**. Private customer account: **/client**. All active administrators have the same permissions. Artist/resource scheduling is separate from authentication; clients have their own ownership-checked access.
+
+## Activate the database
+
+Create separate development and production Supabase projects. Fill the placeholders in `.env.local` privately, then run:
 
 ```powershell
 npm.cmd run db:migrate
-npm.cmd run owner:create
+npm.cmd run owner:create -- --user-id EMAIL_CONFIRMED_AUTH_USER_UUID
 ```
 
-The first owner is invited through Supabase email; no password is seeded. Configure
-SMTP, email templates and callback URLs first, as described in
-[DEPLOYMENT.md](docs/DEPLOYMENT.md). The owner then supplies approved salon data
-through the dashboard and explicitly enables booking.
+Apply **all migrations in order**, including the additive Fatu migrations after 009. The provisioning command retains its original name for compatibility; it creates an equal-access administrator. The setup guide explains Auth callback/SMTP configuration, image uploads and approved business content.
 
-## Checks
+## Check the implementation
 
 ```powershell
 npm.cmd run typecheck
 npm.cmd run lint
-npm.cmd run test
+npm.cmd test
 npm.cmd run test:db
 npm.cmd run build
-npx.cmd playwright install chromium
 npm.cmd run test:e2e
 ```
 
-The SQL suite uses a disposable real PostgreSQL instance and never your production
-connection. Browser tests use a fresh production server on port 3100. Connected
-Supabase journeys are skipped until an isolated project and test account are
-configured. See [TESTING.md](docs/TESTING.md).
+Unit/API and disposable-PostgreSQL tests can run without a hosted database. Connected Auth/Storage/browser journeys require an explicitly isolated Supabase test project. They are not represented as executed when credentials are absent.
 
-## Documentation
+## Publication status
 
-- [Architecture](docs/ARCHITECTURE.md)
-- [Database](docs/DATABASE.md)
-- [Booking rules](docs/BOOKING_RULES.md)
-- [Owner guide (French)](docs/ADMIN_GUIDE.md)
-- [Deployment and provisioning](docs/DEPLOYMENT.md)
-- [Testing](docs/TESTING.md)
-- [Business onboarding](docs/BUSINESS_ONBOARDING.md)
-- [Edge-case behavior](docs/EDGE_CASES.md)
-- [Implementation report](docs/IMPLEMENTATION_REPORT.md)
-- [Progress](docs/PROGRESS.md)
+**Not deployed. Not declared production-ready.** Business facts, policies, approved translations and real portfolio consent must be supplied by Fatu. Temporary licensed editorial photos are identified in [the asset manifest](public/images/manifest.json) and on the pages; they are not presented as Fatu or her work. No fictional reviews, service prices or contact information are published.
 
-No payment processing or automatic booking messages are implemented. WhatsApp
-opens a draft conversation. Pending requests reserve capacity until salon action.
-All values use MAD centimes; scheduling uses Africa/Casablanca timezone rules.
-The initial interface is French. Arabic/RTL translation is not implemented yet.
+Booking requests remain pending until an administrator confirms. City eligibility, city/global/artist hours, exact prices and travel fees are checked by PostgreSQL transactions. Client requests preserve their existing appointment until reviewed. Payment records represent actual manually recorded receipts/refunds, separately from booking value. Notification events are queued integration records; no booking email/SMS/WhatsApp provider has been activated.
+
+The zero-DH strategy is Netlify Free plus Supabase Free and the included hosting address, subject to provider quotas and inactivity pauses. Public customer email activation also requires verified SMTP setup. No deployment, provider account mutation or live database migration was performed here.
+
+## Provenance
+
+The original repository and historical migration chain were retained. Earlier `GELIN HOUSE` reports in `docs/` describe the predecessor implementation; the Fatu documents above describe the active routes. No license file was supplied in the repository at audit time, so no new license or ownership claim is asserted.

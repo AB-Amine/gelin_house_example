@@ -1,4 +1,13 @@
+> **Current Fatu implementation:** see [Fatu setup](FATU_SETUP.md), [implementation phases](FATU_IMPLEMENTATION.md) and [validation](FATU_VALIDATION.md). The predecessor details below are retained for history and may describe older routes or test counts.
+
 # Testing
+
+For the current single-administrator model and deployment workflow, see
+[ZERO_DH_LAUNCH.md](ZERO_DH_LAUNCH.md). The database suite first exercises the
+original permission boundaries, then applies migration 008 and verifies the upgrade
+to equal administrator access. It includes 28 checks. The 18 unit/API tests include
+cross-tab guest-booking identity regression coverage. Windows test clusters use
+synchronous I/O to avoid orphaned native workers during shutdown.
 
 ## Commands
 
@@ -27,11 +36,11 @@ The extension is preinstalled outside `public` to exercise Supabase-style layout
 
 ## Verified local coverage
 
-- Thirteen unit tests: exact pricing, rounding, discount bounds, eligibility/expiry,
+- Eighteen unit/API tests: exact pricing, rounding, discount bounds, eligibility/expiry,
   consultation uncertainty, telephone normalization, consent/input validation,
   service deduplication, terminal statuses, Casablanca clock changes and calendar
-  month/week/day boundaries.
-- Twenty-six database checks: clean migrations, closed configuration gate,
+  month/week/day boundaries, plus guest booking identity checks across browser tabs.
+- Twenty-eight database checks: clean migrations, closed configuration gate,
   anonymous privacy/execute permissions, multi-service snapshots and occupancy,
   idempotency, overlap/closing-time rejection, management capabilities, role
   authorization, simultaneous submissions, reschedule rollback, cancellation
@@ -41,13 +50,14 @@ The extension is preinstalled outside `public` to exercise Supabase-style layout
   protection, real reporting, privacy anonymization/token revocation and
   date-specific opening overrides, assigned-only staff access, scoped search and
   internal-note confidentiality/anonymization.
-- Fourteen desktop/mobile browser checks against an unconfigured app: responsive
+- Eighteen desktop/mobile browser checks against an unconfigured app: responsive
   public pages, navigation, missing content, basket persistence/deduplication/
   removal/revalidation, closed checkout, protected admin routes, fake localStorage
   authentication rejection, private-page noindex and API access/origin rejection.
 - Screenshots are generated under `test-results/` for desktop/mobile homepage review.
 
-See IMPLEMENTATION_REPORT.md for the final execution status and limits.
+See [COMPLETION_UPDATE.md](COMPLETION_UPDATE.md) for the current execution status
+and limits; IMPLEMENTATION_REPORT.md records the initial version.
 
 ## Browser test isolation
 

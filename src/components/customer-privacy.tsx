@@ -1,8 +1,10 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { api, errorMessage } from '@/lib/client';
+import {api} from '@/lib/client';
+import {useI18n} from './locale-provider';
 export function CustomerPrivacy({ id }: { id: string }) {
+  const{t}=useI18n();
   const [open, setOpen] = useState(false),
     [error, setError] = useState(''),
     [busy, setBusy] = useState(false);
@@ -19,44 +21,41 @@ export function CustomerPrivacy({ id }: { id: string }) {
           await api('/api/admin/privacy', { id, reason: values.get('reason') });
           setOpen(false);
           router.refresh();
-        } catch (e) {
-          setError(errorMessage(e));
+        } catch {
+          setError('common.error');
         } finally {
           setBusy(false);
         }
       }}
     >
       <p>
-        Après vérification de l’identité et de la demande, cette action efface
-        les coordonnées et les notes, puis révoque les liens privés.
-        L’historique des prestations reste conservé. Les rendez-vous actifs
-        doivent d’abord être résolus.
+        {t('admin.privacyNote')}
       </p>
       <label>
-        Référence interne de la demande (sans données personnelles)
+        {t('admin.privacyReason')}
         <input name="reason" required minLength={5} maxLength={300} />
       </label>
       {error && (
         <p className="error" role="alert">
-          {error}
+          {t(error)}
         </p>
       )}
       <div className="inline-actions">
         <button className="button" disabled={busy}>
-          Confirmer l’anonymisation
+          {t('admin.anonymize')}
         </button>
         <button
           type="button"
           className="button secondary"
           onClick={() => setOpen(false)}
         >
-          Conserver
+          {t('common.cancel')}
         </button>
       </div>
     </form>
   ) : (
     <button className="remove" onClick={() => setOpen(true)}>
-      Traiter une demande d’effacement
+      {t('admin.anonymize')}
     </button>
   );
 }

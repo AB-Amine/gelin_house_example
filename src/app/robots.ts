@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/admin', '/api', '/reservation', '/auth'],
+      disallow: ['/admin', '/api', '/reservation', '/auth','/client'],
     },
     ...(origin?.startsWith('https://')
       ? { sitemap: `${origin}/sitemap.xml` }

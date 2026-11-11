@@ -17,9 +17,9 @@ test.describe('configured Supabase journeys', () => {
       .fill(process.env.E2E_OWNER_PASSWORD!);
     await page.getByRole('button', { name: 'Se connecter' }).click();
     await expect(page).toHaveURL(/\/admin$/);
-    await page.getByRole('link', { name: 'Rendez-vous', exact: true }).click();
+    await page.goto('/admin/bookings');
     await expect(
-      page.getByRole('heading', { name: 'Les rendez-vous' }),
+      page.getByRole('heading', { name: 'Réservations' }),
     ).toBeVisible();
     await page.getByRole('button', { name: 'Se déconnecter' }).click();
     await expect(page).toHaveURL(/\/admin\/login$/);

@@ -1,15 +1,13 @@
-import { AuthForm } from '@/components/admin';
+﻿import { FatuAdminAuth } from '@/components/fatu-admin-auth';
 import { publicConfig } from '@/lib/supabase';
-export default function Reset() {
+import { L } from '@/components/locale-provider';
+export default function Page() {
   return (
-    <main id="main" className="login-wrap">
-      <span className="eyebrow">GELIN HOUSE</span>
+    <main id="main" className="fatu-admin-login">
       <h1>
-        Retrouver
-        <br />
-        votre accès.
+        <L text="auth.reset" />
       </h1>
-      <AuthForm mode="reset" configured={!!publicConfig()} />
+      <FatuAdminAuth configured={!!publicConfig()} mode="reset" />
     </main>
   );
 }

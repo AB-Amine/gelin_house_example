@@ -1,13 +1,15 @@
 import { requirePageStaff } from '@/lib/auth';
 import { sessionDb } from '@/lib/supabase';
-import { dateLabel } from '@/lib/domain';
+import {getI18n} from '@/lib/i18n/server';
 import Link from 'next/link';
 export default async function Activity({
   searchParams,
 }: {
   searchParams: Promise<{ page?: string }>;
 }) {
-  await requirePageStaff(true);
+  await requirePageStaff();
+  const{t,locale}=await getI18n();
+  const dateLabel=(value:string)=>new Intl.DateTimeFormat(locale,{dateStyle:'long',timeStyle:'short',timeZone:'Africa/Casablanca'}).format(new Date(value));
   const page = Math.max(1, Number((await searchParams).page) || 1);
   const { data, error, count } = await (
     await sessionDb()
@@ -18,9 +20,9 @@ export default async function Activity({
     .range((page - 1) * 50, page * 50 - 1);
   return (
     <>
-      <h1>L’activité du salon</h1>
+      <h1>{t('admin.activity')}</h1>
       {error ? (
-        <p className="error">L’historique n’est pas disponible.</p>
+        <p className="error">{t('common.error')}</p>
       ) : (
         <div className="record-list">
           {data?.map((log) => (
@@ -32,19 +34,19 @@ export default async function Activity({
             </article>
           ))}
           {!data?.length && (
-            <p className="empty-state">Aucune modification enregistrée.</p>
+            <p className="empty-state">{t('common.empty')}</p>
           )}
         </div>
       )}
       <div className="inline-actions" style={{ marginTop: 25 }}>
         {page > 1 && (
           <Link className="text-link" href={`?page=${page - 1}`}>
-            ← Précédent
+            ← {t('common.back')}
           </Link>
         )}
         {page * 50 < (count ?? 0) && (
           <Link className="text-link" href={`?page=${page + 1}`}>
-            Suivant →
+            {t('common.next')} →
           </Link>
         )}
       </div>

@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
       })
       .safeParse(input);
     if (note.success) {
-      await requireStaff(true);
+      await requireStaff();
       const { error } = await (
         await sessionDb()
       ).rpc('admin_note', { p_id: note.data.id, p_note: note.data.note });
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
       })
       .safeParse(input);
     if (manual.success) {
-      await requireStaff(true);
+      await requireStaff();
       const v = manual.data.booking;
       const { data, error } = await privileged().rpc('create_booking', {
         p_services: v.services,

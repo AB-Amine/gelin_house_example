@@ -1,4 +1,5 @@
 ﻿import Link from 'next/link';
+import { getI18n } from '@/lib/i18n/server';
 import { z } from 'zod';
 import { sessionDb } from '@/lib/supabase';
 import { requirePageStaff } from '@/lib/auth';
@@ -15,12 +16,18 @@ export default async function CalendarPage({
     q?: string;
   }>;
 }) {
-  const staff = await requirePageStaff();
+  await requirePageStaff();
   const p = await searchParams;
-  const period = calendarWindow(p.date, p.view);
+  const { t } = await getI18n();
+  const db = await sessionDb();
+  const { data: settings } = await db
+    .from('salon_settings')
+    .select('timezone')
+    .single();
+  const timezone = settings?.timezone ?? 'Africa/Casablanca';
+  const period = calendarWindow(p.date, p.view, timezone);
   const resource = z.uuid().safeParse(p.resource).success ? p.resource! : '';
   const q = (p.q ?? '').slice(0, 80);
-  const db = await sessionDb();
   const [
     { data: rows, error },
     { data: resources },
@@ -62,26 +69,26 @@ export default async function CalendarPage({
     `/admin/calendar?${new URLSearchParams({ date, view: period.view, resource, q })}`;
   return (
     <>
-      <span className="eyebrow">LE TEMPS DU SALON</span>
-      <h1>Le calendrier</h1>
+      <span className="eyebrow">{t('admin.providers')}</span>
+      <h1>{t('admin.calendar')}</h1>
       <form className="admin-toolbar">
         <label>
-          Date
+          {t('field.day')}
           <input name="date" type="date" defaultValue={period.anchor} />
         </label>
         <label>
-          Vue
+          {t('calendar.view')}
           <select name="view" defaultValue={period.view}>
-            <option value="day">Jour</option>
-            <option value="week">Semaine</option>
-            <option value="month">Mois</option>
-            <option value="list">Liste (30 jours)</option>
+            <option value="day">{t('calendar.day')}</option>
+            <option value="week">{t('calendar.week')}</option>
+            <option value="month">{t('calendar.month')}</option>
+            <option value="list">{t('calendar.list')}</option>
           </select>
         </label>
         <label>
-          Prestataire
+          {t('admin.providers')}
           <select name="resource" defaultValue={resource}>
-            <option value="">Tous les prestataires autorisés</option>
+            <option value="">{t('common.all')}</option>
             {resources?.map((r) => (
               <option value={r.id} key={r.id}>
                 {r.name}
@@ -90,38 +97,27 @@ export default async function CalendarPage({
           </select>
         </label>
         <label>
-          Nom, téléphone ou référence
+          {t('calendar.search')}
           <input name="q" type="search" defaultValue={q} maxLength={80} />
         </label>
-        <button className="button">Afficher</button>
-        {staff.role !== 'staff' && (
-          <Link className="button secondary" href="/admin/appointments/new">
-            + Rendez-vous
-          </Link>
-        )}
+        <button className="button">{t('common.filter')}</button>
+        <Link className="button secondary" href="/admin/appointments/new">
+          + {t('admin.manual')}
+        </Link>
       </form>
       <div className="calendar-navigation">
         <Link className="button secondary" href={href(period.previous)}>
-          ← Précédent
+          ← {t('common.back')}
         </Link>
         <span>
           {period.from} — {period.to}
         </span>
         <Link className="button secondary" href={href(period.next)}>
-          Suivant →
+          {t('common.next')} →
         </Link>
       </div>
-      {staff.role === 'staff' && (
-        <p className="notice">
-          Seuls les rendez-vous attribués à votre ressource sont visibles. La
-          propriétaire associe votre compte à votre fiche d’équipe.
-        </p>
-      )}
       {error ? (
-        <p className="error">
-          Impossible de charger le calendrier. Vérifiez votre session et
-          réessayez.
-        </p>
+        <p className="error">{t('common.error')}</p>
       ) : (
         <Calendar
           window={period}
@@ -131,17 +127,14 @@ export default async function CalendarPage({
           exceptions={exceptions ?? []}
           resource={resource}
           query={q}
+          timezone={timezone}
         />
       )}
       <p className="small">
-        Heure locale : Africa/Casablanca. Les zones d’indisponibilité indiquent
-        les fermetures et absences configurées. Les créneaux de réservation
-        vérifient aussi les pauses, ressources et rendez-vous actifs.
+        {timezone} · {t('calendar.availabilityNote')}
       </p>
       {Array.isArray(rows) && rows.length === 500 && (
-        <p className="notice">
-          500 résultats affichés. Réduisez la période ou filtrez le prestataire.
-        </p>
+        <p className="notice">{t('calendar.limit')}</p>
       )}
     </>
   );

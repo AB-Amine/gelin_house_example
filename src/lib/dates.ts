@@ -1,10 +1,10 @@
 import { Temporal } from '@js-temporal/polyfill';
 import { localInstant, TIMEZONE } from './domain';
-export function businessToday() {
-  return Temporal.Now.zonedDateTimeISO(TIMEZONE).toPlainDate().toString();
+export function businessToday(timezone=TIMEZONE) {
+  return Temporal.Now.zonedDateTimeISO(timezone).toPlainDate().toString();
 }
-export function dateRange(from?: string, to?: string, days = 30) {
-  const today = businessToday();
+export function dateRange(from?: string, to?: string, days = 30,timezone=TIMEZONE) {
+  const today = businessToday(timezone);
   let start = from ?? today,
     end = to ?? Temporal.PlainDate.from(today).add({ days }).toString();
   try {
@@ -23,10 +23,11 @@ export function dateRange(from?: string, to?: string, days = 30) {
   return {
     from: start,
     to: end,
-    start: localInstant(start, '00:00'),
+    start: localInstant(start, '00:00',timezone),
     end: localInstant(
       Temporal.PlainDate.from(end).add({ days: 1 }).toString(),
       '00:00',
+      timezone,
     ),
   };
 }

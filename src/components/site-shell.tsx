@@ -1,14 +1,16 @@
+import { salonImage } from '@/lib/assets';
 import Link from 'next/link';
 import Image from 'next/image';
 import { BasketLink } from './basket';
 import type { Settings } from '@/lib/domain';
+import { PublicNavigation } from './public-navigation';
 export function Header({ settings }: { settings: Settings | null }) {
   return (
     <header className="site-header">
       <Link href="/" className="wordmark" aria-label="GELIN HOUSE — Accueil">
         {settings?.logo_path ? (
           <Image
-            src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/salon-images/${settings.logo_path}`}
+            src={salonImage(settings.logo_path)}
             alt={settings.name}
             width={154}
             height={70}
@@ -28,18 +30,12 @@ export function Header({ settings }: { settings: Settings | null }) {
           </>
         )}
       </Link>
-      <nav aria-label="Navigation principale">
-        <Link href="/services">Les prestations</Link>
-        <Link href="/offres">Les offres</Link>
-        <Link href="/galerie">La galerie</Link>
-        <Link href="/a-propos">La maison</Link>
-        <Link href="/contact">Contact</Link>
-      </nav>
+      <PublicNavigation />
       <BasketLink />
     </header>
   );
 }
-export function Footer({ settings }: { settings: Settings | null }) {
+export function Footer({ settings, demo = false }: { settings: Settings | null; demo?: boolean }) {
   return (
     <footer className="site-footer">
       <div>
@@ -52,6 +48,7 @@ export function Footer({ settings }: { settings: Settings | null }) {
         <Link href="/services">Les prestations</Link>
         <Link href="/contact">Nous contacter</Link>
         <Link href="/confidentialite">Confidentialité & réservation</Link>
+        <Link href={demo ? '/admin/preview' : '/admin/login'}>Espace du salon ↗</Link>
       </div>
       <div>
         {settings?.instagram && (
@@ -82,6 +79,12 @@ export function Placeholder({
     >
       <div className="arch-line" />
       <div className="arch-line second" />
+      {large && (
+        <div className="hero-monogram" aria-hidden="true">
+          <span>g.</span>
+          <small>L’ART DE PRENDRE SOIN DE SOI</small>
+        </div>
+      )}
       <span>{label}</span>
     </div>
   );

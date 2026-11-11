@@ -1,25 +1,26 @@
+> **Current Fatu implementation:** see [Fatu setup](FATU_SETUP.md), [implementation phases](FATU_IMPLEMENTATION.md) and [validation](FATU_VALIDATION.md). The predecessor details below are retained for history and may describe older routes or test counts.
+
 # Guide de la propriétaire
 
 ## Accéder à l’espace du salon
 
 Ouvrez `/admin/login` sur le domaine du salon et ajoutez cette page aux favoris de
 votre téléphone. Aucun compte administrateur n’est créé par défaut. Le premier
-compte doit être invité selon [DEPLOYMENT.md](DEPLOYMENT.md). Les réservations
+compte peut être créé sans service e-mail selon [ZERO_DH_LAUNCH.md](ZERO_DH_LAUNCH.md),
+ou invité selon [DEPLOYMENT.md](DEPLOYMENT.md). Les réservations
 clientes ne nécessitent aucun compte.
 
-Les propriétaires gèrent tous les réglages et les accès. Les responsables gèrent
-les opérations et le contenu, sans modifier les réglages du salon ni les comptes.
-Le personnel peut consulter ses rendez-vous attribués et marquer ces rendez-vous
-en cours, terminés ou absents. Le dernier propriétaire actif reste protégé contre
-la désactivation. Un compte désactivé perd l’accès aux opérations même si une
+Tous les administrateurs actifs disposent du même accès complet : site,
+réservations, réglages et invitations. Il n’y a aucun rôle à choisir. Les
+prestataires du planning n’ont pas besoin de compte. Le dernier administrateur
+actif reste protégé contre la désactivation. Un compte désactivé perd l’accès aux opérations même si une
 ancienne session Supabase existe encore.
 
 ## Préparer le salon avant l’ouverture des réservations
 
-1. Dans **Équipe et ressources**, créez les véritables prestataires avec le type
+1. Dans **Prestataires** (page **Équipe et ressources**), créez les véritables prestataires avec le type
    `staff`. Un seul prestataire suffit. Activez chaque ressource utilisée.
-   Si le prestataire possède un accès de gestion, associez son compte à sa ressource
-   pour limiter son calendrier à ses rendez-vous attribués.
+   Aucun compte ni lien avec un compte n’est nécessaire pour planifier les prestations.
 2. Créez les catégories et prestations réelles. Les prix sont en **centimes MAD** :
    `15000` signifie **150 MAD**. Un prix `consultation` doit être laissé vide.
    Renseignez la durée, les temps de préparation/nettoyage, la visibilité et
@@ -54,7 +55,7 @@ Dans **Rendez-vous**, filtrez la période ou le statut,
 ouvrez les coordonnées et l’historique, puis confirmez ou refusez une demande.
 Un rendez-vous manuel suit les mêmes contraintes que la réservation cliente.
 Ouvrez les détails pour consulter les montants, réductions et prestataires figés
-à la réservation. Les propriétaires et responsables peuvent enregistrer des notes
+à la réservation. Les administrateurs peuvent enregistrer des notes
 internes ; elles ne sont pas transmises au lien de gestion de la cliente.
 
 Le déplacement préserve le créneau précédent si le nouveau choix échoue. Un
@@ -84,7 +85,7 @@ les dates persistées. Les prix sur consultation et à partir de restent à conf
 ## Photos, contenu et identité
 
 Dans **Galerie**, **Réglages du salon**, **Prestations** ou **Catégories**, téléversez une photo autorisée (JPEG,
-PNG ou WebP, 5 Mo maximum). Le serveur contrôle le contenu, retire les métadonnées,
+PNG ou WebP, 4 Mo maximum). Le serveur contrôle le contenu, retire les métadonnées,
 redimensionne l’image et la convertit en WebP. Copiez le chemin obtenu dans une
 entrée de galerie, de prestation, de catégorie, de logo ou de photo d’accueil. Le téléversement seul ne publie
 pas la photo. Donnez un texte alternatif et un ordre aux images de galerie.
@@ -105,7 +106,7 @@ l’image principale et une palette d’accents contrôlée. Les changements son
 Le répertoire affiche les clientes enregistrées et leurs rendez-vous. Un même
 téléphone peut correspondre à plusieurs personnes : aucune fusion automatique
 n’est effectuée. Vérifiez l’identité et la légitimité d’une demande d’effacement
-avant d’utiliser **Traiter une demande d’effacement** (propriétaire uniquement).
+avant d’utiliser **Traiter une demande d’effacement** (accès administrateur).
 
 L’anonymisation efface les coordonnées et notes de cette cliente ainsi que les
 notes de ses rendez-vous, puis révoque les liens privés. Les réservations actives

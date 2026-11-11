@@ -24,6 +24,8 @@ import {
   type ManagedBooking,
 } from '@/lib/domain';
 import { api, ApiError, errorMessage, randomToken } from '@/lib/client';
+import { useLocalCatalog } from '@/lib/demo-store';
+import { demoRequest } from '@/lib/demo-booking';
 type Intent = z.infer<typeof bookingSchema> & { manualSource?: string };
 type Success = {
   reference: string;
@@ -32,12 +34,14 @@ type Success = {
   booking: ManagedBooking;
 };
 export function Booking({
-  catalog,
+  catalog: initialCatalog,
   manual = false,
 }: {
   catalog: Catalog;
   manual?: boolean;
 }) {
+  const catalog = useLocalCatalog(initialCatalog);
+  const request = catalog.demo ? demoRequest : api;
   const basket = useBasket();
   const [date, setDate] = useState('');
   const [slots, setSlots] = useState<{ starts_at: string; ends_at: string }[]>(
@@ -53,7 +57,11 @@ export function Booking({
   const [source, setSource] = useState('phone');
   const [management, setManagement] = useState('');
   const counter = useRef(0);
-  const storageKey = manual ? 'gh-manual-intent' : 'gh-intent';
+  const storageKey = catalog.demo
+    ? 'gh-demo-intent'
+    : manual
+      ? 'gh-manual-intent'
+      : 'gh-intent';
   const form = useForm<
     z.input<typeof contactSchema>,
     unknown,
@@ -123,7 +131,7 @@ export function Booking({
     setQuote(null);
     setStart('');
     try {
-      const data = await api<typeof slots>('/api/availability', {
+      const data = await request<typeof slots>('/api/availability', {
         services: basket.ids,
         date,
       });
@@ -144,7 +152,7 @@ export function Booking({
     setBusy(true);
     setError('');
     try {
-      const valueQuote = await api<Quote>('/api/quote', {
+      const valueQuote = await request<Quote>('/api/quote', {
         services: basket.ids,
         start: value,
       });
@@ -160,7 +168,7 @@ export function Booking({
     setBusy(true);
     setError('');
     try {
-      const result = await api<Success>(
+      const result = await request<Success>(
         manual ? '/api/admin/appointments' : '/api/bookings',
         manual
           ? { action: 'create', booking: v, source: v.manualSource ?? source }
@@ -194,7 +202,11 @@ export function Booking({
   if (result)
     return (
       <section>
-        <span className="eyebrow">DEMANDE ENREGISTRÉE</span>
+        <span className="eyebrow">
+          {catalog.demo
+            ? 'SIMULATION ENREGISTRÉE DANS CE NAVIGATEUR'
+            : 'DEMANDE ENREGISTRÉE'}
+        </span>
         <h1 style={{ fontSize: 48 }}>
           Votre moment
           <br />
@@ -271,6 +283,29 @@ export function Booking({
     );
   return (
     <div className="booking-layout">
+      {catalog.demo && (
+        <p className="notice local-booking-notice" role="status">
+          Simulation locale · Utilisez des coordonnées fictives. Aucun
+          rendez-vous réel ni message n’est envoyé.
+        </p>
+      )}
+      <ol className="booking-progress" aria-label="Étapes de réservation">
+        {['Votre sélection', 'Le créneau', 'Vos coordonnées'].map(
+          (label, index) => (
+            <li
+              key={label}
+              aria-current={
+                (quote ? 2 : basket.ids.length ? 1 : 0) === index
+                  ? 'step'
+                  : undefined
+              }
+            >
+              <span aria-hidden>{String(index + 1).padStart(2, '0')}</span>
+              {label}
+            </li>
+          ),
+        )}
+      </ol>
       <div>
         {!catalog.settings?.booking_enabled && (
           <p className="notice">

@@ -1,11 +1,9 @@
 import 'server-only';
 import { sessionDb } from './supabase';
-import { redirect, notFound } from 'next/navigation';
-export async function requirePageStaff(manage = false, owner = false) {
+import { redirect } from 'next/navigation';
+export async function requirePageStaff() {
   const staff = await getStaff();
   if (!staff) redirect('/admin/login');
-  if ((manage && staff.role === 'staff') || (owner && staff.role !== 'owner'))
-    notFound();
   return staff;
 }
 export async function getStaff() {
@@ -26,13 +24,8 @@ export async function getStaff() {
     return null;
   }
 }
-export async function requireStaff(manage = false, owner = false) {
+export async function requireStaff() {
   const staff = await getStaff();
-  if (
-    !staff ||
-    (manage && staff.role === 'staff') ||
-    (owner && staff.role !== 'owner')
-  )
-    throw Error('FORBIDDEN');
+  if (!staff) throw Error('FORBIDDEN');
   return staff;
 }

@@ -1,16 +1,22 @@
+> **Current Fatu implementation:** see [Fatu setup](FATU_SETUP.md), [implementation phases](FATU_IMPLEMENTATION.md) and [validation](FATU_VALIDATION.md). The predecessor details below are retained for history and may describe older routes or test counts.
+
 # Deployment and configuration
 
 The code is implemented locally. Nothing has been deployed to a salon domain or
 connected to a real Supabase project during this session.
+
+For the recommended **0 DH Netlify Free + Supabase Free** setup, including a
+first administrator without SMTP, follow [ZERO_DH_LAUNCH.md](ZERO_DH_LAUNCH.md).
+Every active application administrator has equal full access after migration 008.
 
 ## Local Windows development
 
 Use a supported Node.js version (tested: 24.18.0), then in PowerShell:
 
 ```powershell
-cd E:\exemplaire_gelin_house
+cd 'D:\gelin house\gelin_house_example'
 npm.cmd ci
-Copy-Item .env.example .env.local
+if (-not (Test-Path .env.local)) { Copy-Item .env.example .env.local }
 npm.cmd run dev
 ```
 
@@ -90,8 +96,9 @@ by the script. It refuses to provision when an owner profile already exists.
 The invited owner completes the link and sets a password of at least 12
 characters at `/admin/password`, then signs in at `/admin/login`. If profile
 creation fails, inspect the auth account in Supabase; the script does not delete
-an existing account. Further invitations and role changes are available to an
-owner at `/admin/team`. Do not promote unverified users or deploy test accounts.
+an existing account. Further invitations and account activation/deactivation are
+available to every administrator at `/admin/team`. All active accounts have the
+same full access. Do not invite unverified users or deploy test accounts.
 
 Configure Supabase session duration/inactivity limits for staff usage, enable its
 authentication abuse limits, and verify the reset flow and session expiration.
@@ -123,8 +130,8 @@ Complete [BUSINESS_ONBOARDING.md](BUSINESS_ONBOARDING.md), then follow
 staff qualifications, opening schedules, contact and policies are configured.
 
 Run all checks in [TESTING.md](TESTING.md) against the deployed environment and
-the disposable Supabase test project. Verify logged-out API access, owner/manager/
-staff permissions, concurrent submissions, private links, password recovery,
+the disposable Supabase test project. Verify logged-out API access, equal admin
+permissions, inactive-account rejection, concurrent submissions, private links, password recovery,
 uploads, and live public/admin synchronization. Inspect the mobile journey.
 Remove all test data. Live authentication/storage/delivery verification is a
 launch blocker; successful local SQL tests do not verify those external services.

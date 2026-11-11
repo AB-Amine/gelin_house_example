@@ -55,7 +55,6 @@ export const entities: Record<
     table: string;
     fields: Field[];
     deletable?: boolean;
-    owner?: boolean;
   }
 > = {
   services: {
@@ -106,12 +105,6 @@ export const entities: Record<
     fields: [
       text('name', 'Nom interne'),
       choices('kind', 'Type', ['staff', 'equipment']),
-      ref(
-        'admin_user_id',
-        'Compte du prestataire (facultatif)',
-        'admin_profiles',
-        true,
-      ),
       bool('active', 'Actif'),
     ],
   },
@@ -237,7 +230,6 @@ export const entities: Record<
   settings: {
     title: 'Réglages du salon',
     table: 'salon_settings',
-    owner: true,
     fields: [
       text('name', 'Nom officiel'),
       text('logo_path', 'Chemin du logo téléversé (facultatif)'),
@@ -246,6 +238,9 @@ export const entities: Record<
         'Chemin de la photo d’accueil téléversée (facultatif)',
       ),
       choices('brand_color', 'Couleur d’accent', [
+        '#B89B72',
+        '#30231F',
+        '#8D7153',
         '#8b5147',
         '#695b4d',
         '#4f6357',
@@ -288,6 +283,122 @@ export const entities: Record<
     ],
   },
 };
+entities.locations = {
+  title: 'admin.locations',
+  table: 'cities',
+  fields: [
+    text('name', 'field.name'),
+    text('slug', 'field.slug'),
+    num('travel_fee_minor', 'booking.travel'),
+    bool('active', 'field.active'),
+    num('position', 'field.position'),
+  ],
+};
+entities['service-cities'] = {
+  title: 'admin.serviceCities',
+  table: 'service_cities',
+  fields: [
+    ref('service_id', 'nav.services', 'services'),
+    ref('city_id', 'booking.city', 'cities'),
+  ],
+  deletable: true,
+};
+entities['city-hours'] = {
+  title: 'admin.cityHours',
+  table: 'city_hours',
+  fields: [
+    ref('city_id', 'booking.city', 'cities'),
+    num('weekday', 'field.weekday', 0, 6),
+    { key: 'opens', label: 'field.opens', type: 'time' },
+    { key: 'closes', label: 'field.closes', type: 'time' },
+  ],
+  deletable: true,
+};
+entities.reviews = {
+  title: 'admin.reviews',
+  table: 'reviews',
+  fields: [
+    text('name', 'field.name'),
+    text('body', 'field.body', true),
+    { ...num('rating', 'field.rating', 1, 5), nullable: true },
+    bool('consent_confirmed', 'field.consent'),
+    bool('verified', 'field.verified'),
+    bool('published', 'field.published'),
+    num('position', 'field.position'),
+  ],
+};
+entities.translations = {
+  title: 'admin.translations',
+  table: 'translations',
+  fields: [
+    choices('entity', 'field.entity', [
+      'services',
+      'categories',
+      'cities',
+      'website_content',
+    ]),
+    text('entity_id', 'field.entityId'),
+    choices('locale', 'auth.language', ['fr', 'ar', 'en']),
+    text('fields', 'field.translations', true),
+  ],
+  deletable: true,
+};
+entities.services.fields.splice(
+  5,
+  0,
+  text('included_items', 'services.included', true),
+);
+entities.gallery.fields.push(
+  text('title', 'field.title'),
+  text('description', 'field.description', true),
+  { key: 'video_url', label: 'field.video_url', type: 'url' },
+  bool('featured', 'field.featured'),
+  bool('consent_confirmed', 'field.consent'),
+  bool('temporary', 'field.temporary'),
+);
+entities.offers.fields.push(
+  { ...text('code', 'booking.code'), nullable: true },
+  { ...num('max_uses', 'field.maxUses', 1), nullable: true },
+);
+entities.settings.fields.push(
+  text('timezone', 'field.timezone'),
+  text('currency', 'field.currency'),
+  { ...text('email', 'auth.email'), nullable: true },
+  text('deposit_policy', 'field.deposit_policy', true),
+);
+entities.translations.fields[0].options = [
+  'services',
+  'categories',
+  'cities',
+  'website_content',
+  'gallery',
+  'reviews',
+  'salon_settings',
+].map((value) => ({ value, label: value }));
+entities.portfolio = entities.gallery;
+entities.promotions = entities.offers;
+entities.clients = entities.customers;
+entities.faqs = { ...entities.content, title: 'nav.faq' };
+for (const [slug, title] of Object.entries({
+  services: 'admin.services',
+  categories: 'admin.categories',
+  staff: 'admin.providers',
+  qualifications: 'admin.skills',
+  resources: 'admin.equipment',
+  availability: 'admin.availability',
+  exceptions: 'admin.exceptions',
+  closures: 'admin.closures',
+  offers: 'admin.promotions',
+  promotions: 'admin.promotions',
+  eligibility: 'admin.eligibility',
+  gallery: 'admin.portfolio',
+  portfolio: 'admin.portfolio',
+  content: 'admin.content',
+  customers: 'admin.clients',
+  clients: 'admin.clients',
+  settings: 'admin.settings',
+}))
+  entities[slug].title = title;
 export function entitySchema(slug: string) {
   const config = entities[slug];
   if (!config) throw Error('FORBIDDEN');
@@ -296,14 +407,53 @@ export function entitySchema(slug: string) {
   };
   for (const field of config.fields) {
     let schema: z.ZodType;
-    if (field.type === 'checkbox') schema = z.boolean();
+    if (field.key === 'fields')
+      schema = z
+        .union([
+          z.record(z.string(), z.string().max(10000)),
+          z
+            .string()
+            .max(12000)
+            .transform((value, ctx) => {
+              try {
+                return JSON.parse(value);
+              } catch {
+                ctx.addIssue({ code: 'custom', message: 'Invalid JSON' });
+                return z.NEVER;
+              }
+            }),
+        ])
+        .pipe(z.record(z.string(), z.string().max(10000)))
+        .refine((v) =>
+          Object.keys(v).every((k) =>
+            [
+              'name',
+              'description',
+              'preparation',
+              'included_items',
+              'title',
+              'body',
+              'alt',
+              'about',
+              'hero_title',
+              'hero_subtitle',
+              'privacy_text',
+              'policy_text',
+              'deposit_policy',
+              'address',
+            ].includes(k),
+          ),
+        );
+    else if (field.key === 'email')
+      schema = z.union([z.email().max(254), z.literal('')]);
+    else if (field.type === 'checkbox') schema = z.boolean();
     else if (field.type === 'number' || field.key === 'weekday')
       schema = z
         .number()
         .int()
         .min(field.min ?? 0)
         .max(field.max ?? 6);
-    else if (field.ref) schema = z.uuid();
+    else if (field.ref || field.key === 'entity_id') schema = z.uuid();
     else if (field.key === 'phone' || field.key === 'whatsapp')
       schema = z.union([phoneSchema, z.literal('')]);
     else if (field.key === 'slug')

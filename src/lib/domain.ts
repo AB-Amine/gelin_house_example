@@ -91,6 +91,7 @@ export const availabilitySchema = selectionSchema.extend({
   date: z.iso.date(),
 });
 export type Service = {
+  included_items?: string;
   image_path?: string;
   id: string;
   category_id: string | null;
@@ -128,6 +129,10 @@ export type Promotion = {
   terms: string;
 };
 export type Settings = {
+  email?: string | null;
+  deposit_policy?: string;
+  currency?: string;
+  timezone?: string;
   logo_path: string;
   hero_image_path: string;
   brand_color: string;
@@ -152,12 +157,36 @@ export type Settings = {
   rescheduling_notice_hours: number;
 };
 export type Catalog = {
+  cities?: {
+    id: string;
+    name: string;
+    slug: string;
+    travel_fee_minor: number;
+  }[];
+  service_cities?: { service_id: string; city_id: string }[];
+  reviews?: { id: string; name: string; body: string; rating: number | null }[];
+  translations?: {
+    entity: string;
+    entity_id: string;
+    locale: string;
+    fields: Record<string, string>;
+  }[];
+  demo?: boolean;
   settings: Settings | null;
   services: Service[];
   categories: Category[];
   promotions: Promotion[];
   promotion_services: { promotion_id: string; service_id: string }[];
-  gallery: { id: string; path: string; alt: string; album: string }[];
+  gallery: {
+    id: string;
+    path: string;
+    alt: string;
+    album: string;
+    title?: string;
+    description?: string;
+    video_url?: string;
+    featured?: boolean;
+  }[];
   content: { key: string; title: string; body: string }[];
   hours: { weekday: number; opens: string; closes: string }[];
 };
@@ -194,6 +223,7 @@ export type Quote = {
   fingerprint: string;
 };
 export type ManagedBooking = {
+  timezone?: string;
   id: string;
   reference: string;
   status: Status;
@@ -232,8 +262,8 @@ export function timeLabel(value: string) {
     timeZoneName: 'shortOffset',
   }).format(new Date(value));
 }
-export function localInstant(date: string, time: string) {
-  return Temporal.ZonedDateTime.from(`${date}T${time}[${TIMEZONE}]`, {
+export function localInstant(date: string, time: string, timezone = TIMEZONE) {
+  return Temporal.ZonedDateTime.from(`${date}T${time}[${timezone}]`, {
     disambiguation: 'reject',
   })
     .toInstant()

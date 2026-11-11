@@ -1,21 +1,16 @@
-import { requirePageStaff } from '@/lib/auth';
+﻿import { requirePageStaff } from '@/lib/auth';
 import { getCatalog } from '@/lib/catalog';
-import { Booking } from '@/components/booking';
-import { ServiceCatalog } from '@/components/catalog';
-export default async function Manual() {
-  await requirePageStaff(true);
+import { FatuBooking } from '@/components/fatu-booking';
+import { L } from '@/components/locale-provider';
+export default async function Page() {
+  await requirePageStaff();
   const { catalog } = await getCatalog();
   return (
     <>
-      <h1>Un rendez-vous manuel</h1>
-      <p>
-        Les mêmes règles de disponibilité et de réservation s’appliquent.
-        Sélectionnez les prestations, puis le créneau et les coordonnées.
-      </p>
-      <ServiceCatalog catalog={catalog} />
-      <div style={{ marginTop: 45 }}>
-        <Booking catalog={catalog} manual />
-      </div>
+      <h1>
+        <L text="admin.manual" />
+      </h1>
+      <FatuBooking catalog={catalog} manual />
     </>
   );
 }

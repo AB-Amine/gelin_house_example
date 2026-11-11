@@ -1,7 +1,12 @@
+> **Current Fatu implementation:** see [Fatu setup](FATU_SETUP.md), [implementation phases](FATU_IMPLEMENTATION.md) and [validation](FATU_VALIDATION.md). The predecessor details below are retained for history and may describe older routes or test counts.
+
 ﻿# Implemented PostgreSQL schema
 
-Seven ordered migrations create the schema, booking transactions, admin mutations,
-reporting, account access, branding/privacy behavior and assigned-only staff RLS. The migration runner
+Nine ordered migrations create the schema, booking transactions, admin mutations,
+reporting, account access, branding/privacy behavior and RLS. Migration 008 converts
+every profile to equal full administrator access while preserving inactive status;
+009 keeps guest links valid after rescheduling. A fixed legacy `owner` value is
+retained internally, with a database constraint rejecting other values. The migration runner
 records checksums and applies new files under a transaction and advisory lock.
 Clean application of every migration is exercised by `npm.cmd run test:db`.
 No migration has been applied to a hosted salon Supabase project in this session.
@@ -10,7 +15,7 @@ No migration has been applied to a hosted salon Supabase project in this session
 
 | Area         | Implemented tables                                                                               |
 | ------------ | ------------------------------------------------------------------------------------------------ |
-| Staff access | `admin_profiles`, linked to `auth.users`; constrained owner/manager/staff roles                  |
+| Admin access | `admin_profiles`, linked to `auth.users`; one fixed access level plus active/inactive status     |
 | Salon        | `salon_settings`, `working_hours`, `opening_exceptions`, `closures`                              |
 | Catalog      | `categories`, `services`                                                                         |
 | Capacity     | `resources` (staff/equipment), `qualifications`, `service_resources`                             |

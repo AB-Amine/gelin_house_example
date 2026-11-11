@@ -1,0 +1,126 @@
+[
+  {
+    "id": "editorial-beauty",
+    "input": "public/images/hero/editorial-beauty.jpg",
+    "path": "/images/hero/editorial-beauty",
+    "source": "https://www.pexels.com/photo/pretty-woman-beside-make-up-brushes-5681894/",
+    "license": "https://www.pexels.com/license/",
+    "author": "kajanja brand",
+    "purpose": "Temporary editorial hero; not Fatu or her work",
+    "temporary": true,
+    "alt": {
+      "fr": "Portrait beauté éditorial avec des pinceaux — photographie temporaire",
+      "en": "Editorial beauty portrait with makeup brushes — temporary stock photograph",
+      "ar": "صورة جمالية تحريرية مع فراشي المكياج — صورة مؤقتة مرخصة"
+    },
+    "width": 1600,
+    "height": 2400,
+    "variants": [
+      {
+        "width": 320,
+        "path": "/images/hero/editorial-beauty-320.webp"
+      },
+      {
+        "width": 720,
+        "path": "/images/hero/editorial-beauty-720.webp"
+      },
+      {
+        "width": 1400,
+        "path": "/images/hero/editorial-beauty-1400.webp"
+      }
+    ]
+  },
+  {
+    "id": "artistry",
+    "input": "public/images/services/artistry.jpg",
+    "path": "/images/services/artistry",
+    "source": "https://www.pexels.com/photo/8990725/",
+    "license": "https://www.pexels.com/license/",
+    "author": "Alena Darmel",
+    "purpose": "Temporary service/editorial composition, not a verified Fatu service or result",
+    "temporary": true,
+    "alt": {
+      "fr": "Application délicate d’un fard à paupières — photographie temporaire",
+      "en": "Delicate eyeshadow application — temporary stock photograph",
+      "ar": "تطبيق ظلال العيون بعناية — صورة مؤقتة مرخصة"
+    },
+    "width": 1400,
+    "height": 2100,
+    "variants": [
+      {
+        "width": 320,
+        "path": "/images/services/artistry-320.webp"
+      },
+      {
+        "width": 720,
+        "path": "/images/services/artistry-720.webp"
+      },
+      {
+        "width": 1400,
+        "path": "/images/services/artistry-1400.webp"
+      }
+    ]
+  },
+  {
+    "id": "editorial-colour",
+    "input": "public/images/portfolio/editorial-colour.jpg",
+    "path": "/images/portfolio/editorial-colour",
+    "source": "https://www.pexels.com/photo/10177098/",
+    "license": "https://www.pexels.com/license/",
+    "author": "Victoria Strelka",
+    "purpose": "Temporary inspiration gallery only; must never be labeled as Fatu’s portfolio",
+    "temporary": true,
+    "alt": {
+      "fr": "Scène de maquillage éditorial en studio — photographie temporaire",
+      "en": "Editorial makeup application in a studio — temporary stock photograph",
+      "ar": "مشهد مكياج تحريري في الاستوديو — صورة مؤقتة مرخصة"
+    },
+    "width": 1400,
+    "height": 2100,
+    "variants": [
+      {
+        "width": 320,
+        "path": "/images/portfolio/editorial-colour-320.webp"
+      },
+      {
+        "width": 720,
+        "path": "/images/portfolio/editorial-colour-720.webp"
+      },
+      {
+        "width": 1400,
+        "path": "/images/portfolio/editorial-colour-1400.webp"
+      }
+    ]
+  },
+  {
+    "id": "brushes",
+    "input": "public/images/about/brushes.jpg",
+    "path": "/images/about/brushes",
+    "source": "https://unsplash.com/photos/person-holding-black-makeup-brush-_VtWHnrYm4k",
+    "license": "https://unsplash.com/license",
+    "author": "Anastasiia Chepinska",
+    "purpose": "About/creative-process detail, not a portrait of Fatu",
+    "temporary": true,
+    "alt": {
+      "fr": "Une main tenant des pinceaux de maquillage professionnels",
+      "en": "A hand holding professional makeup brushes",
+      "ar": "يد تحمل فراشي مكياج احترافية"
+    },
+    "width": 1400,
+    "height": 935,
+    "variants": [
+      {
+        "width": 320,
+        "path": "/images/about/brushes-320.webp"
+      },
+      {
+        "width": 720,
+        "path": "/images/about/brushes-720.webp"
+      },
+      {
+        "width": 1400,
+        "path": "/images/about/brushes-1400.webp"
+      }
+    ]
+  }
+]

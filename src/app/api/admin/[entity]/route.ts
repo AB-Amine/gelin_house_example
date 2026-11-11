@@ -14,8 +14,8 @@ export async function POST(
     const { entity } = await params;
     const config = entities[entity];
     if (!config) throw Error('FORBIDDEN');
-    await requireStaff(true, !!config.owner);
-    const input = entitySchema(entity).parse(await body(req));
+    await requireStaff();
+    const input = entitySchema(entity).parse(await body(req, 256000));
     if (config.table === 'customers') {
       input.phone = phoneSchema.parse(input.phone);
       input.email = z.union([z.email(), z.literal('')]).parse(input.email);
@@ -40,7 +40,7 @@ export async function DELETE(
     const { entity } = await params;
     const config = entities[entity];
     if (!config?.deletable) throw Error('ARCHIVE_INSTEAD');
-    await requireStaff(true);
+    await requireStaff();
     const input = z.object({ id: z.uuid() }).parse(await body(req));
     const { data, error } = await (
       await sessionDb()

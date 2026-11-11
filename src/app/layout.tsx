@@ -1,33 +1,33 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import { BasketProvider } from '@/components/basket';
+import { LocaleProvider } from '@/components/locale-provider';
+import { getI18n } from '@/lib/i18n/server';
 import './globals.css';
+import './experience.css';
+import './fatu.css';
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.APP_URL ?? 'http://127.0.0.1:3000'),
-  title: {
-    default: 'GELIN HOUSE — Maison de beauté',
-    template: '%s | GELIN HOUSE',
-  },
+  title: { default: 'Fatu Makeup Artist', template: '%s | Fatu Makeup Artist' },
   description:
-    'Découvrez GELIN HOUSE, les prestations du salon et la réservation de votre moment de beauté.',
-  openGraph: {
-    title: 'GELIN HOUSE',
-    description: 'Un moment pour vous.',
-    locale: 'fr_MA',
-    type: 'website',
-  },
+    'Fatu Makeup Artist — une signature beauté, une attention personnelle.',
+  openGraph: { title: 'Fatu Makeup Artist', type: 'website' },
+  icons: { icon: '/images/branding/fatu-mark.svg' },
 };
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const { locale, dir, t } = await getI18n();
   return (
-    <html lang="fr" dir="ltr">
+    <html lang={locale} dir={dir} data-scroll-behavior="smooth">
       <body>
         <a className="skip-link" href="#main">
-          Aller au contenu
+          {t('nav.skip')}
         </a>
-        <BasketProvider>{children}</BasketProvider>
+        <LocaleProvider locale={locale}>
+          <BasketProvider>{children}</BasketProvider>
+        </LocaleProvider>
       </body>
     </html>
   );

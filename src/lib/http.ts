@@ -28,9 +28,9 @@ export async function limitedBody(req: NextRequest, limit: number) {
   }
   return Buffer.concat(chunks);
 }
-export async function body(req: NextRequest) {
+export async function body(req: NextRequest, limit = 16000) {
   return JSON.parse(
-    (await limitedBody(req, 16000)).toString('utf8'),
+    (await limitedBody(req, limit)).toString('utf8'),
   ) as unknown;
 }
 export function sameOrigin(req: NextRequest) {
@@ -39,11 +39,14 @@ export function sameOrigin(req: NextRequest) {
   if (!origin || origin !== new URL(expected).origin) throw Error('FORBIDDEN');
 }
 export async function rateLimit(req: NextRequest, scope: string, limit = 30) {
-  // In production TRUST_PROXY=1 requires an ingress that replaces x-forwarded-for.
+  // Enable a provider header only when that provider is the trusted ingress.
   const ip =
-    process.env.TRUST_PROXY === '1'
-      ? (req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown')
-      : 'shared';
+    process.env.TRUST_PROXY === 'netlify'
+      ? req.headers.get('x-nf-client-connection-ip')?.trim() || 'unknown'
+      : process.env.TRUST_PROXY === '1'
+        ? (req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+          'unknown')
+        : 'shared';
   const db = privileged();
   const { data, error } = await db.rpc('take_rate_limit', {
     p_key: tokenHash(`${scope}:${ip}`),
@@ -54,7 +57,11 @@ export async function rateLimit(req: NextRequest, scope: string, limit = 30) {
   if (!data) throw Error('RATE_LIMIT');
 }
 const messages: Record<string, string> = {
-  LAST_OWNER: 'Le dernier compte propriétaire actif doit être conservé.',
+  AUTH_FAILED: 'auth.invalid',
+  CITY_UNAVAILABLE: 'error.CITY_UNAVAILABLE',
+  CITY_SERVICE_UNAVAILABLE: 'error.CITY_SERVICE_UNAVAILABLE',
+  PROMOTION_UNAVAILABLE: 'error.PROMOTION_UNAVAILABLE',
+  LAST_OWNER: 'Le dernier compte administrateur actif doit être conservé.',
   INVITE_FAILED:
     'L’invitation a échoué. Vérifiez la configuration e-mail Supabase et l’adresse du compte.',
   NOT_CONFIGURED:

@@ -1,12 +1,12 @@
 import { Temporal } from '@js-temporal/polyfill';
 import { businessToday, dateRange } from './dates';
 export type CalendarView = 'day' | 'week' | 'month' | 'list';
-export function calendarWindow(input?: string, mode?: string) {
+export function calendarWindow(input?: string, mode?: string,timezone='Africa/Casablanca') {
   let anchor: Temporal.PlainDate;
   try {
-    anchor = Temporal.PlainDate.from(input ?? businessToday());
+    anchor = Temporal.PlainDate.from(input ?? businessToday(timezone));
   } catch {
-    anchor = Temporal.PlainDate.from(businessToday());
+    anchor = Temporal.PlainDate.from(businessToday(timezone));
   }
   const view: CalendarView = ['day', 'week', 'month', 'list'].includes(
     mode ?? '',
@@ -36,7 +36,7 @@ export function calendarWindow(input?: string, mode?: string) {
       ? { months: 1 }
       : { days: view === 'week' ? 7 : view === 'list' ? 30 : 1 };
   return {
-    ...dateRange(first.toString(), last.toString()),
+    ...dateRange(first.toString(), last.toString(),30,timezone),
     anchor: anchor.toString(),
     view,
     days,

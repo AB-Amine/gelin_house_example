@@ -5,6 +5,8 @@ export default defineConfig([
   ...nextVitals,
   ...nextTs,
   globalIgnores([
+    '.tools/**',
+    '.npm-cache/**',
     '.next/**',
     'coverage/**',
     'playwright-report/**',

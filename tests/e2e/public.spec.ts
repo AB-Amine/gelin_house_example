@@ -1,15 +1,142 @@
 import { test, expect } from '@playwright/test';
-test('local admin preview is unavailable in production', async ({
-  request,
-}) => {
-  const response = await request.get('/admin/preview');
-  expect(response.status()).toBe(404);
-});
 test.skip(
   process.env.E2E_DATABASE_ISOLATED === 'true',
-  'These tests exercise the unconfigured safe state.',
+  'Safe unconfigured-state checks use no external database.',
 );
-test('persisted selection is deduplicated, revalidated, and removable', async ({
+test('Fatu editorial homepage loads local optimized photography without horizontal overflow', async ({
+  page,
+}, info) => {
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto('/');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+    'L’art de révéler votre singularité.',
+  );
+  await expect(page.locator('.fatu-hero img')).toBeVisible();
+  expect(
+    await page
+      .locator('.fatu-hero img')
+      .evaluate(
+        (img: HTMLImageElement) => img.complete && img.naturalWidth > 0,
+      ),
+  ).toBe(true);
+  await expect(
+    page
+      .locator('main')
+      .getByText(
+        'Photographie d’inspiration temporaire · Ce n’est pas une réalisation de Fatu.',
+      )
+      .first(),
+  ).toBeVisible();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  expect(errors).toEqual([]);
+  await page
+    .locator('.fatu-photo img')
+    .evaluateAll((imgs) =>
+      Promise.all(imgs.map((img) => (img as HTMLImageElement).decode())),
+    );
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+      ),
+  );
+  await page.screenshot({
+    path: info.outputPath('fatu-home.png'),
+    fullPage: true,
+  });
+});
+test('language switching updates actual content, persists and supports Arabic RTL', async ({
+  page,
+}, info) => {
+  await page.goto('/');
+  await page
+    .locator('.fatu-header')
+    .getByRole('button', { name: 'EN', exact: true })
+    .click();
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+    'The art of bringing out your individuality.',
+  );
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  await page
+    .locator('.fatu-header')
+    .getByRole('button', { name: 'العربية', exact: true })
+    .click();
+  await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+    'فن إبراز جمالك الفريد.',
+  );
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await page.screenshot({
+    path: info.outputPath('fatu-arabic.png'),
+    fullPage: true,
+  });
+});
+test('public navigation opens on mobile and identifies the active page', async ({
+  page,
+}) => {
+  await page.goto('/');
+  const toggle = page.locator('.fatu-menu');
+  if (await toggle.isVisible()) {
+    await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  }
+  await page
+    .locator('#fatu-navigation')
+    .getByRole('link', { name: 'Portfolio', exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/portfolio$/);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Portfolio');
+  if (await toggle.isVisible()) await toggle.click();
+  await expect(
+    page
+      .locator('#fatu-navigation')
+      .getByRole('link', { name: 'Portfolio', exact: true }),
+  ).toHaveAttribute('aria-current', 'page');
+  await expect(
+    page.getByText('Les photographies autorisées de Fatu seront publiées ici.'),
+  ).toBeVisible();
+});
+test('all public pages expose honest empty states and responsive layouts', async ({
+  page,
+}) => {
+  for (const path of [
+    '/services',
+    '/a-propos',
+    '/portfolio',
+    '/faq',
+    '/contact',
+    '/confidentialite',
+    '/reservation',
+  ]) {
+    await page.goto(path);
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+      path,
+    ).toBe(true);
+    await expect(page.locator('body')).not.toContainText('GELIN HOUSE');
+  }
+  await page.goto('/services/missing-service');
+  await expect(
+    page.getByRole('heading', { name: 'Cette page est introuvable.' }),
+  ).toBeVisible();
+  await page.goto('/galerie');
+  await expect(page).toHaveURL(/\/portfolio$/);
+});
+test('stale basket selection can be removed while booking remains disabled', async ({
   page,
 }) => {
   await page.addInitScript(() =>
@@ -23,106 +150,74 @@ test('persisted selection is deduplicated, revalidated, and removable', async ({
     ),
   );
   await page.goto('/reservation');
+  const remove = page.getByRole('button', { name: 'Retirer', exact: true });
+  await expect(remove).toHaveCount(1);
+  await remove.click();
+  await expect(remove).toHaveCount(0);
   await expect(
-    page.getByText('Prestation indisponible', { exact: true }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole('button', { name: 'Retirer', exact: true }),
-  ).toHaveCount(1);
-  await page.getByRole('button', { name: 'Retirer', exact: true }).click();
-  await expect(
-    page.getByRole('heading', { name: 'Votre moment commence ici.' }),
-  ).toBeVisible();
-});
-test('homepage is responsive and shows honest configuration state', async ({
-  page,
-}, testInfo) => {
-  await page.goto('/');
-  await expect(
-    page.getByRole('heading', { name: /Un moment/, level: 1 }),
-  ).toBeVisible();
-  await expect(page.getByText('Photographies du salon à venir')).toBeVisible();
-  expect(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth <= window.innerWidth,
-    ),
-  ).toBe(true);
-  await page.screenshot({
-    path: testInfo.outputPath('home.png'),
-    fullPage: true,
-  });
-  await page.getByRole('link', { name: 'Découvrir les prestations' }).click();
-  await expect(page).toHaveURL(/\/services$/);
-  await expect(page.getByRole('searchbox')).toBeVisible();
-});
-test('empty basket cannot submit a booking', async ({ page }) => {
-  await page.goto('/reservation');
-  await expect(
-    page.getByRole('heading', { name: 'Votre moment commence ici.' }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole('button', { name: /Envoyer ma demande/ }),
+    page.getByRole('button', { name: 'Envoyer ma demande' }),
   ).toHaveCount(0);
-  await expect(page.getByText('La réservation sera ouverte')).toBeVisible();
+  await expect(
+    page.getByText(/Les réservations ouvriront après validation/),
+  ).toBeVisible();
 });
-test('public pages have real empty states and working navigation', async ({
+test('contact and authentication explain missing configuration without claiming success', async ({
   page,
 }) => {
-  for (const [path, title] of [
-    ['/offres', 'Pas d’offre en cours'],
-    ['/contact', 'Nous contacter'],
-    ['/confidentialite', 'Votre réservation'],
-    ['/a-propos', 'Une beauté à votre image.'],
-  ]) {
-    await page.goto(path);
-    await expect(page.getByRole('heading', { name: title })).toBeVisible();
-    expect(
-      await page.evaluate(
-        () => document.documentElement.scrollWidth <= window.innerWidth,
-      ),
-    ).toBe(true);
-  }
-  await page.goto('/services/not-a-real-service');
-  await expect(page.getByRole('heading', { name: /Cette page/ })).toBeVisible();
-});
-test('private admin redirects; no fake session in browser storage', async ({
-  page,
-}) => {
+  await page.goto('/contact');
+  await expect(
+    page.getByRole('button', { name: 'Envoyer le message' }),
+  ).toBeDisabled();
+  await page.goto('/client/register');
+  await expect(
+    page.getByRole('button', { name: /Créer mon compte/ }),
+  ).toBeDisabled();
+  await expect(
+    page.getByText(
+      'La connexion à Supabase est nécessaire pour enregistrer les données.',
+    ),
+  ).toBeVisible();
   await page.goto('/admin/services');
   await expect(page).toHaveURL(/\/admin\/login$/);
   await expect(
-    page.getByRole('textbox', { name: 'Adresse e-mail' }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole('button', { name: 'Se connecter' }),
+    page.getByRole('button', { name: 'Se connecter', exact: true }),
   ).toBeDisabled();
   await page.evaluate(() => localStorage.setItem('isAdmin', 'true'));
   await page.goto('/admin');
   await expect(page).toHaveURL(/\/admin\/login$/);
+  await page.goto('/client/bookings');
+  await expect(page).toHaveURL(/\/client\/login$/);
 });
-test('secure management rejects missing capability; pages are noindex', async ({
+test('management capability stays private and privileged mutations reject unauthenticated callers', async ({
   page,
+  request,
 }) => {
-  await page.goto('/reservation/gestion');
-  await expect(page.locator('main').getByRole('alert')).toBeVisible();
+  await page.goto('/reservation/gestion#invalid');
+  await expect(page.getByRole('alert')).toBeVisible();
+  expect(await page.evaluate(() => location.hash)).toBe('');
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
     'content',
     /noindex/,
   );
-  expect(await page.evaluate(() => location.hash)).toBe('');
-});
-test('server rejects anonymous admin mutation and cross-origin booking', async ({
-  request,
-}) => {
-  const admin = await request.post('/api/admin/services', {
-    headers: { Origin: 'http://127.0.0.1:3100' },
-    data: { name: 'unauthorized' },
-  });
-  expect(admin.status()).toBe(403);
-  const booking = await request.post('/api/bookings', {
+  for (const path of [
+    '/api/admin/requests',
+    '/api/admin/payments',
+    '/api/admin/client-note',
+    '/api/admin/services',
+    '/api/client/profile',
+    '/api/client/requests',
+  ]) {
+    const r = await request.post(path, {
+      headers: { Origin: 'http://127.0.0.1:3100' },
+      data: {},
+    });
+    expect(r.status(), path).toBe(403);
+  }
+  const cross = await request.post('/api/bookings', {
     headers: { Origin: 'https://untrusted.example' },
     data: {},
   });
-  expect(booking.status()).toBe(403);
-  expect((await booking.json()).code).toBe('FORBIDDEN');
+  expect(cross.status()).toBe(403);
+  const preview = await request.get('/admin/preview');
+  expect(preview.status()).toBe(404);
 });
