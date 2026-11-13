@@ -15,7 +15,13 @@ export async function POST(
     const config = entities[entity];
     if (!config) throw Error('FORBIDDEN');
     await requireStaff();
-    const input = entitySchema(entity).parse(await body(req, 256000));
+    const input = (
+      entity === 'settings'
+        ? entitySchema(entity)
+            .partial()
+            .extend({ id: z.literal(1) })
+        : entitySchema(entity)
+    ).parse(await body(req, 256000));
     if (config.table === 'customers') {
       input.phone = phoneSchema.parse(input.phone);
       input.email = z.union([z.email(), z.literal('')]).parse(input.email);

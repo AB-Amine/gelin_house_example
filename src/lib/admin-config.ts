@@ -67,7 +67,13 @@ export const entities: Record<
       text('description', 'Description', true),
       text('preparation', 'Préparation', true),
       text('image_path', 'Chemin de la photo téléversée (facultatif)'),
-      num('duration_minutes', 'Durée (minutes)', 5, 720),
+      { ...num('duration_minutes', 'Durée (minutes)', 5, 720), nullable: true },
+      text('subcategory', 'Sous-catégorie'),
+      text('service_group', 'Groupe de prestations'),
+      choices('service_type', 'Nature de la prestation', [
+        'appointment',
+        'rental',
+      ]),
       num('buffer_before', 'Préparation (minutes)', 0, 240),
       num('buffer_after', 'Nettoyage (minutes)', 0, 240),
       choices('price_type', 'Type de prix', [
@@ -357,6 +363,7 @@ entities.gallery.fields.push(
   bool('temporary', 'field.temporary'),
 );
 entities.offers.fields.push(
+  choices('audience', 'Clientèles concernées', ['public', 'members']),
   { ...text('code', 'booking.code'), nullable: true },
   { ...num('max_uses', 'field.maxUses', 1), nullable: true },
 );
@@ -375,6 +382,7 @@ entities.translations.fields[0].options = [
   'reviews',
   'salon_settings',
 ].map((value) => ({ value, label: value }));
+entities.equipment = { ...entities.staff, title: 'Matériel' };
 entities.portfolio = entities.gallery;
 entities.promotions = entities.offers;
 entities.clients = entities.customers;
@@ -494,6 +502,7 @@ export function entitySchema(slug: string) {
             ) || v.length > 0,
           'Champ requis',
         );
+    if (field.key === 'audience') schema = schema.default('public');
     if (field.nullable) schema = schema.nullable();
     shape[field.key] = schema;
   }

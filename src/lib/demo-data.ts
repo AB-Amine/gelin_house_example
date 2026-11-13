@@ -109,6 +109,7 @@ export function createDemoState(): DemoState {
     const s = seed.entities.services[
       i
     ] as unknown as Catalog['services'][number];
+    if (s.duration_minutes === null) throw Error('A seeded appointment requires a known duration.');
     return {
       id: `80000000-0000-4000-8000-${String(i + 1).padStart(12, '0')}`,
       reference: r.reference,

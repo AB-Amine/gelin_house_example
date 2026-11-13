@@ -1,5 +1,25 @@
-﻿import {getCatalog} from '@/lib/catalog';
-import {FatuBooking} from '@/components/fatu-booking';
-import {FatuHeading} from '@/components/fatu-pages';
-export const metadata={title:'Booking · Fatu Makeup Artist',robots:{index:false,follow:false}};
-export default async function Page(){const{catalog}=await getCatalog();return <div className="fatu-container"><FatuHeading title="booking.title" body="common.notConfirmed"/><FatuBooking catalog={catalog}/></div>;}
+import { getCatalog } from '@/lib/catalog';
+import { FatuHeading } from '@/components/fatu-pages';
+import { AppointmentRequest } from '@/components/appointment-request';
+export const metadata = {
+  title: 'Booking · GELIN HOUSE',
+  robots: { index: false, follow: false },
+};
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<{ prestation?: string }>;
+}) {
+  const { catalog, unavailable } = await getCatalog();
+  const { prestation } = await searchParams;
+  return (
+    <div className="fatu-container appointment-page">
+      <FatuHeading title="booking.title" />
+      <AppointmentRequest
+        catalog={catalog}
+        configured={!unavailable && !!process.env.SUPABASE_SECRET_KEY}
+        initialService={prestation}
+      />
+    </div>
+  );
+}

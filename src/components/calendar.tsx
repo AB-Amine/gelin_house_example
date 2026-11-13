@@ -1,10 +1,13 @@
 'use client';
 import Link from 'next/link';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useI18n } from './locale-provider';
 import { Temporal } from '@js-temporal/polyfill';
 import { type calendarWindow } from '@/lib/calendar';
 import { type Status } from '@/lib/domain';
 export type CalendarEntry = {
+  local_start?: string;
   reference: string;
   starts_at: string;
   ends_at: string;
@@ -61,6 +64,15 @@ export function Calendar({
   timezone?: string;
 }) {
   const { t, locale, date, time } = useI18n();
+  const router = useRouter();
+  useEffect(() => {
+    if (preview) return;
+    const refresh = () => {
+      if (document.visibilityState === 'visible') router.refresh();
+    };
+    window.addEventListener('focus', refresh);
+    return () => window.removeEventListener('focus', refresh);
+  }, [preview, router]);
   const businessDate = (instant: string) => businessDateAt(instant, timezone);
   const dateLabel = (value: string) => date(value, { timeZone: timezone });
   const timeLabel = (value: string) => time(value, timezone);
@@ -80,7 +92,9 @@ export function Calendar({
         );
   }
   function events(day: string, compact = false) {
-    const appointments = rows.filter((a) => businessDate(a.starts_at) === day);
+    const appointments = rows.filter(
+      (a) => (a.local_start?.slice(0, 10) ?? businessDate(a.starts_at)) === day,
+    );
     const dayClosures = closures.filter(
       (c) =>
         businessDate(c.starts_at) <= day &&
@@ -119,31 +133,20 @@ export function Calendar({
             href={
               preview
                 ? `/admin/preview?section=appointments&reference=${a.reference}`
-                : `/admin/appointments?reference=${a.reference}`
+                : `/admin/bookings?reference=${a.reference}`
             }
             className={`calendar-event status-${a.status}`}
+            prefetch={false}
             key={a.reference}
           >
             <strong>
-              {timeLabel(a.starts_at)}
-              {!compact && ` → ${timeLabel(a.ends_at)}`}
+              {a.local_start?.slice(11, 16) ?? timeLabel(a.starts_at)}
             </strong>
             <span>{a.customers?.name ?? t('nav.client')}</span>
+            <small>{a.appointment_items.map((i) => i.name).join(' · ')}</small>
+            {a.customers?.phone && <small>{a.customers.phone}</small>}
             <small>{t(`status.${a.status}`)}</small>
-            {!compact && (
-              <>
-                <small>
-                  {a.appointment_items.map((i) => i.name).join(' · ')}
-                </small>
-                <small>
-                  {a.appointment_items
-                    .flatMap((i) =>
-                      i.resources?.name ? [i.resources.name] : [],
-                    )
-                    .join(' · ')}
-                </small>
-              </>
-            )}
+            {!compact && <></>}
           </Link>
         ))}
         {compact && appointments.length > 3 && (

@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
+import { Temporal } from '@js-temporal/polyfill';
 import { requireStaff } from '@/lib/auth';
 import { privileged, sessionDb } from '@/lib/supabase';
 import { body, failure, ok, sameOrigin, tokenHash } from '@/lib/http';
@@ -55,9 +56,26 @@ export async function POST(req: NextRequest) {
         id: z.uuid(),
         action: z.enum([...statuses, 'reschedule']),
         start: z.iso.datetime({ offset: true }).optional(),
+        localStart: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/)
+          .optional(),
         reason: z.string().max(2000).default(''),
       })
       .parse(input);
+    if (v.action === 'reschedule' && v.localStart) {
+      const { data: cfg, error } = await privileged()
+        .from('salon_settings')
+        .select('timezone')
+        .single();
+      if (error) throw error;
+      v.start = Temporal.ZonedDateTime.from(
+        `${v.localStart}[${cfg.timezone}]`,
+        { disambiguation: 'reject' },
+      )
+        .toInstant()
+        .toString();
+    }
     const { error } = await privileged().rpc('change_booking', {
       p_id: v.id,
       p_action: v.action,

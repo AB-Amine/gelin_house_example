@@ -1,6 +1,6 @@
 ﻿import Link from 'next/link';
-import { getI18n } from '@/lib/i18n/server';
-import { z } from 'zod';
+import { Temporal } from '@js-temporal/polyfill';
+import { getI18n } from '@/lib/admin-i18n';
 import { sessionDb } from '@/lib/supabase';
 import { requirePageStaff } from '@/lib/auth';
 import { calendarWindow } from '@/lib/calendar';
@@ -26,11 +26,10 @@ export default async function CalendarPage({
     .single();
   const timezone = settings?.timezone ?? 'Africa/Casablanca';
   const period = calendarWindow(p.date, p.view, timezone);
-  const resource = z.uuid().safeParse(p.resource).success ? p.resource! : '';
+  const resource = '';
   const q = (p.q ?? '').slice(0, 80);
   const [
     { data: rows, error },
-    { data: resources },
     { data: closures },
     { data: hours },
     { data: exceptions },
@@ -45,8 +44,12 @@ export default async function CalendarPage({
       .select(
         'reference,starts_at,ends_at,status,customers(name,phone),appointment_items(name,resource_id,resources(name))',
       )
+      .not(
+        'status',
+        'in',
+        '(cancelled_by_customer,cancelled_by_salon,rejected)',
+      )
       .limit(500),
-    db.from('resources').select('id,name').eq('kind', 'staff').order('name'),
     db
       .from('closures')
       .select('resource_id,starts_at,ends_at,reason')
@@ -69,7 +72,6 @@ export default async function CalendarPage({
     `/admin/calendar?${new URLSearchParams({ date, view: period.view, resource, q })}`;
   return (
     <>
-      <span className="eyebrow">{t('admin.providers')}</span>
       <h1>{t('admin.calendar')}</h1>
       <form className="admin-toolbar">
         <label>
@@ -83,17 +85,6 @@ export default async function CalendarPage({
             <option value="week">{t('calendar.week')}</option>
             <option value="month">{t('calendar.month')}</option>
             <option value="list">{t('calendar.list')}</option>
-          </select>
-        </label>
-        <label>
-          {t('admin.providers')}
-          <select name="resource" defaultValue={resource}>
-            <option value="">{t('common.all')}</option>
-            {resources?.map((r) => (
-              <option value={r.id} key={r.id}>
-                {r.name}
-              </option>
-            ))}
           </select>
         </label>
         <label>
@@ -121,7 +112,18 @@ export default async function CalendarPage({
       ) : (
         <Calendar
           window={period}
-          rows={(Array.isArray(rows) ? rows : []) as unknown as CalendarEntry[]}
+          rows={
+            (Array.isArray(rows)
+              ? rows.map((row) => ({
+                  ...row,
+                  local_start: Temporal.Instant.from(row.starts_at)
+                    .toZonedDateTimeISO(timezone)
+                    .toPlainDateTime()
+                    .toString()
+                    .slice(0, 16),
+                }))
+              : []) as unknown as CalendarEntry[]
+          }
           closures={closures ?? []}
           hours={hours ?? []}
           exceptions={exceptions ?? []}
@@ -131,7 +133,9 @@ export default async function CalendarPage({
         />
       )}
       <p className="small">
-        {timezone} · {t('calendar.availabilityNote')}
+        {timezone} · Agenda par heure de début. Le salon vérifie le temps
+        nécessaire aux prestations ; cet agenda ne garantit pas l’absence de
+        chevauchement pendant tout le soin.
       </p>
       {Array.isArray(rows) && rows.length === 500 && (
         <p className="notice">{t('calendar.limit')}</p>

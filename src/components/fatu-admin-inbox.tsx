@@ -2,16 +2,21 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api, ApiError } from '@/lib/client';
+import { toMinor } from '@/lib/admin-ui';
 import { useI18n } from './locale-provider';
+import { AppointmentRequestActions } from './appointment-request-actions';
+import type { AppointmentRequestRow } from '@/lib/appointment-requests';
 type Row = Record<string, unknown>;
 export function FatuAdminInbox({
   section,
   rows,
   appointments = [],
+  heading = true,
 }: {
   section: 'requests' | 'messages' | 'notifications' | 'payments';
   rows: Row[];
   appointments?: Row[];
+  heading?: boolean;
 }) {
   const { t, date, money } = useI18n();
   const router = useRouter();
@@ -32,7 +37,25 @@ export function FatuAdminInbox({
   }
   return (
     <>
-      <h1>{t(`admin.${section}`)}</h1>
+      {heading && (
+        <h1>{section === 'messages' ? 'Demandes' : t(`admin.${section}`)}</h1>
+      )}
+      {section === 'messages' && heading && (
+        <div className="salon-context">
+          <p>
+            Confirmez une demande pour l’ajouter au calendrier, modifiez son
+            horaire ou refusez-la. La confirmation vérifie les disponibilités du
+            salon.
+          </p>
+          <button
+            type="button"
+            className="button secondary"
+            onClick={() => router.refresh()}
+          >
+            Actualiser les demandes
+          </button>
+        </div>
+      )}
       {section === 'notifications' && (
         <p className="notice">{t('admin.deliveryNote')}</p>
       )}
@@ -49,7 +72,7 @@ export function FatuAdminInbox({
               );
               request('/api/admin/payments', {
                 ...data,
-                amount: Number(data.amount),
+                amount: toMinor(String(data.amount)),
                 currency: appointment?.currency,
               });
             }}
@@ -66,13 +89,13 @@ export function FatuAdminInbox({
               </select>
             </label>
             <label>
-              {t('field.amountMinor')}
+              Montant (devise du rendez-vous)
               <input
                 type="number"
                 name="amount"
-                min="1"
-                max="100000000"
-                step="1"
+                min="0.01"
+                max="1000000"
+                step="0.01"
                 required
               />
             </label>
@@ -151,23 +174,43 @@ export function FatuAdminInbox({
               <>
                 <h2>{String(r.subject)}</h2>
                 <p>
-                  {String(r.name)} ·{' '}
-                  <a href={`mailto:${r.email}`}>{String(r.email)}</a>
+                  {String(r.name)}
+                  {r.email ? (
+                    <>
+                      {' '}
+                      · <a href={`mailto:${r.email}`}>{String(r.email)}</a>
+                    </>
+                  ) : null}
                 </p>
                 <p>{String(r.phone)}</p>
-                <p className="prose">{String(r.message)}</p>
-                <button
-                  disabled={busy}
-                  className="button secondary"
-                  onClick={() =>
-                    request('/api/admin/message-status', {
-                      id: r.id,
-                      handled: !r.handled,
-                    })
-                  }
-                >
-                  {t(r.handled ? 'admin.reopen' : 'admin.markHandled')}
-                </button>
+                <p className="prose" style={{ whiteSpace: 'pre-wrap' }}>
+                  {String(r.message)
+                    .split('\n')
+                    .filter(
+                      (line) =>
+                        !line.startsWith('Date souhaitée :') &&
+                        !line.startsWith('Heure souhaitée :'),
+                    )
+                    .join('\n')}
+                </p>
+                {r.subject === 'Demande de rendez-vous' ? (
+                  <AppointmentRequestActions
+                    request={r as AppointmentRequestRow}
+                  />
+                ) : (
+                  <button
+                    disabled={busy}
+                    className="button secondary"
+                    onClick={() =>
+                      request('/api/admin/message-status', {
+                        id: r.id,
+                        handled: !r.handled,
+                      })
+                    }
+                  >
+                    {t(r.handled ? 'admin.reopen' : 'admin.markHandled')}
+                  </button>
+                )}
               </>
             ) : section === 'payments' ? (
               <>

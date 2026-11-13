@@ -7,8 +7,11 @@ import { FatuEntityManager } from './fatu-entity-manager';
 import { Calendar, type CalendarEntry } from './calendar';
 import { useI18n } from './locale-provider';
 import { entities, entitySchema } from '@/lib/admin-config';
-import { calendarWindow } from '@/lib/calendar';
+import type { calendarWindow } from '@/lib/calendar';
 import { Temporal } from '@js-temporal/polyfill';
+import { DailySalonHours } from './daily-salon-hours';
+import { FatuAdminAuth } from './fatu-admin-auth';
+import { FatuClients } from './fatu-clients';
 type Row = Record<string, unknown>;
 const storage = 'fatu-admin-preview-v1';
 const event = 'fatu-preview-change';
@@ -17,7 +20,7 @@ function seed(): Record<string, Row[]> {
     settings: [
       {
         id: 1,
-        name: 'Fatu Makeup Artist',
+        name: 'GELIN HOUSE',
         timezone: 'Africa/Casablanca',
         currency: 'MAD',
         approved: false,
@@ -60,12 +63,16 @@ function snapshot() {
 }
 export function FatuPreview({
   section,
-  date,
   view,
+  today,
+  dayLabel,
+  period,
 }: {
   section: string;
-  date?: string;
   view?: string;
+  today: string;
+  dayLabel: string;
+  period: ReturnType<typeof calendarWindow>;
 }) {
   const { t } = useI18n();
   const [fallback] = useState(seed);
@@ -89,7 +96,6 @@ export function FatuPreview({
     bookings: 'appointments',
   };
   const slug = aliases[section] ?? section;
-  const period = calendarWindow(date, view);
   function persist(next: Record<string, Row[]>) {
     localStorage.setItem(storage, JSON.stringify(next));
     window.dispatchEvent(new Event(event));
@@ -100,8 +106,10 @@ export function FatuPreview({
     resources: data.staff ?? [],
     promotions: data.offers ?? [],
     cities: data.locations ?? [],
+    promotion_services: data.promotion_services ?? [],
+    qualifications: data.qualifications ?? [],
+    working_hours: data.working_hours ?? [],
   };
-  const today = Temporal.Now.zonedDateTimeISO('Africa/Casablanca').startOfDay();
   const summary: AdminSummary = {
     total: 0,
     pending: 0,
@@ -122,8 +130,9 @@ export function FatuPreview({
       <FatuAdminDashboard
         preview
         summary={summary}
-        from={today.toPlainDate().toString()}
-        to={today.add({ days: 30 }).toPlainDate().toString()}
+        from={today}
+        to={Temporal.PlainDate.from(today).add({ days: 30 }).toString()}
+        dayLabel={dayLabel}
         timezone="Africa/Casablanca"
       />
     );
@@ -176,27 +185,169 @@ export function FatuPreview({
         />
       </>
     );
+  else if (section === 'clients')
+    content = (
+      <FatuClients
+        rows={[]}
+        query=""
+        page={1}
+        count={0}
+        timezone="Africa/Casablanca"
+      />
+    );
+  else if (section === 'account')
+    content = (
+      <>
+        <h1>Mon compte</h1>
+        <h2>Changer mon mot de passe</h2>
+        <FatuAdminAuth configured={false} mode="password" />
+        <details>
+          <summary>Accès administrateurs</summary>
+          <p>Les accès se gèrent dans l’espace connecté.</p>
+        </details>
+      </>
+    );
+  else if (section === 'availability')
+    content = (
+      <>
+        <DailySalonHours
+          key={JSON.stringify(data.working_hours ?? [])}
+          initial={(data.working_hours ?? [])
+            .filter(
+              (h) => h.weekday === (data.working_hours?.[0]?.weekday ?? 1),
+            )
+            .map((h) => ({ opens: String(h.opens), closes: String(h.closes) }))}
+          openDays={[
+            ...new Set(
+              (data.working_hours ?? []).map((h) => Number(h.weekday)),
+            ),
+          ]}
+          onSave={async (hours, days) =>
+            persist({
+              ...data,
+              working_hours: days.flatMap((weekday) =>
+                hours.map((h) => ({
+                  ...h,
+                  weekday,
+                  resource_id: null,
+                  id: crypto.randomUUID(),
+                })),
+              ),
+            })
+          }
+        />
+        {['exceptions', 'closures'].map((slug) => (
+          <section key={slug}>
+            <h2>
+              {slug === 'exceptions'
+                ? 'Horaires exceptionnels'
+                : 'Congés et fermetures'}
+            </h2>
+            <FatuEntityManager
+              slug={slug}
+              rows={data[slug] ?? []}
+              refs={{}}
+              onSave={async (row) =>
+                persist({
+                  ...data,
+                  [slug]: [
+                    ...(data[slug] ?? []).filter((r) => r.id !== row.id),
+                    { ...row, id: row.id ?? crypto.randomUUID() },
+                  ],
+                })
+              }
+              onRemove={async (id) =>
+                persist({
+                  ...data,
+                  [slug]: (data[slug] ?? []).filter((r) => r.id !== id),
+                })
+              }
+            />
+          </section>
+        ))}
+      </>
+    );
   else if (entities[slug])
     content = (
       <>
         <h1>
-          {t(`admin.${slug}`) === `admin.${slug}`
-            ? t(entities[slug].title)
-            : t(`admin.${slug}`)}
+          {slug === 'staff'
+            ? 'Équipe'
+            : slug === 'settings'
+              ? view === 'website'
+                ? 'Site web'
+                : 'Mon salon'
+              : slug === 'offers'
+                ? 'Offres & Promotions'
+                : slug === 'gallery'
+                  ? 'Galerie'
+                  : t(entities[slug].title)}
         </h1>
         <FatuEntityManager
-          key={slug}
+          key={`${slug}-${view ?? ''}`}
           slug={slug}
-          rows={data[slug] ?? []}
+          rows={(data[slug] ?? []).filter(
+            (r) => slug !== 'faqs' || String(r.key).startsWith('faq.'),
+          )}
+          view={view}
+          currency={String(data.settings?.[0]?.currency ?? 'MAD')}
           refs={refs}
-          onSave={async (row) => {
-            const parsed = entitySchema(slug).parse(row);
+          onSave={async (row, related) => {
+            const parsed = (
+              slug === 'settings'
+                ? entitySchema(slug).partial()
+                : entitySchema(slug)
+            ).parse(row);
             const id = parsed.id ?? crypto.randomUUID();
             persist({
               ...data,
+              ...((slug === 'offers' || slug === 'staff') && related
+                ? {
+                    [slug === 'offers'
+                      ? 'promotion_services'
+                      : 'qualifications']: [
+                      ...(
+                        data[
+                          slug === 'offers'
+                            ? 'promotion_services'
+                            : 'qualifications'
+                        ] ?? []
+                      ).filter(
+                        (r) =>
+                          r[
+                            slug === 'offers' ? 'promotion_id' : 'resource_id'
+                          ] !== id,
+                      ),
+                      ...related.services.map((service_id) => ({
+                        id: crypto.randomUUID(),
+                        [slug === 'offers' ? 'promotion_id' : 'resource_id']:
+                          id,
+                        service_id,
+                      })),
+                    ],
+                    ...(slug === 'staff'
+                      ? {
+                          working_hours: [
+                            ...(data.working_hours ?? []).filter(
+                              (h) => h.resource_id !== id,
+                            ),
+                            ...related.hours.map((h) => ({
+                              ...h,
+                              id: crypto.randomUUID(),
+                              resource_id: id,
+                            })),
+                          ],
+                        }
+                      : {}),
+                  }
+                : {}),
               [slug]: [
                 ...(data[slug] ?? []).filter((r) => r.id !== id),
-                { ...parsed, id },
+                {
+                  ...(data[slug] ?? []).find((r) => r.id === id),
+                  ...parsed,
+                  id,
+                },
               ],
             });
           }}
@@ -207,6 +358,50 @@ export function FatuPreview({
             })
           }
         />
+        {slug === 'settings' && view === 'website' && (
+          <>
+            {['faqs', 'reviews', 'content'].map((panel) => (
+              <section className="fatu-admin-section" key={panel}>
+                <h2>
+                  {panel === 'faqs'
+                    ? 'Questions fréquentes'
+                    : panel === 'reviews'
+                      ? 'Avis clients'
+                      : 'Autres textes du site'}
+                </h2>
+                <FatuEntityManager
+                  slug={panel}
+                  rows={data[panel] ?? []}
+                  refs={{}}
+                  onSave={async (row) =>
+                    persist({
+                      ...data,
+                      [panel]: [
+                        ...(data[panel] ?? []).filter((r) => r.id !== row.id),
+                        { ...row, id: row.id ?? crypto.randomUUID() },
+                      ],
+                    })
+                  }
+                />
+              </section>
+            ))}
+            <details className="entity-details">
+              <summary>Conditions et règles de réservation</summary>
+              <FatuEntityManager
+                slug="settings"
+                rows={data.settings ?? []}
+                refs={{}}
+                view="policies"
+                onSave={async (row) =>
+                  persist({
+                    ...data,
+                    settings: [{ ...data.settings?.[0], ...row }],
+                  })
+                }
+              />
+            </details>
+          </>
+        )}
       </>
     );
   else
@@ -227,7 +422,7 @@ export function FatuPreview({
   return (
     <AdminShell
       preview
-      staff={{ display_name: 'Fatu · Preview', role: 'owner' }}
+      staff={{ display_name: 'Aperçu du salon', role: 'owner' }}
     >
       <div className="studio-local-tools">
         <span>{t('admin.previewNote')}</span>

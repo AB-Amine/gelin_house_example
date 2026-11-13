@@ -5,13 +5,15 @@ import { getI18n } from '@/lib/i18n/server';
 import './globals.css';
 import './experience.css';
 import './fatu.css';
+import './catalogue.css';
+import './premium-public.css';
+import './salon-editorial.css';
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.APP_URL ?? 'http://127.0.0.1:3000'),
-  title: { default: 'Fatu Makeup Artist', template: '%s | Fatu Makeup Artist' },
-  description:
-    'Fatu Makeup Artist — une signature beauté, une attention personnelle.',
-  openGraph: { title: 'Fatu Makeup Artist', type: 'website' },
-  icons: { icon: '/images/branding/fatu-mark.svg' },
+  title: { default: 'GELIN HOUSE', template: '%s | GELIN HOUSE' },
+  description: 'GELIN HOUSE — une signature beauté, une attention personnelle.',
+  openGraph: { title: 'GELIN HOUSE', type: 'website' },
+  icons: { icon: '/images/branding/gelin-mark.svg' },
 };
 export default async function RootLayout({
   children,

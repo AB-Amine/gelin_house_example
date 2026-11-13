@@ -1,5 +1,6 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Temporal } from '@js-temporal/polyfill';
 import type { AppointmentRow } from './admin';
@@ -7,7 +8,10 @@ import { transitions, type Status } from '@/lib/domain';
 import { api, ApiError } from '@/lib/client';
 import { useI18n } from './locale-provider';
 import { AppointmentNote } from './appointment-note';
+import { CustomerPrivacy } from './customer-privacy';
 type Booking = AppointmentRow & {
+  customer_id?: string;
+  local_start?: string;
   pending_request_kind?: string | null;
   currency: string;
   city_name: string | null;
@@ -23,6 +27,15 @@ export function FatuAppointments({
   timezone: string;
 }) {
   const { t, date, money } = useI18n();
+  const actionLabel: Record<string, string> = {
+    confirmed: 'Confirmer',
+    rejected: 'Refuser',
+    in_progress: 'Commencer la prestation',
+    completed: 'Marquer comme terminé',
+    cancelled_by_customer: 'Annuler à la demande de la cliente',
+    cancelled_by_salon: 'Annuler le rendez-vous',
+    no_show: 'Signaler une absence',
+  };
   const router = useRouter();
   const [selected, setSelected] = useState<{
     id: string;
@@ -36,15 +49,22 @@ export function FatuAppointments({
   const [history, setHistory] = useState<
     Record<string, { action: string; created_at: string }[]>
   >({});
+  useEffect(() => {
+    if (selected)
+      document
+        .getElementById('appointment-action')
+        ?.scrollIntoView({ block: 'center' });
+  }, [selected]);
   return (
     <>
       {message && (
         <p className="error" role="alert">
-          {t(message) === message ? t('common.error') : t(message)}
+          {t(message)}
         </p>
       )}
       {selected && (
         <form
+          id="appointment-action"
           className="admin-form"
           onSubmit={async (e) => {
             e.preventDefault();
@@ -58,21 +78,14 @@ export function FatuAppointments({
                 reason: data.get('reason') ?? '',
                 ...(selected.action === 'reschedule'
                   ? {
-                      start: Temporal.ZonedDateTime.from(
-                        `${data.get('start')}[${timezone}]`,
-                        { disambiguation: 'reject' },
-                      )
-                        .toInstant()
-                        .toString(),
+                      localStart: data.get('start'),
                     }
                   : {}),
               });
               setSelected(null);
               router.refresh();
             } catch (ex) {
-              setMessage(
-                ex instanceof ApiError ? `error.${ex.code}` : 'common.error',
-              );
+              setMessage(ex instanceof ApiError ? ex.message : 'common.error');
             } finally {
               setBusy(false);
             }
@@ -88,24 +101,44 @@ export function FatuAppointments({
           {selected.action === 'reschedule' && (
             <label>
               {t('client.proposedDate')}
-              <input type="datetime-local" name="start" required />
+              <input
+                type="datetime-local"
+                name="start"
+                defaultValue={
+                  rows.find((row) => row.id === selected.id)?.local_start ??
+                  Temporal.Instant.from(
+                    rows.find((row) => row.id === selected.id)!.starts_at,
+                  )
+                    .toZonedDateTimeISO(timezone)
+                    .toPlainDateTime()
+                    .toString()
+                    .slice(0, 16)
+                }
+                required
+              />
               <small>{timezone}</small>
             </label>
           )}
           <label>
-            {t('field.reason')}
+            Motif (facultatif, sauf refus ou prestation déjà commencée)
             <textarea
               name="reason"
               maxLength={2000}
               required={
-                selected.action.startsWith('cancelled') ||
+                (selected.action.startsWith('cancelled') &&
+                  rows.find((row) => row.id === selected.id)?.status ===
+                    'in_progress') ||
                 selected.action === 'rejected'
               }
             />
           </label>
           <div className="inline-actions">
             <button className="button" disabled={busy}>
-              {t(busy ? 'common.saving' : 'common.confirm')}
+              {busy
+                ? 'Enregistrement…'
+                : selected.action.startsWith('cancelled')
+                  ? 'Confirmer l’annulation'
+                  : 'Enregistrer'}
             </button>
             <button
               className="button secondary"
@@ -147,13 +180,18 @@ export function FatuAppointments({
             <tbody>
               {rows.map((b) => (
                 <tr key={b.id}>
-                  <td>{b.reference}</td>
-                  <td>{b.customers?.name}</td>
-                  <td>{b.city_name ?? '—'}</td>
-                  <td>{b.appointment_items.map((i) => i.name).join(' · ')}</td>
-                  <td>{date(b.starts_at, { timeZone: timezone })}</td>
-                  <td>
-                    <span className="badge">
+                  <td data-label="Référence">{b.reference}</td>
+                  <td data-label="Cliente">{b.customers?.name}</td>
+                  <td data-label="Ville">{b.city_name ?? '—'}</td>
+                  <td data-label="Prestations">
+                    {b.appointment_items.map((i) => i.name).join(' · ')}
+                  </td>
+                  <td data-label="Date et heure">
+                    {b.local_start?.replace('T', ' à ') ??
+                      date(b.starts_at, { timeZone: timezone })}
+                  </td>
+                  <td data-label="Statut">
+                    <span className={`badge status-${b.status}`}>
                       {t(
                         b.pending_request_kind === 'reschedule'
                           ? 'status.reschedule_requested'
@@ -161,8 +199,12 @@ export function FatuAppointments({
                       )}
                     </span>
                   </td>
-                  <td>{money(b.total_minor, b.currency ?? 'MAD')}</td>
-                  <td>
+                  <td data-label="Prix estimé">
+                    {b.uncertain
+                      ? 'Prix à confirmer'
+                      : money(b.total_minor, b.currency ?? 'MAD')}
+                  </td>
+                  <td data-label="Actions">
                     <button
                       className="button secondary"
                       aria-expanded={expanded === b.id}
@@ -197,11 +239,22 @@ export function FatuAppointments({
                     {b.customers?.name} · {b.reference}
                   </h2>
                 </div>
-                <time>{date(b.starts_at, { timeZone: timezone })}</time>
+                <time>
+                  {b.local_start?.replace('T', ' à ') ??
+                    date(b.starts_at, { timeZone: timezone })}
+                </time>
               </div>
               <p>
                 {b.city_name} · {b.event_address}
               </p>
+              {b.pending_request_kind && (
+                <Link
+                  className="button secondary"
+                  href={`/admin/requests?appointment=${b.id}`}
+                >
+                  Traiter la demande de modification
+                </Link>
+              )}
               <p>
                 {b.customers?.phone && (
                   <a href={`tel:${b.customers.phone}`}>{b.customers.phone}</a>
@@ -213,27 +266,43 @@ export function FatuAppointments({
               </p>
               <p>
                 {t('booking.total')}:{' '}
-                <strong>{money(b.total_minor, b.currency ?? 'MAD')}</strong> ·{' '}
-                {t('booking.travel')}:{' '}
-                {money(b.travel_fee_minor ?? 0, b.currency ?? 'MAD')}
+                <strong>
+                  {b.uncertain
+                    ? 'Prix à confirmer'
+                    : money(b.total_minor, b.currency ?? 'MAD')}
+                </strong>
+                {b.scheduling_mode !== 'diary' && (
+                  <>
+                    {' '}
+                    · {t('booking.travel')}:{' '}
+                    {money(b.travel_fee_minor ?? 0, b.currency ?? 'MAD')}
+                  </>
+                )}
               </p>
               <details className="appointment-details">
                 <summary>{t('common.details')}</summary>
-                <p>
-                  {t('field.ends_at')}:{' '}
-                  {date(b.ends_at, { timeZone: timezone })}
-                </p>
+                {b.scheduling_mode !== 'diary' && (
+                  <p>
+                    {t('field.ends_at')}:{' '}
+                    {date(b.ends_at, { timeZone: timezone })}
+                  </p>
+                )}
                 {b.appointment_items
                   .sort((a, b) => a.sequence - b.sequence)
                   .map((i, k) => (
                     <div className="basket-row" key={k}>
                       <strong>
-                        {i.name} · {i.duration_minutes} min
+                        {i.name}
+                        {b.scheduling_mode !== 'diary' && i.duration_minutes
+                          ? ` · ${i.duration_minutes} min`
+                          : ''}
                       </strong>
-                      <p>
-                        {date(i.starts_at, { timeZone: timezone })} →{' '}
-                        {date(i.ends_at, { timeZone: timezone })}
-                      </p>
+                      {b.scheduling_mode !== 'diary' && (
+                        <p>
+                          {date(i.starts_at, { timeZone: timezone })} →{' '}
+                          {date(i.ends_at, { timeZone: timezone })}
+                        </p>
+                      )}
                       <p>
                         {i.final_minor === null
                           ? t('services.consultation')
@@ -242,6 +311,18 @@ export function FatuAppointments({
                       </p>
                     </div>
                   ))}
+                {b.appointment_items.some((i) => i.discount_minor > 0) && (
+                  <p>
+                    Réduction enregistrée :{' '}
+                    {money(
+                      b.appointment_items.reduce(
+                        (sum, i) => sum + i.discount_minor,
+                        0,
+                      ),
+                      b.currency ?? 'MAD',
+                    )}
+                  </p>
+                )}
                 <AppointmentNote id={b.id} initial={b.internal_notes ?? ''} />
                 <button
                   className="button secondary"
@@ -274,16 +355,20 @@ export function FatuAppointments({
                 ))}
               </details>
               <div className="inline-actions">
-                {transitions[b.status as Status].map((status) => (
-                  <button
-                    className="button secondary"
-                    disabled={busy}
-                    key={status}
-                    onClick={() => setSelected({ id: b.id, action: status })}
-                  >
-                    {t(`status.${status}`)}
-                  </button>
-                ))}
+                {transitions[b.status as Status]
+                  .filter((status) =>
+                    ['confirmed', 'cancelled_by_salon'].includes(status),
+                  )
+                  .map((status) => (
+                    <button
+                      className="button secondary"
+                      disabled={busy}
+                      key={status}
+                      onClick={() => setSelected({ id: b.id, action: status })}
+                    >
+                      {actionLabel[status] ?? t(`status.${status}`)}
+                    </button>
+                  ))}
                 {['pending', 'confirmed'].includes(b.status) && (
                   <button
                     className="button secondary"
@@ -292,10 +377,43 @@ export function FatuAppointments({
                       setSelected({ id: b.id, action: 'reschedule' })
                     }
                   >
-                    {t('client.rescheduleRequest')}
+                    Modifier la date ou l’heure
                   </button>
                 )}
               </div>
+              {b.customer_id && (
+                <details className="entity-details">
+                  <summary>Confidentialité de la cliente</summary>
+                  <CustomerPrivacy id={b.customer_id} />
+                </details>
+              )}
+              {transitions[b.status as Status].some(
+                (status) =>
+                  !['confirmed', 'cancelled_by_salon'].includes(status),
+              ) && (
+                <details className="entity-details">
+                  <summary>Autres actions</summary>
+                  <div className="inline-actions">
+                    {transitions[b.status as Status]
+                      .filter(
+                        (status) =>
+                          !['confirmed', 'cancelled_by_salon'].includes(status),
+                      )
+                      .map((status) => (
+                        <button
+                          className="button secondary"
+                          disabled={busy}
+                          key={status}
+                          onClick={() =>
+                            setSelected({ id: b.id, action: status })
+                          }
+                        >
+                          {actionLabel[status] ?? t(`status.${status}`)}
+                        </button>
+                      ))}
+                  </div>
+                </details>
+              )}
             </article>
           ))}
       </div>

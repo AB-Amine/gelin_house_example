@@ -45,17 +45,17 @@ test('preview edits persist locally, preserve public truth and never call a muta
   await expect(
     page.getByRole('status').filter({ hasText: 'Aperçu de développement' }),
   ).toBeVisible();
-  await page.getByRole('button', { name: 'Ajouter +', exact: true }).click();
+  await page.getByRole('button', { name: 'Ajouter', exact: true }).click();
   await page
     .getByRole('textbox', { name: 'Nom', exact: true })
     .fill('Ville de test');
   await expect(
-    page.getByRole('textbox', { name: 'Adresse courte', exact: true }),
-  ).toHaveValue('ville-de-test');
+    page.getByRole('textbox', { name: /Adresse courte/ }),
+  ).toHaveCount(0);
   await page
-    .getByRole('spinbutton', { name: 'Déplacement en centimes' })
-    .fill('2500');
-  await page.getByRole('checkbox', { name: 'Activer', exact: true }).check();
+    .getByRole('spinbutton', { name: 'Frais de déplacement (MAD)' })
+    .fill('25');
+  await page.getByRole('checkbox', { name: 'Actif', exact: true }).check();
   await page.getByRole('button', { name: 'Enregistrer', exact: true }).click();
   await expect(
     page.getByText(
@@ -81,7 +81,7 @@ test('preview edits persist locally, preserve public truth and never call a muta
   ).toBeVisible();
   expect(mutations).toEqual([]);
 });
-test('preview calendar switches views and Arabic admin layout stays usable', async ({
+test('preview calendar switches views and administration remains French', async ({
   page,
 }, info) => {
   await page.goto('/admin/preview?section=calendar');
@@ -97,12 +97,14 @@ test('preview calendar switches views and Arabic admin layout stays usable', asy
   ]);
   await expect(page).toHaveURL(/view=day/);
   await page
-    .locator('.admin-account')
-    .getByRole('button', { name: 'العربية', exact: true })
-    .click();
-  await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
-  await expect(page.getByRole('heading', { level: 1 })).toContainText(
-    'التقويم',
+    .context()
+    .addCookies([
+      { name: 'fatu-language', value: 'ar', url: 'http://127.0.0.1:3000' },
+    ]);
+  await page.reload();
+  await expect(page.locator('.salon-admin')).toHaveAttribute('dir', 'ltr');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+    'Calendrier',
   );
   expect(
     await page.evaluate(

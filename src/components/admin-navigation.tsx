@@ -1,113 +1,120 @@
-﻿'use client';
+'use client';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
-import { useI18n } from './locale-provider';
-const groups = [
-  {
-    label: 'admin.groupBusiness',
-    items: [
-      ['overview', 'admin.overview', '/admin', '◈'],
-      ['bookings', 'admin.bookings', '/admin/bookings', '◷'],
-      ['calendar', 'admin.calendar', '/admin/calendar', '▦'],
-      ['clients', 'admin.clients', '/admin/clients', '♡'],
-    ],
-  },
-  {
-    label: 'admin.groupWebsite',
-    items: [
-      ['services', 'admin.services', '/admin/services', '✧'],
-      ['categories', 'admin.categories', '/admin/categories', '◈'],
-      ['portfolio', 'admin.portfolio', '/admin/portfolio', '▧'],
-      ['reviews', 'admin.reviews', '/admin/reviews', '☆'],
-      ['promotions', 'admin.promotions', '/admin/promotions', '◇'],
-      ['eligibility', 'admin.eligibility', '/admin/eligibility', '↳'],
-      ['content', 'admin.content', '/admin/content', '≡'],
-      ['translations', 'admin.translations', '/admin/translations', '文'],
-      ['faqs', 'nav.faq', '/admin/faqs', '?'],
-    ],
-  },
-  {
-    label: 'admin.groupStudio',
-    items: [
-      ['locations', 'admin.locations', '/admin/locations', '◎'],
-      ['city-hours', 'admin.cityHours', '/admin/city-hours', '◴'],
-      ['availability', 'admin.availability', '/admin/availability', '◴'],
-      ['exceptions', 'admin.exceptions', '/admin/exceptions', '◷'],
-      ['resources', 'admin.equipment', '/admin/resources', '◇'],
-      ['closures', 'admin.closures', '/admin/closures', '⊖'],
-      ['staff', 'admin.providers', '/admin/staff', '♧'],
-      ['qualifications', 'admin.skills', '/admin/qualifications', '✓'],
-      ['service-cities', 'admin.serviceCities', '/admin/service-cities', '↳'],
-    ],
-  },
-  {
-    label: 'nav.admin',
-    items: [
-      ['requests', 'admin.requests', '/admin/requests', '↔'],
-      ['payments', 'admin.payments', '/admin/payments', '◉'],
-      ['messages', 'admin.messages', '/admin/messages', '✉'],
-      ['notifications', 'admin.notifications', '/admin/notifications', '↗'],
-      ['settings', 'admin.settings', '/admin/settings', '⚙'],
-      ['team', 'admin.access', '/admin/team', '⌘'],
-      ['activity', 'admin.activity', '/admin/activity', '↺'],
-    ],
-  },
-];
+import { adminSection, adminSections } from '@/lib/admin-ui';
 export function AdminNavigation({ preview = false }: { preview?: boolean }) {
   const path = usePathname();
   const params = useSearchParams();
-  const [open, setOpen] = useState(false);
-  const { t } = useI18n();
-  const aliases: Record<string, string> = {
-    bookings: 'appointments',
-    clients: 'customers',
-    portfolio: 'gallery',
-    promotions: 'offers',
-  };
+  const [menuFor, setMenuFor] = useState('');
+  const locationKey = `${path}?${params.toString()}`;
+  const open = menuFor === locationKey;
+  const current = adminSection(
+    preview
+      ? (params.get('section') ?? 'overview')
+      : (path.split('/')[2] ?? 'overview'),
+  );
   return (
     <>
       <button
         className="admin-menu-toggle button secondary"
         aria-expanded={open}
         aria-controls="admin-navigation"
-        onClick={() => setOpen(!open)}
+        onClick={() => setMenuFor(open ? '' : locationKey)}
       >
-        {t(open ? 'nav.close' : 'nav.menu')} <span aria-hidden>☰</span>
+        {open ? 'Fermer' : 'Menu'} <span aria-hidden>☰</span>
       </button>
       <nav
         id="admin-navigation"
         className={open ? 'is-open' : ''}
-        aria-label={t('nav.admin')}
+        aria-label="Navigation principale"
       >
-        {groups.map((group) => (
-          <div className="admin-nav-group" key={group.label}>
-            <span className="admin-nav-label">{t(group.label)}</span>
-            {group.items.map(([section, label, href, icon]) => {
-              const local = aliases[section] ?? section;
-              const active = preview
-                ? (params.get('section') ?? 'overview') === local
-                : href === '/admin'
-                  ? path === href
-                  : path === href || path.startsWith(`${href}/`);
-              return (
-                <Link
-                  href={preview ? `/admin/preview?section=${local}` : href}
-                  key={section}
-                  aria-current={active ? 'page' : undefined}
-                  onClick={() => setOpen(false)}
-                >
-                  <span className="nav-icon" aria-hidden>
-                    {icon}
-                  </span>
-                  {t(label)}
-                  {active && <span className="nav-dot" aria-hidden />}
-                </Link>
-              );
-            })}
-          </div>
-        ))}
+        <div className="admin-nav-group">
+          {adminSections.map((s) => (
+            <Link
+              key={s.key}
+              href={preview ? `/admin/preview?section=${s.key}` : s.href}
+              aria-current={current === s.key ? 'page' : undefined}
+              onClick={() => setMenuFor('')}
+            >
+              <span className="nav-icon" aria-hidden>
+                {s.icon}
+              </span>
+              {s.label}
+            </Link>
+          ))}
+        </div>
       </nav>
+    </>
+  );
+}
+export function AdminSectionTabs({ preview = false }: { preview?: boolean }) {
+  const path = usePathname();
+  const params = useSearchParams();
+  const page = preview
+    ? (params.get('section') ?? 'overview')
+    : (path.split('/')[2] ?? 'overview');
+  const section = adminSection(page);
+  const link = (slug: string, query = '') =>
+    preview
+      ? `/admin/preview?section=${slug}${query ? `&${query}` : ''}`
+      : `/admin/${slug}${query ? `?${query}` : ''}`;
+  const tabs =
+    section === 'bookings'
+      ? [
+          ['messages', 'Demandes'],
+          ['calendar', 'Calendrier'],
+          ['bookings?period=history', 'Historique'],
+        ]
+      : section === 'services'
+        ? [
+            ['services', 'Prestations'],
+            ['categories', 'Catégories'],
+          ]
+        : section === 'settings'
+          ? [
+              ['settings', 'Informations'],
+              ['availability', 'Horaires'],
+              ['portfolio', 'Photos'],
+              ['settings?view=website', 'Site web'],
+              ['account', 'Mon compte'],
+            ]
+          : [];
+  const renderLink = ([slug, label]: string[]) => {
+    const [route, query] = slug.split('?');
+    const currentPage = ['exceptions', 'closures'].includes(page)
+      ? 'availability'
+      : ['faqs', 'reviews', 'content'].includes(page)
+        ? 'settings'
+        : page === 'team'
+          ? 'account'
+          : page;
+    const currentView = ['faqs', 'reviews', 'content'].includes(page)
+      ? 'website'
+      : (params.get('view') ?? '');
+    const active =
+      route === currentPage &&
+      (route !== 'settings' ||
+        currentView === (new URLSearchParams(query).get('view') ?? ''));
+    return (
+      <Link
+        key={slug}
+        className={active ? 'is-active' : ''}
+        aria-current={active ? 'page' : undefined}
+        href={link(route, query)}
+        prefetch={route === 'messages' ? false : undefined}
+      >
+        {label}
+      </Link>
+    );
+  };
+  return (
+    <>
+      {tabs.length > 0 && (
+        <nav className="salon-tabs" aria-label="Rubriques de la section">
+          {tabs.map(renderLink)}
+        </nav>
+      )}
     </>
   );
 }

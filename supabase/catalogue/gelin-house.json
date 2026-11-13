@@ -1,0 +1,168 @@
+[
+  {
+    "name": "Esthétique",
+    "slug": "esthetique",
+    "sections": [
+      {
+        "name": "Épilation",
+        "services": [
+          "Épilation des sourcils",
+          "Épilation du duvet",
+          "Épilation des aisselles",
+          "Épilation complète sans maillot",
+          "Épilation complète avec maillot",
+          "Épilation des jambes",
+          "Épilation des demi-jambes",
+          "Épilation des bras",
+          "Épilation des demi-bras",
+          "Épilation du maillot"
+        ]
+      },
+      {
+        "name": "Soins du visage",
+        "services": [
+          "Soin du visage basique",
+          "Soin du visage académie",
+          "Soin du visage Phytocéane",
+          "Soin du visage Hydrafacial"
+        ]
+      },
+      {
+        "name": "Beauté des sourcils",
+        "services": ["Brow Lift", "Microblading (sourcils semi-permanents)"]
+      },
+      { "name": "Beauté des cils", "services": ["Pose de cils classiques"] },
+      {
+        "name": "Manucure",
+        "services": ["Manucure normale", "Manucure Spa", "Manucure médicale"]
+      },
+      {
+        "name": "Pédicure",
+        "services": ["Pédicure normale", "Pédicure Spa", "Pédicure médicale"]
+      },
+      {
+        "name": "Onglerie",
+        "sections": [
+          {
+            "name": "Vernis classique",
+            "services": [
+              "Vernis classique sur ongles naturels",
+              "Vernis classique sur faux ongles"
+            ]
+          },
+          {
+            "name": "Vernis permanent",
+            "services": [
+              "Permanent sur ongles naturels",
+              "Permanent sur faux ongles",
+              "Permanent mains",
+              "Permanent pieds"
+            ]
+          },
+          {
+            "name": "Gel",
+            "services": [
+              "Gel naturel",
+              "Gel avec capsules",
+              "Gel avec finition permanente",
+              "Gel avec design / Nail Art"
+            ]
+          },
+          {
+            "name": "BIAB",
+            "services": ["BIAB sur ongles naturels", "BIAB avec capsules"]
+          },
+          {
+            "name": "Dépose",
+            "services": [
+              "Dépose de vernis permanent",
+              "Dépose de gel",
+              "Dépose complète des ongles"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Coiffure",
+    "slug": "coiffure",
+    "sections": [
+      {
+        "name": "Brushing",
+        "services": [
+          "Brushing simple",
+          "Brushing bouclé",
+          "Touching",
+          "Bouclé",
+          "Wavy"
+        ]
+      },
+      { "name": "Chignons", "services": ["Chignon bas", "Chignon demi-lâché"] },
+      {
+        "name": "Soins lissants",
+        "services": ["Lissage protéiné", "Lissage Bio Coffee"],
+        "sections": [
+          {
+            "name": "Lissage Kerfactor",
+            "services": [
+              "Lissage Kerfactor",
+              "Kerfactor Premium",
+              "Kerfactor Noir",
+              "Kerfactor Gold"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Soins capillaires",
+        "services": [
+          "Soin capillaire basique",
+          "Soin capillaire Macadamia",
+          "Soin capillaire Kerfactor Plasma",
+          "Soin capillaire Kerfactor Anti-Chute"
+        ]
+      },
+      {
+        "name": "Coupes de cheveux",
+        "services": [
+          "Coupe des pointes",
+          "Coupe de frange",
+          "Coupe de cheveux classique",
+          "Coupe professionnelle"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Makeup",
+    "slug": "makeup",
+    "sections": [
+      {
+        "name": "Makeup invité",
+        "services": [
+          "Makeup simple",
+          "Makeup simple avec faux cils",
+          "Makeup simple avec sourcils"
+        ]
+      },
+      { "name": "Makeup VIP", "services": ["Makeup VIP"] },
+      {
+        "name": "Makeup mariée",
+        "services": ["Makeup mariée — Pack 1", "Makeup mariée — Pack 2"]
+      }
+    ]
+  },
+  {
+    "name": "Location",
+    "slug": "location",
+    "service_type": "rental",
+    "sections": [
+      { "name": "Location de caftans", "services": ["Location de caftans"] },
+      {
+        "name": "Location d'accessoires",
+        "services": ["Location d'accessoires"]
+      }
+    ]
+  }
+]

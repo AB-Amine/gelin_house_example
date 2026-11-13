@@ -1,0 +1,179 @@
+.official-catalogue {
+  padding-bottom: 60px;
+}
+.official-catalogue .filter-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.official-catalogue .filter-tabs button {
+  min-height: 44px;
+  padding: 12px 20px;
+  white-space: normal;
+}
+.official-catalogue-category {
+  margin-top: 48px;
+}
+.official-catalogue-category > h2 {
+  font-size: clamp(30px, 4vw, 45px);
+  border-bottom: 1px solid #ded3c5;
+  padding-bottom: 18px;
+}
+.official-catalogue-section {
+  margin-top: 30px;
+}
+.official-catalogue-section > .official-subcategory-title {
+  font-size: 25px;
+  margin-bottom: 22px;
+}
+.official-catalogue-group {
+  margin-top: 24px;
+}
+.official-catalogue-group > h4 {
+  font-size: 17px;
+  font-weight: 600;
+  margin-bottom: 18px;
+  color: #73604a;
+}
+.official-service-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: 100%;
+}
+.official-service-card h3 {
+  overflow-wrap: anywhere;
+  line-height: 1.3;
+}
+.official-service-card .service-top {
+  gap: 12px;
+  align-items: start;
+}
+.official-service-card .service-top > span:last-child {
+  flex-shrink: 0;
+}
+.official-service-card .service-top > .eyebrow {
+  flex-shrink: 1;
+  line-height: 1.7;
+}
+.official-service-card .service-price {
+  margin-top: auto;
+  padding-top: 20px;
+}
+.official-service-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 16px;
+}
+.official-service-actions .button {
+  min-height: 44px;
+  max-width: 100%;
+  white-space: normal;
+  text-align: center;
+}
+@media (max-width: 650px) {
+  .official-catalogue .catalog-tools {
+    display: block;
+  }
+  .official-catalogue .filter-tabs {
+    margin-top: 20px;
+    overflow: visible;
+  }
+  .official-catalogue .service-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .official-catalogue .service-card {
+    padding: 24px 20px;
+  }
+}
+
+.appointment-request {
+  padding-bottom: 60px;
+  max-width: 900px;
+  margin-inline: auto;
+}
+.appointment-page .fatu-page-heading {
+  padding-block: 48px 28px;
+  margin-bottom: 28px;
+}
+.appointment-page .fatu-page-heading h1 {
+  font-size: clamp(32px, 5vw, 56px);
+  max-width: 780px;
+}
+.appointment-page .fatu-intro {
+  font-size: 17px;
+}
+.appointment-request-form {
+  padding: clamp(20px, 4vw, 38px);
+  border: 1px solid #ded3c5;
+  background: #fffdf9;
+  margin-top: 24px;
+}
+.appointment-request-form fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.appointment-request-form label {
+  display: block;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+.appointment-request-form input,
+.appointment-request-form select,
+.appointment-request-form textarea {
+  width: 100%;
+  max-width: 100%;
+  min-height: 46px;
+  font-size: 16px;
+}
+.appointment-request-form .checkbox {
+  display: flex;
+  align-items: start;
+  gap: 12px;
+}
+.appointment-request-form .checkbox input {
+  width: 20px;
+  min-height: 20px;
+  flex-shrink: 0;
+}
+.appointment-request-selection {
+  margin-block: 18px;
+}
+.appointment-request-selection .basket-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  overflow-wrap: anywhere;
+}
+.appointment-request-selection button {
+  min-height: 44px;
+  flex-shrink: 0;
+  text-decoration: none;
+  border-bottom: 0;
+}
+.request-service-price {
+  display: block;
+  color: #73604a;
+  margin-top: 6px;
+}
+.appointment-request-form h2 {
+  font-size: 21px;
+  margin: 24px 0 18px;
+}
+.appointment-request-form h2:first-child {
+  margin-top: 0;
+}
+.appointment-request-form .fatu-button {
+  min-height: 46px;
+}
+@media (max-width: 650px) {
+  .appointment-request-form .form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

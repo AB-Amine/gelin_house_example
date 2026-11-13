@@ -1,6 +1,6 @@
 import { requirePageStaff } from '@/lib/auth';
 import { sessionDb } from '@/lib/supabase';
-import {getI18n} from '@/lib/i18n/server';
+import {getI18n} from '@/lib/admin-i18n';
 import Link from 'next/link';
 export default async function Activity({
   searchParams,

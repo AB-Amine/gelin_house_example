@@ -251,10 +251,10 @@ test('Fatu guest booking, client ownership, admin confirmation and reviewed canc
     await expect(adminPage).toHaveURL(/\/admin$/);
     await adminPage.goto(`/admin/bookings?reference=${booking.reference}`);
     await adminPage
-      .getByRole('button', { name: 'Confirmé', exact: true })
+      .getByRole('button', { name: 'Confirmer', exact: true })
       .click();
     await adminPage
-      .getByRole('button', { name: 'Confirmer', exact: true })
+      .getByRole('button', { name: 'Valider la modification', exact: true })
       .click();
     await expect(adminPage.locator('.record .badge')).toHaveText('Confirmé');
     await page.reload();

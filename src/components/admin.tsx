@@ -657,6 +657,7 @@ export type AppointmentRow = {
   reference: string;
   starts_at: string;
   ends_at: string;
+  scheduling_mode?: 'interval' | 'diary';
   status: Status;
   total_minor: number;
   uncertain: boolean;

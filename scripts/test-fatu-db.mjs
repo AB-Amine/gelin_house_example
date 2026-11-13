@@ -706,8 +706,13 @@ export async function testFatuDatabase(client, check) {
         );
         assert.ok(account);
         assert.ok(account.bookings >= 2);
-        assert.equal(account.notes, 'PRIVATE ADMIN CLIENT NOTE');
-        const summary=(await client.query("select fatu_admin_summary(now()-interval '1 day',now()+interval '90 days') s")).rows[0].s;assert.equal(summary.clients,result.count);
+        assert.ok(!('notes' in account));
+        const summary = (
+          await client.query(
+            "select fatu_admin_summary(now()-interval '1 day',now()+interval '90 days') s",
+          )
+        ).rows[0].s;
+        assert.equal(summary.clients, result.count);
         await client.query(
           "select set_config('request.jwt.claim.sub',$1,false)",
           [user],

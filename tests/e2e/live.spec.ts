@@ -19,7 +19,7 @@ test.describe('configured Supabase journeys', () => {
     await expect(page).toHaveURL(/\/admin$/);
     await page.goto('/admin/bookings');
     await expect(
-      page.getByRole('heading', { name: 'Réservations' }),
+      page.getByRole('heading', { name: 'Rendez-vous' }),
     ).toBeVisible();
     await page.getByRole('button', { name: 'Se déconnecter' }).click();
     await expect(page).toHaveURL(/\/admin\/login$/);

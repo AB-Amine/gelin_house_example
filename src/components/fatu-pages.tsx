@@ -6,12 +6,11 @@ import type { Catalog } from '@/lib/domain';
 import { salonImage } from '@/lib/assets';
 import { useI18n } from './locale-provider';
 import { useWebsiteCopy } from './website-copy';
-import { FatuPhoto } from './fatu-photo';
 export function FatuHeading({ title, body }: { title: string; body?: string }) {
   const { t } = useI18n();
   return (
     <header className="fatu-page-heading">
-      <span className="fatu-eyebrow">FATU MAKEUP ARTIST</span>
+      <span className="fatu-eyebrow">GELIN HOUSE</span>
       <h1>{t(title)}</h1>
       {body && <p>{t(body)}</p>}
     </header>
@@ -47,36 +46,7 @@ export function FatuFaq({ catalog: initial }: { catalog: Catalog }) {
     </div>
   );
 }
-export function FatuAbout({ catalog: initial }: { catalog: Catalog }) {
-  const { t, catalog } = useWebsiteCopy(initial);
-  return (
-    <div className="fatu-container">
-      <FatuHeading title="home.about.title" body="home.about.body" />
-      <div className="fatu-split fatu-section">
-        <FatuPhoto id="brushes" />
-        <div>
-          <span className="fatu-eyebrow">{t('brand.artist')}</span>
-          <h2>{t('brand.signature')}</h2>
-          <p className="prose">
-            {catalog.settings?.about || t('about.pending')}
-          </p>
-          <p className="fatu-fine">{t('image.portraitPending')}</p>
-          <Link className="fatu-button" href="/contact">
-            {t('nav.contact')} ↗
-          </Link>
-        </div>
-      </div>
-      {catalog.content
-        .filter((c) => c.key.startsWith('about.'))
-        .map((c) => (
-          <section className="fatu-section" key={c.key}>
-            <h2>{c.title}</h2>
-            <p className="prose">{c.body}</p>
-          </section>
-        ))}
-    </div>
-  );
-}
+export { FatuAbout } from './fatu-about';
 export function FatuPortfolio({ catalog: initial }: { catalog: Catalog }) {
   const { t, catalog } = useWebsiteCopy(initial);
   const [album, setAlbum] = useState('all');
@@ -86,6 +56,9 @@ export function FatuPortfolio({ catalog: initial }: { catalog: Catalog }) {
   const images = catalog.gallery.filter(
     (g) => album === 'all' || g.album === album,
   );
+  const source = images[index]?.description?.match(
+    /https:\/\/www\.instagram\.com\/[A-Za-z0-9_./-]+/,
+  )?.[0];
   useEffect(() => {
     const d = dialog.current;
     return () => d?.close();
@@ -96,9 +69,13 @@ export function FatuPortfolio({ catalog: initial }: { catalog: Catalog }) {
     dialog.current?.showModal();
   }
   return (
-    <div className="fatu-container">
+    <div className="fatu-container salon-portfolio">
       <FatuHeading title="nav.portfolio" body="portfolio.body" />
-      <div className="filter-tabs">
+      <div
+        className="filter-tabs"
+        role="group"
+        aria-label={t('portfolio.albums')}
+      >
         <button aria-pressed={album === 'all'} onClick={() => setAlbum('all')}>
           {t('common.all')}
         </button>
@@ -130,23 +107,34 @@ export function FatuPortfolio({ catalog: initial }: { catalog: Catalog }) {
                 height={960}
                 unoptimized
               />
-              <span>{g.title || g.alt} ↗</span>
+              <span>
+                <small>{g.album}</small>
+                {g.title || g.alt} ↗
+              </span>
             </button>
           ))}
         </div>
       ) : (
-        <>
-          <p className="fatu-empty">{t('portfolio.empty')}</p>
-          <p>{t('portfolio.inspiration')}</p>
-          <div className="fatu-portfolio-grid">
-            <FatuPhoto id="editorial-colour" />
-            <FatuPhoto id="artistry" />
-          </div>
-        </>
+        <div className="fatu-empty">
+          <p>{t('premium.portfolioEmpty')}</p>
+          <Link className="fatu-text-link" href="/services">
+            {t('nav.services')}{' '}
+          </Link>
+        </div>
       )}
+      <section className="salon-portfolio-cta">
+        <div>
+          <span className="fatu-eyebrow">{t('premium.yourMoment')}</span>
+          <h2>{t('aboutPage.cta')}</h2>
+        </div>
+        <Link className="fatu-button" href="/reservation">
+          {t('nav.booking')} ↗
+        </Link>
+      </section>
       <dialog
         ref={dialog}
         className="fatu-lightbox"
+        aria-label={t('portfolio.title')}
         onClose={() => trigger.current?.focus()}
         onClick={(e) => {
           if (e.target === e.currentTarget) dialog.current?.close();
@@ -174,7 +162,27 @@ export function FatuPortfolio({ catalog: initial }: { catalog: Catalog }) {
           />
         )}
         {images[index]?.title && <h2>{images[index].title}</h2>}
-        {images[index]?.description && <p>{images[index].description}</p>}
+        {images[index]?.description && (
+          <p>
+            {images[index].description.replace(
+              /\s*Source\s*:\s*https:\/\/www\.instagram\.com\/\S+/,
+              '',
+            )}
+          </p>
+        )}
+        {source && !images[index]?.video_url && (
+          <a
+            className="fatu-text-link"
+            href={source}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {t('portfolio.source')} ↗
+          </a>
+        )}
+        <p className="salon-gallery-counter">
+          {index + 1} / {images.length}
+        </p>
         {images[index]?.video_url?.startsWith('https://') && (
           <a
             className="fatu-text-link"

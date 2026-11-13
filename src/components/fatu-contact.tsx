@@ -18,10 +18,10 @@ export function FatuContact({
   const s = catalog.settings;
   return (
     <div className="fatu-container">
-      <FatuHeading title="nav.contact" body="home.cta.body" />
+      <FatuHeading title="nav.contact" body="premium.simpleBooking" />
       <div className="fatu-contact-grid fatu-section">
         <aside>
-          <span className="fatu-eyebrow">FATU MAKEUP ARTIST</span>
+          <span className="fatu-eyebrow">{s?.name || 'GELIN HOUSE'}</span>
           <h2>{t('footer.connect')}</h2>
           <p>{s?.address || t('contact.pending')}</p>
           {s?.phone && (
@@ -44,15 +44,55 @@ export function FatuContact({
               WhatsApp ↗
             </a>
           )}
-          <Link
-            className="fatu-text-link"
-            href="https://www.instagram.com/fatu_makeupartist/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Instagram · @fatu_makeupartist ↗
-          </Link>
+          {s?.instagram && (
+            <a
+              className="fatu-text-link"
+              href={s.instagram}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Instagram ↗
+            </a>
+          )}
           <p className="fatu-fine">{t('common.notConfirmed')}</p>
+          <Link className="fatu-button" href="/reservation">
+            {t('nav.booking')} ↗
+          </Link>
+          {s?.map_url && (
+            <a
+              className="fatu-text-link"
+              href={s.map_url}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {t('premium.map')} ↗
+            </a>
+          )}
+          <h3>Horaires d’ouverture</h3>
+          {[
+            'Lundi',
+            'Mardi',
+            'Mercredi',
+            'Jeudi',
+            'Vendredi',
+            'Samedi',
+            'Dimanche',
+          ].map((name, i) => {
+            const day = (i + 1) % 7;
+            const periods = catalog.hours.filter((h) => h.weekday === day);
+            return (
+              <p key={day}>
+                {name} :{' '}
+                {periods.length
+                  ? periods
+                      .map(
+                        (h) => `${h.opens.slice(0, 5)}–${h.closes.slice(0, 5)}`,
+                      )
+                      .join(' / ')
+                  : 'Fermé'}
+              </p>
+            );
+          })}
         </aside>
         <form
           onSubmit={async (e) => {

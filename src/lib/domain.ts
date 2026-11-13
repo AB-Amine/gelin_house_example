@@ -99,7 +99,10 @@ export type Service = {
   slug: string;
   description: string;
   preparation: string;
-  duration_minutes: number;
+  duration_minutes: number | null;
+  subcategory?: string;
+  service_group?: string;
+  service_type?: 'appointment' | 'rental';
   buffer_before: number;
   buffer_after: number;
   price_type: 'fixed' | 'starting' | 'consultation';
@@ -118,6 +121,11 @@ export type Category = {
   description: string;
 };
 export type Promotion = {
+  /** Salon-local calendar dates serialized by the public loader. */
+  starts_on?: string;
+  ends_on?: string;
+  starts_time?: string;
+  ends_time?: string;
   id: string;
   name: string;
   description: string;
@@ -157,6 +165,8 @@ export type Settings = {
   rescheduling_notice_hours: number;
 };
 export type Catalog = {
+  /** Server clock for a consistent public offer/price snapshot during hydration. */
+  as_of?: number;
   cities?: {
     id: string;
     name: string;
@@ -290,7 +300,7 @@ export function discountMinor(
 export function currentPrice(
   service: Service,
   catalog: Catalog,
-  now = Date.now(),
+  now = catalog.as_of ?? Date.now(),
 ) {
   if (service.price_type !== 'fixed' || service.price_minor === null)
     return { amount: service.price_minor, promotion: null };

@@ -156,10 +156,8 @@ test('stale basket selection can be removed while booking remains disabled', asy
   await expect(remove).toHaveCount(0);
   await expect(
     page.getByRole('button', { name: 'Envoyer ma demande' }),
-  ).toHaveCount(0);
-  await expect(
-    page.getByText(/Les réservations ouvriront après validation/),
-  ).toBeVisible();
+  ).toBeDisabled();
+  await expect(page.getByText(/Les réservations ouvriront après validation/)).toHaveCount(0);
 });
 test('contact and authentication explain missing configuration without claiming success', async ({
   page,
@@ -193,7 +191,7 @@ test('management capability stays private and privileged mutations reject unauth
   request,
 }) => {
   await page.goto('/reservation/gestion#invalid');
-  await expect(page.getByRole('alert')).toBeVisible();
+  await expect(page.locator('main').getByRole('alert')).toBeVisible();
   expect(await page.evaluate(() => location.hash)).toBe('');
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
     'content',
@@ -204,6 +202,7 @@ test('management capability stays private and privileged mutations reject unauth
     '/api/admin/payments',
     '/api/admin/client-note',
     '/api/admin/services',
+    '/api/admin/owner-form',
     '/api/client/profile',
     '/api/client/requests',
   ]) {

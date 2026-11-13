@@ -1,20 +1,14 @@
-'use client';
+﻿'use client';
 import Link from 'next/link';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { api } from '@/lib/client';
 import { useI18n } from './locale-provider';
-import { CustomerPrivacy } from './customer-privacy';
 export type ClientRecord = {
   id: string;
-  kind: 'account' | 'guest';
+  kind: 'account';
   name: string;
   phone: string;
   email: string;
-  notes: string;
+  created_at: string;
   bookings: number;
-  completed: number;
-  next_at: string | null;
 };
 export function FatuClients({
   rows,
@@ -29,106 +23,86 @@ export function FatuClients({
   count: number;
   timezone: string;
 }) {
-  const { t, date } = useI18n();
-  const router = useRouter();
-  const [message, setMessage] = useState('');
-  const [busy, setBusy] = useState(false);
+  const { date } = useI18n();
   return (
     <>
-      <h1>{t('admin.clients')}</h1>
+      <h1>Clientes inscrites</h1>
       <form className="admin-toolbar">
         <label>
-          {t('calendar.search')}
-          <input name="q" type="search" maxLength={100} defaultValue={query} />
+          Rechercher une cliente
+          <input
+            name="q"
+            type="search"
+            maxLength={100}
+            defaultValue={query}
+            placeholder="Nom, email ou téléphone"
+          />
         </label>
-        <button className="button">{t('common.search')}</button>
+        <button className="button">Rechercher</button>
       </form>
-      {message && <p role="status">{t(message)}</p>}
-      <div className="admin-record-grid">
+      <div className="registered-clients">
         {rows.map((c) => (
-          <article className="admin-record-card" key={`${c.kind}-${c.id}`}>
-            <span className="badge">
-              {t(c.kind === 'account' ? 'client.account' : 'client.guest')}
-            </span>
-            <h2>{c.name || t('nav.client')}</h2>
-            <p>{c.phone && <a href={`tel:${c.phone}`}>{c.phone}</a>}</p>
-            <p>{c.email && <a href={`mailto:${c.email}`}>{c.email}</a>}</p>
-            <div className="fatu-client-stats">
-              <article>
-                <span>{t('admin.bookings')}</span>
-                <strong>{c.bookings}</strong>
-              </article>
-              <article>
-                <span>{t('status.completed')}</span>
-                <strong>{c.completed}</strong>
-              </article>
+          <article className="registered-client" key={c.id}>
+            <div>
+              <h2>{c.name || 'Cliente inscrite'}</h2>
+              <p>{c.email}</p>
+              {c.phone && <a href={`tel:${c.phone}`}>{c.phone}</a>}
             </div>
-            {c.next_at && (
+            <div>
               <p>
-                {t('client.next')}: {date(c.next_at, { timeZone: timezone })}
+                Inscrite le{' '}
+                {date(c.created_at, {
+                  timeZone: timezone,
+                  dateStyle: 'medium',
+                })}
               </p>
-            )}
-            <Link
-              className="fatu-text-link"
-              href={`/admin/bookings?${c.kind === 'account' ? 'client' : 'customer'}=${c.id}`}
-            >
-              {t('client.history')} ↗
-            </Link>
-            <details className="entity-details">
-              <summary>{t('client.profile')}</summary>
-              <form
-                className="fatu-profile-form"
-                onSubmit={async (e) => {
-                  e.preventDefault();
-                  setBusy(true);
-                  try {
-                    await api('/api/admin/client-note', {
-                      id: c.id,
-                      kind: c.kind,
-                      note: new FormData(e.currentTarget).get('note'),
-                    });
-                    setMessage('common.saved');
-                    router.refresh();
-                  } catch {
-                    setMessage('common.error');
-                  } finally {
-                    setBusy(false);
-                  }
-                }}
+              <p>
+                {c.bookings} rendez-vous lié{c.bookings > 1 ? 's' : ''}
+              </p>
+            </div>
+            <details>
+              <summary>Voir le profil et l’historique</summary>
+              <p>{c.name}</p>
+              <p>
+                <a href={`mailto:${c.email}`}>{c.email}</a>
+              </p>
+              {c.phone && (
+                <p>
+                  <a href={`tel:${c.phone}`}>{c.phone}</a>
+                </p>
+              )}
+              <Link
+                className="button secondary"
+                href={`/admin/bookings?client=${c.id}`}
               >
-                <label>
-                  {t('field.notes')}
-                  <textarea
-                    name="note"
-                    defaultValue={c.notes}
-                    maxLength={5000}
-                  />
-                </label>
-                <button className="button secondary" disabled={busy}>
-                  {t('common.save')}
-                </button>
-              </form>
-              {c.kind === 'guest' && <CustomerPrivacy id={c.id} />}
+                Voir les rendez-vous
+              </Link>
             </details>
           </article>
         ))}
       </div>
-      {!rows.length && <p className="empty-state">{t('common.empty')}</p>}
-      <div className="inline-actions">
-        {page > 1 && (
-          <Link href={`?q=${encodeURIComponent(query)}&page=${page - 1}`}>
-            ← {t('common.back')}
-          </Link>
-        )}
-        <span>
-          {page} · {count}
-        </span>
-        {page * 50 < count && (
-          <Link href={`?q=${encodeURIComponent(query)}&page=${page + 1}`}>
-            {t('common.next')} →
-          </Link>
-        )}
-      </div>
+      {!rows.length && (
+        <p className="empty-state">
+          {query
+            ? 'Aucune cliente inscrite ne correspond à cette recherche.'
+            : 'Aucune cliente inscrite pour le moment. Les clientes sans compte restent accessibles dans leurs rendez-vous.'}
+        </p>
+      )}
+      {count > 50 && (
+        <div className="inline-actions">
+          {page > 1 && (
+            <Link href={`?q=${encodeURIComponent(query)}&page=${page - 1}`}>
+              ← Précédent
+            </Link>
+          )}
+          <span>Page {page}</span>
+          {page * 50 < count && (
+            <Link href={`?q=${encodeURIComponent(query)}&page=${page + 1}`}>
+              Suivant →
+            </Link>
+          )}
+        </div>
+      )}
     </>
   );
 }

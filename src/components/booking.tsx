@@ -581,7 +581,7 @@ export function Booking({
         <div className="total">
           <span>Durée des prestations</span>
           <span>
-            {selected.reduce((sum, s) => sum + s.duration_minutes, 0)} min
+            {selected.every(s => s.duration_minutes !== null) ? `${selected.reduce((sum, s) => sum + (s.duration_minutes ?? 0), 0)} min` : 'Durée à confirmer'}
           </span>
         </div>
         <p className="small">

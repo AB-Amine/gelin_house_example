@@ -40,6 +40,7 @@ async function quote(
     const old = previous?.items.find((i) => i.service_id === id);
     const price = currentPrice(s, catalog);
     const duration = old?.duration_minutes ?? s.duration_minutes;
+    if (duration === null) throw Error('La durée de cette prestation reste à confirmer.');
     const before = old?.buffer_before ?? s.buffer_before;
     const after = old?.buffer_after ?? s.buffer_after;
     const item = {

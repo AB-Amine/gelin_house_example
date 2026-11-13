@@ -1,0 +1,188 @@
+[
+  {
+    "id": "hair",
+    "pexels": 20046793,
+    "source": "https://www.pexels.com/photo/woman-posing-at-in-a-hair-salon-20046793/",
+    "author": "TONI&GUY PONDICHERRY",
+    "alt": "Chevelure ondulée — photographie d’inspiration",
+    "license": "https://www.pexels.com/license/",
+    "verified": "2026-11-12",
+    "download": "https://images.pexels.com/photos/20046793/pexels-photo-20046793.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "sha256": "c5147b4f9ae253accbc9feed895d662cb5bdf624fad051749b2c45d4765e14a0",
+    "width": 1600,
+    "height": 2400,
+    "illustrative": true,
+    "variants": [
+      {
+        "width": 320,
+        "path": "/images/premium/hair-320.webp",
+        "bytes": 31656
+      },
+      {
+        "width": 720,
+        "path": "/images/premium/hair-720.webp",
+        "bytes": 129174
+      },
+      {
+        "width": 1400,
+        "path": "/images/premium/hair-1400.webp",
+        "bytes": 334652
+      }
+    ]
+  },
+  {
+    "id": "nails",
+    "pexels": 6135696,
+    "source": "https://www.pexels.com/photo/a-person-applying-nail-polish-on-a-fingernail-6135696/",
+    "author": "Gabriel Puyén",
+    "alt": "Application de vernis rouge — photographie d’inspiration",
+    "license": "https://www.pexels.com/license/",
+    "verified": "2026-11-12",
+    "download": "https://images.pexels.com/photos/6135696/pexels-photo-6135696.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "sha256": "9c092bdfad3bda4cc4ce42d68648e2c481f92704b911d2ba4c7b133c2b93b78f",
+    "width": 1600,
+    "height": 1067,
+    "illustrative": true,
+    "variants": [
+      {
+        "width": 320,
+        "path": "/images/premium/nails-320.webp",
+        "bytes": 8028
+      },
+      {
+        "width": 720,
+        "path": "/images/premium/nails-720.webp",
+        "bytes": 23746
+      },
+      {
+        "width": 1400,
+        "path": "/images/premium/nails-1400.webp",
+        "bytes": 56918
+      }
+    ]
+  },
+  {
+    "id": "facial",
+    "pexels": 7446659,
+    "source": "https://www.pexels.com/photo/woman-getting-a-facial-treatment-7446659/",
+    "author": "Gustavo Fring",
+    "alt": "Soin du visage — photographie d’inspiration",
+    "license": "https://www.pexels.com/license/",
+    "verified": "2026-11-12",
+    "download": "https://images.pexels.com/photos/7446659/pexels-photo-7446659.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "sha256": "d255aa9dd1b6a6618c9ddeed98af3f35592f4b8181f16c068dcd441532245df2",
+    "width": 1600,
+    "height": 1067,
+    "illustrative": true,
+    "variants": [
+      {
+        "width": 320,
+        "path": "/images/premium/facial-320.webp",
+        "bytes": 7000
+      },
+      {
+        "width": 720,
+        "path": "/images/premium/facial-720.webp",
+        "bytes": 19908
+      },
+      {
+        "width": 1400,
+        "path": "/images/premium/facial-1400.webp",
+        "bytes": 47474
+      }
+    ]
+  },
+  {
+    "id": "caftan",
+    "pexels": 30457749,
+    "source": "https://www.pexels.com/fr-fr/photo/mode-elegante-du-caftan-marocain-traditionnel-30457749/",
+    "author": "MAG Photography",
+    "alt": "Caftan marocain brodé — photographie d’inspiration, modèle non contractuel",
+    "license": "https://www.pexels.com/license/",
+    "verified": "2026-11-12",
+    "download": "https://images.pexels.com/photos/30457749/pexels-photo-30457749.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "sha256": "035419666767ec3d1279fe50cccdf8850f80b51758abb22a36394ee293e798c2",
+    "width": 1600,
+    "height": 2397,
+    "illustrative": true,
+    "variants": [
+      {
+        "width": 320,
+        "path": "/images/premium/caftan-320.webp",
+        "bytes": 19230
+      },
+      {
+        "width": 720,
+        "path": "/images/premium/caftan-720.webp",
+        "bytes": 85228
+      },
+      {
+        "width": 1400,
+        "path": "/images/premium/caftan-1400.webp",
+        "bytes": 280050
+      }
+    ]
+  },
+  {
+    "id": "bridal",
+    "pexels": 17259708,
+    "source": "https://www.pexels.com/photo/bride-getting-her-makeup-done-before-the-wedding-17259708/",
+    "author": "Thanh Nhan",
+    "alt": "Préparation beauté d’une mariée — photographie d’inspiration",
+    "license": "https://www.pexels.com/license/",
+    "verified": "2026-11-12",
+    "download": "https://images.pexels.com/photos/17259708/pexels-photo-17259708.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "sha256": "1d5576f77d7998f8a5539ff4a9723f93cf283481e4a00b8e72c52b317786c8e5",
+    "width": 1600,
+    "height": 2400,
+    "illustrative": true,
+    "variants": [
+      {
+        "width": 320,
+        "path": "/images/premium/bridal-320.webp",
+        "bytes": 17204
+      },
+      {
+        "width": 720,
+        "path": "/images/premium/bridal-720.webp",
+        "bytes": 55716
+      },
+      {
+        "width": 1400,
+        "path": "/images/premium/bridal-1400.webp",
+        "bytes": 141340
+      }
+    ]
+  },
+  {
+    "id": "interior",
+    "pexels": 7750125,
+    "source": "https://www.pexels.com/photo/cozy-beauty-salon-7750125/",
+    "author": "Max Vakhtbovych",
+    "alt": "Ambiance de salon — photographie d’inspiration, pas les locaux GELIN HOUSE",
+    "license": "https://www.pexels.com/license/",
+    "verified": "2026-11-12",
+    "download": "https://images.pexels.com/photos/7750125/pexels-photo-7750125.jpeg?auto=compress&cs=tinysrgb&w=1600",
+    "sha256": "6e6126cfbd02a2139859dc72313f750db0438568bdde1bd2949dd4946025c40b",
+    "width": 1600,
+    "height": 1068,
+    "illustrative": true,
+    "variants": [
+      {
+        "width": 320,
+        "path": "/images/premium/interior-320.webp",
+        "bytes": 9752
+      },
+      {
+        "width": 720,
+        "path": "/images/premium/interior-720.webp",
+        "bytes": 35416
+      },
+      {
+        "width": 1400,
+        "path": "/images/premium/interior-1400.webp",
+        "bytes": 92332
+      }
+    ]
+  }
+]

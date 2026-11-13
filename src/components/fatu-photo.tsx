@@ -41,10 +41,11 @@ export function FatuPhoto({
           width={item.width ?? 1400}
           height={item.height ?? 1800}
           unoptimized
-          priority={priority}
+          loading={priority ? 'eager' : 'lazy'}
+          fetchPriority={priority ? 'high' : undefined}
         />
       </picture>
-      {caption && <figcaption>{t('image.temporary')}</figcaption>}
+      {caption && <figcaption>{t('premium.inspiration')}</figcaption>}
     </figure>
   );
 }

@@ -30,6 +30,38 @@ const service: Service = {
   position: 0,
 };
 describe('exact pricing and promotions', () => {
+  it('announces future promotions without applying their discount before the start', () => {
+    const starts = Date.parse('2026-11-14T17:34:00Z');
+    const catalog = {
+      ...emptyCatalog,
+      as_of: starts - 1,
+      promotions: [
+        {
+          id: 'upcoming',
+          name: 'TEST upcoming',
+          description: '',
+          terms: '',
+          kind: 'percentage' as const,
+          value: 20,
+          active: true,
+          starts_at: new Date(starts).toISOString(),
+          ends_at: '2026-11-20T17:34:00Z',
+        },
+      ],
+      promotion_services: [
+        { promotion_id: 'upcoming', service_id: service.id },
+      ],
+    };
+    expect(currentPrice(service, catalog)).toEqual({
+      amount: 10001,
+      promotion: null,
+    });
+    expect(currentPrice(service, catalog, starts).amount).toBe(8001);
+    expect(
+      currentPrice(service, catalog, Date.parse('2026-11-20T17:34:00Z'))
+        .promotion,
+    ).toBeNull();
+  });
   it('uses integer centimes and rounds half-up', () => {
     expect(discountMinor(10001, 'percentage', 15)).toBe(1500);
     expect(discountMinor(105, 'percentage', 10)).toBe(11);

@@ -1,4 +1,57 @@
-> **Current Fatu implementation:** see [Fatu setup](FATU_SETUP.md), [implementation phases](FATU_IMPLEMENTATION.md) and [validation](FATU_VALIDATION.md). The predecessor details below are retained for history and may describe older routes or test counts.
+> **Latest implementation:** [Five-tab salon administration and customer accounts](ADMIN_SIMPLIFIED_ACCOUNTS.md). The advanced-link descriptions below are historical; opening hours and closures now constrain new diary confirmations.
+
+## Previous guide: Mon salon → Réglages avancés et sécurité
+
+The explanations below describe the current code. The everyday salon tabs are **Informations** (identity and contact details), **Horaires** (opening days and shared daily hours), **Photos** (gallery and homepage photos), and **Site web** (homepage text, photo and appearance).
+
+The current calendar is a **manual diary of appointment start times**. Customers send requests; the salon confirms them. Two active appointments cannot start at exactly the same time, but appointments with different starts can overlap. You assess treatment length and equipment availability yourself. Several advanced options remain for the older system that calculated full appointment durations and resource availability; they do not impose those constraints on the current diary. See [the current scheduling model](FINAL_SIMPLIFICATION.md).
+
+### Every advanced navigation button
+
+| Button | What it does |
+| --- | --- |
+| **Demandes de modification** | Lists cancellation or rescheduling requests for existing appointments. **Accepter** applies the requested change; **Refuser** declines it. New appointment enquiries are under **Rendez-vous → Demandes du site**, not here. |
+| **Encaissements** | Manually records a payment or refund against an appointment: choose the appointment, amount, payment/refund type and method, then save. This records money received or returned elsewhere; it does not charge a card or transfer money. |
+| **Horaires exceptionnels** | Sets opening periods for one particular date, replacing that date's usual weekly hours in the interval scheduling system. Example: open 10:00–14:00 for a holiday. These do not automatically restrict starts in the manual diary. |
+| **Congés et fermetures** | Records a closed period with start, end and reason. Closures block interval availability and take priority over exceptional hours. The manual diary still relies on the owner's decision when confirming a start. |
+| **Matériel** | Creates and activates/deactivates physical equipment records, such as a treatment machine. Represent separate physical units separately. The manual diary does not reserve equipment automatically. |
+| **Matériel nécessaire** | Associates an equipment record with a service. In interval scheduling, that service needs every associated unit to be available, preventing simultaneous use of the same unit. These associations do not allocate equipment for manual diary entries. |
+| **Avis clients** | Adds or edits testimonial text, customer name, optional rating, consent, verified status, publication and order. Only publish with consent; the verified checkbox is an administrator's designation, not an external verification service. Published eligible reviews appear on the public site. |
+| **Langues du site** | Adds translations of editable content. Choose the content type, the specific entry and French, Arabic or English, then enter translated fields. It does not automatically translate your text. |
+| **Autres textes** | Edits additional text sections by section identifier, title, body and publication status. A section appears only where the website has been built to display that identifier; creating an identifier does not create a new page or homepage block. |
+| **Suivi des notifications** | Displays recorded notification events, delivery status and associated appointment reference. This screen is a log; it does not configure a provider or send messages. Automatic booking email/SMS/WhatsApp delivery is not integrated. |
+| **Accès administrateurs** | Invites administrators by name and email, and enables/disables existing administrators. All active administrators have full access. Uncheck **Actif** and save to revoke access; the last active administrator is protected. Invitations require configured email delivery. |
+| **Historique des actions** | Read-only list of logged actions, affected record identifiers and timestamps. Use it to inspect recorded changes; it has no undo button. |
+| **Règles de réservation** | Opens the settings described below. Click **Modifier**, change values, then **Enregistrer** to apply them. |
+| **Sécurité du compte** | Opens the password-change form for the currently signed-in administrator. It does not change every administrator's password. |
+
+### Every field in Règles de réservation
+
+| Field | Meaning and current effect |
+| --- | --- |
+| **Informations du salon vérifiées** | Confirms that the owner checked the salon information. Required, together with enabled reservations and a usable address, to create/confirm diary appointments. |
+| **Ouvrir les réservations en ligne** | Enables booking operations. Switching it off prevents diary appointment creation/confirmation, but the current public enquiry submission endpoint still accepts pending requests. It does not cancel existing appointments. |
+| **Politique de confidentialité** | Customer-facing privacy text. Editing it changes displayed content; it does not execute data deletion or change retention automatically. |
+| **Conditions de réservation** | Customer-facing booking terms. This text does not itself enforce a cancellation fee or deadline. |
+| **Délai minimum avant un rendez-vous (minutes)** | Minimum lead time for interval booking. For example, 120 means book at least two hours ahead. The manual diary does not enforce this setting. |
+| **Réserver jusqu’à combien de jours à l’avance ?** | Future booking window for interval booking. For example, 60 permits booking up to 60 days ahead. The manual diary does not enforce this setting. |
+| **Intervalle entre les horaires proposés (minutes)** | Spacing of suggested starts in interval booking, such as 10:00, 10:15 and 10:30. It is not the duration of a service. The manual diary accepts minute-level starts instead. |
+| **Autoriser les demandes d’annulation** | Controls customer cancellation through the existing booking-management system. It does not automatically cancel an appointment or prevent the salon from cancelling it. |
+| **Autoriser les demandes de déplacement** | Controls customer rescheduling through the existing booking-management system. It does not automatically approve a proposed new time or prevent salon edits. |
+| **Préavis d’annulation (heures)** | Deadline used by the existing customer booking-management flow. For example, 24 means at least 24 hours before the appointment. Salon diary edits do not enforce this deadline. |
+| **Préavis de déplacement (heures)** | Equivalent deadline for customer rescheduling in the existing booking-management flow. Salon diary edits do not enforce this deadline. |
+| **Délai avant de déclarer une absence (minutes)** | Grace period used by the interval appointment status operation before marking a no-show. It does not automatically mark customers absent; the manual diary status operation does not enforce this delay. |
+| **Fuseau horaire** | Interprets local appointment dates/times and calendar display. The salon normally uses `Africa/Casablanca`. This is used by the current diary. |
+| **Devise** | Currency code used for appointment amounts, normally `MAD`. Changing it does not convert existing prices or amounts. |
+| **Conditions d’acompte** | Text describing the salon's deposit policy. It does not collect a deposit or enforce payment automatically. |
+
+### Common form buttons
+
+**Ajouter** opens a new record form. **Modifier** opens an existing record. **Enregistrer** saves the form; **Annuler** closes it without saving. **Supprimer**, where offered, removes the record rather than merely hiding it. Publication controls show/hide public content; **Actif** enables/disables the relevant record. **Rechercher sur cette page** filters the records already loaded on that page, while **Précédent/Suivant** loads another page.
+
+---
+
+> **Historical guide below:** see [Fatu setup](FATU_SETUP.md), [implementation phases](FATU_IMPLEMENTATION.md) and [validation](FATU_VALIDATION.md). The predecessor details below are retained for history and may describe older routes or test counts. Use the current guide above and [FINAL_SIMPLIFICATION.md](FINAL_SIMPLIFICATION.md) for the manual diary.
 
 # Guide de la propriétaire
 

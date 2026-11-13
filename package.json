@@ -12,6 +12,7 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "test:db": "node --env-file-if-exists=.env.local scripts/test-db.mjs",
+    "catalogue:import": "node --env-file-if-exists=.env.local scripts/import-catalogue.mjs",
     "db:migrate": "node --env-file-if-exists=.env.local scripts/migrate.mjs",
     "owner:create": "node --env-file-if-exists=.env.local scripts/provision-owner.mjs"
   },

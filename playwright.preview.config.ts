@@ -1,7 +1,8 @@
 import { defineConfig } from '@playwright/test';
 import base from './playwright.config';
 
-export default defineConfig(base, {
+export default defineConfig({
+  ...base,
   testDir: './tests/preview',
   timeout: 120000,
   workers: 2,

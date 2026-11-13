@@ -1,0 +1,466 @@
+/* Scoped to the administrator workspace; public branding and layout stay intact. */
+.salon-admin {
+  grid-template-columns: 235px minmax(0, 1fr);
+  background: #f8f5ef;
+  color: #302b26;
+}
+.salon-admin .admin-sidebar {
+  width: auto;
+  padding: 32px 18px;
+  background: #f0e9dd;
+  color: #41352b;
+  position: sticky;
+  top: 0;
+  align-self: start;
+  height: 100dvh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+.salon-admin .admin-sidebar a,
+.salon-admin .admin-sidebar .wordmark,
+.salon-admin .admin-workspace strong {
+  color: #41352b;
+}
+.salon-admin .admin-sidebar small,
+.salon-admin .admin-workspace small {
+  color: #71604a;
+}
+.salon-admin .admin-sidebar nav a[aria-current='page'] {
+  background: #41352b;
+  color: #fffdf9;
+}
+.salon-admin .admin-sidebar .admin-menu-toggle,
+.salon-admin .admin-sidebar-footer .button {
+  color: #41352b;
+  background: transparent;
+  border-color: #a08a6b;
+  box-shadow: none;
+}
+.salon-admin .admin-sidebar .admin-menu-toggle:hover,
+.salon-admin .admin-sidebar-footer .button:hover {
+  background: #e2d6c1;
+}
+.salon-admin .admin-sidebar > .wordmark {
+  font-size: 23px;
+  letter-spacing: 0.05em;
+  white-space: normal;
+}
+.salon-admin .admin-sidebar .admin-workspace {
+  margin-block: 28px;
+}
+.salon-admin .admin-sidebar nav a {
+  min-height: 49px;
+  font-size: 13px;
+  padding: 12px;
+}
+.salon-admin .admin-sidebar-footer {
+  position: static;
+  margin-top: auto;
+}
+.salon-admin .admin-main {
+  min-width: 0;
+  margin: 0;
+  padding: 30px clamp(20px, 4vw, 58px);
+}
+.salon-admin .admin-topline {
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+}
+.salon-admin h1 {
+  font-size: clamp(30px, 3.2vw, 43px);
+  margin-top: 26px;
+}
+.salon-admin .salon-tabs,
+.salon-admin .salon-context,
+.salon-admin .salon-advanced-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.salon-admin .salon-tabs {
+  border-bottom: 1px solid #ddd4c5;
+  padding-bottom: 12px;
+  margin-bottom: 18px;
+}
+.salon-admin .salon-tabs a,
+.salon-admin .salon-context > a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid #e0d7c8;
+  background: #fffdf9;
+  border-radius: 5px;
+  font-size: 13px;
+}
+.salon-admin .salon-tabs a.is-active,
+.salon-admin .salon-context > a[aria-current='page'] {
+  background: #41352b;
+  color: #fffdf9;
+  border-color: #41352b;
+}
+.salon-admin summary {
+  cursor: pointer;
+  padding: 12px 0;
+  font-weight: 600;
+  font-size: 13px;
+}
+.salon-admin .salon-context > details {
+  flex-basis: 100%;
+}
+.salon-admin .salon-advanced-links {
+  padding: 14px;
+  background: #eee7db;
+  margin-bottom: 12px;
+}
+.salon-admin .salon-advanced-links a {
+  padding: 9px;
+  min-height: 44px;
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.salon-admin .salon-context {
+  margin: 16px 0;
+}
+.salon-admin .salon-stats {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.salon-admin .salon-quick-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 28px 0;
+}
+.salon-admin .salon-quick-actions a {
+  padding: 18px;
+  border: 1px solid #d6c7ae;
+  background: #eee6d8;
+  font-size: 13px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+.salon-admin .salon-dashboard-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 25px;
+}
+.salon-admin .fatu-admin-section {
+  min-width: 0;
+  margin: 20px 0;
+}
+.salon-admin .salon-agenda > a {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  border-bottom: 1px solid #e4dbcd;
+  padding: 20px 0;
+}
+.salon-admin .salon-agenda > a > div {
+  flex: 1;
+  min-width: 130px;
+}
+.salon-admin .salon-agenda time {
+  font-size: 18px;
+}
+.salon-admin .salon-agenda small {
+  display: block;
+  margin-top: 5px;
+}
+.salon-admin .salon-pending {
+  padding: 20px;
+  border: 1px solid #e0d7c8;
+  background: #fffdf9;
+  margin-bottom: 14px;
+}
+.salon-admin .salon-pending p {
+  font-size: 13px;
+}
+.salon-admin .inline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+.salon-admin .inline-actions .button {
+  min-height: 44px;
+  padding: 12px 16px;
+}
+.salon-admin .admin-form {
+  padding: 25px;
+}
+.salon-admin fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.salon-admin fieldset:disabled {
+  opacity: 0.65;
+}
+.salon-admin .salon-choice-group {
+  border-top: 1px solid #e0d7c8;
+  margin-top: 24px;
+  padding: 18px 0;
+}
+.salon-admin .salon-choice-group legend {
+  padding-top: 16px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.salon-admin .salon-choice-group .checkbox-label {
+  display: inline-flex;
+  margin: 8px 22px 8px 0;
+  min-height: 32px;
+}
+.salon-admin .salon-hour {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  align-items: end;
+  gap: 12px;
+  padding-block: 12px;
+  border-bottom: 1px solid #e0d7c8;
+}
+.salon-admin .salon-disclosure {
+  margin-block: 18px;
+  border-top: 1px solid #e0d7c8;
+}
+.salon-admin .salon-image-field {
+  min-width: 0;
+  padding: 15px;
+  border: 1px dashed #b7a58b;
+}
+.salon-admin .salon-image-field input {
+  max-width: 100%;
+  font-size: 13px;
+}
+.salon-admin .salon-image-field img,
+.salon-admin .salon-record-photo {
+  display: block;
+  width: 100%;
+  max-height: 200px;
+  object-fit: contain;
+  margin-block: 12px;
+  border-radius: 4px;
+}
+.salon-admin .salon-filter-details {
+  flex: 1 1 100%;
+}
+.salon-admin .admin-record-card {
+  box-shadow: none;
+  padding: 23px;
+}
+.salon-admin .admin-record-card dd {
+  max-width: 65%;
+}
+.salon-admin input,
+.salon-admin select,
+.salon-admin textarea {
+  min-height: 44px;
+  max-width: 100%;
+  font-size: 15px;
+}
+.salon-admin input[type='checkbox'] {
+  min-height: 20px;
+  width: 20px;
+  height: 20px;
+}
+.salon-admin :focus-visible {
+  outline: 3px solid #91784f;
+  outline-offset: 3px;
+}
+.salon-admin .status-pending {
+  color: #765623;
+  background: #f6ead1;
+}
+.salon-admin .status-confirmed {
+  color: #2c5845;
+  background: #e1eee5;
+}
+.salon-admin .status-in_progress {
+  color: #315c70;
+  background: #e0edf2;
+}
+.salon-admin .status-completed {
+  color: #49544c;
+  background: #e9ede6;
+}
+.salon-admin .calendar-event {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 1050px) {
+  .salon-admin {
+    grid-template-columns: 210px minmax(0, 1fr);
+  }
+  .salon-admin .salon-dashboard-columns {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+  .salon-admin .salon-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .salon-admin .salon-hour {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 760px) {
+  .salon-admin {
+    display: block;
+  }
+  .salon-admin .admin-sidebar {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    padding: 18px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  .salon-admin .admin-sidebar > .wordmark {
+    font-size: 21px;
+    flex: 1;
+  }
+  .salon-admin .admin-workspace {
+    display: none;
+  }
+  .salon-admin .admin-menu-toggle {
+    display: block;
+    position: static;
+  }
+  .salon-admin .admin-sidebar nav {
+    display: none;
+    width: 100%;
+  }
+  .salon-admin .admin-sidebar nav.is-open {
+    display: block;
+  }
+  .salon-admin .admin-sidebar-footer {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+  }
+  .salon-admin .admin-main {
+    padding: 22px 16px;
+  }
+  .salon-admin .admin-topline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  .salon-admin .admin-topline .eyebrow {
+    display: none;
+  }
+  .salon-admin .salon-quick-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .salon-admin .form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .salon-admin .admin-form {
+    padding: 18px;
+  }
+  .salon-admin .fatu-booking-table {
+    overflow: visible;
+    border: 0;
+    background: transparent;
+  }
+  .salon-admin .fatu-booking-table table {
+    display: block;
+    min-width: 0;
+  }
+  .salon-admin .fatu-booking-table thead {
+    display: none;
+  }
+  .salon-admin .fatu-booking-table tbody {
+    display: grid;
+    gap: 15px;
+  }
+  .salon-admin .fatu-booking-table tr {
+    display: block;
+    padding: 15px;
+    background: #fffdf9;
+    border: 1px solid #e0d7c8;
+  }
+  .salon-admin .fatu-booking-table td {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: space-between;
+    padding: 10px 0;
+    min-width: 0 !important;
+    max-width: none !important;
+    overflow-wrap: anywhere;
+  }
+  .salon-admin .fatu-booking-table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #716453;
+  }
+  .salon-admin .calendar-grid.month {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+  }
+  .salon-admin .calendar-day {
+    padding: 4px;
+    min-width: 0;
+  }
+  .salon-admin .calendar-grid.month .calendar-event {
+    padding: 3px;
+    font-size: 10px;
+  }
+  .salon-admin .calendar-grid.month .calendar-hours {
+    display: none;
+  }
+}
+.salon-admin .request-actions {
+  margin-top: 16px;
+}
+.salon-admin .request-actions .inline-actions {
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+.salon-admin .request-actions .button {
+  min-height: 44px;
+}
+.salon-admin .request-date-form {
+  max-width: 100%;
+}
+.salon-admin .website-request-card {
+  overflow-wrap: anywhere;
+}
+.salon-admin .registered-client {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: start;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+.salon-admin .registered-client h2 {
+  font-size: 20px;
+  margin: 0;
+}
+.salon-admin .registered-client p {
+  margin: 6px 0;
+}
+.salon-admin .registered-client summary {
+  cursor: pointer;
+}
+.salon-admin .salon-support {
+  margin-top: 32px;
+  font-size: 13px;
+}
+@media (max-width: 700px) {
+  .salon-admin .registered-client {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}

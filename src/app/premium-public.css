@@ -1,0 +1,1225 @@
+/* Public presentation only. The administration and booking operations are unchanged. */
+.fatu-public {
+  --premium-paper: #fffdf9;
+  --premium-border: #dfd2c2;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: #352923;
+}
+.fatu-public *,
+.fatu-public *::before,
+.fatu-public *::after {
+  box-sizing: border-box;
+}
+.fatu-public h1,
+.fatu-public h2,
+.fatu-public h3 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 400;
+  letter-spacing: -0.035em;
+  line-height: 1.12;
+}
+.fatu-public h1 {
+  font-size: clamp(42px, 5.3vw, 78px);
+}
+.fatu-public h2 {
+  font-size: clamp(30px, 3.2vw, 46px);
+}
+.fatu-public h3 {
+  font-size: 26px;
+}
+.fatu-public p {
+  color: #716055;
+  line-height: 1.75;
+}
+.fatu-public a {
+  text-underline-offset: 5px;
+}
+.fatu-public :is(a, button, input, textarea, select):focus-visible {
+  outline: 3px solid #94714b;
+  outline-offset: 5px;
+}
+.fatu-public .fatu-container {
+  width: min(1248px, calc(100% - 96px));
+  margin-inline: auto;
+}
+.fatu-public .fatu-eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.17em;
+  color: #806349;
+  line-height: 1.6;
+}
+.fatu-public .fatu-header {
+  min-height: 92px;
+  padding: 16px 3.3%;
+  gap: 25px;
+}
+.fatu-public .fatu-wordmark > span {
+  font-size: 25px;
+  letter-spacing: 0.12em;
+  max-width: 260px;
+  line-height: 1.1;
+}
+.fatu-public .fatu-wordmark > small {
+  font-size: 8px;
+  letter-spacing: 0.25em;
+  margin-top: 8px;
+}
+.fatu-public .fatu-header nav {
+  gap: 22px;
+}
+.fatu-public .fatu-header nav a {
+  font-size: 13px;
+  white-space: nowrap;
+}
+.fatu-public .fatu-header-actions {
+  gap: 16px;
+}
+.fatu-public .fatu-languages button {
+  font-size: 11px;
+  min-height: 36px;
+  color: #725e4e;
+}
+.fatu-public .fatu-account-link {
+  font-size: 12px;
+}
+.fatu-public :is(.fatu-button, .button) {
+  font-size: 14px;
+  min-height: 48px;
+  padding: 13px 22px;
+  border-radius: 6px;
+  gap: 22px;
+  font-weight: 500;
+  transition:
+    background 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+.fatu-public .fatu-header-book {
+  font-size: 12px;
+  padding: 12px 16px;
+  gap: 14px;
+  min-height: 44px;
+}
+.fatu-public :is(.fatu-button, .button):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px #3827181c;
+}
+.fatu-public .fatu-text-link {
+  font-size: 14px;
+  font-weight: 500;
+  color: #483325;
+}
+.fatu-public .fatu-section,
+.fatu-public .premium-section {
+  padding-block: 64px;
+  margin-block: 0;
+}
+.fatu-public .fatu-page-heading {
+  padding-block: 52px 34px;
+  margin: 0;
+  border-bottom: 1px solid var(--premium-border);
+}
+.fatu-public .fatu-page-heading h1 {
+  margin: 12px 0 16px;
+  max-width: 950px;
+  font-size: clamp(40px, 5vw, 64px);
+}
+.fatu-public .fatu-page-heading p {
+  max-width: 660px;
+  font-size: 17px;
+  margin: 0;
+}
+.fatu-public .premium-hero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 60px;
+  padding-block: 38px 55px;
+}
+.fatu-public .premium-hero-copy {
+  padding-block: 26px;
+}
+.fatu-public .premium-hero h1 {
+  max-width: 610px;
+  margin: 22px 0;
+}
+.fatu-public .premium-hero-copy > p {
+  font-size: 17px;
+  max-width: 460px;
+}
+.fatu-public .premium-hero .fatu-actions {
+  gap: 22px;
+  margin-top: 28px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.fatu-public .premium-hero-copy > small {
+  display: block;
+  font-size: 12px;
+  line-height: 1.7;
+  color: #776454;
+  margin-top: 22px;
+  max-width: 370px;
+}
+.fatu-public .premium-hero-visual {
+  position: relative;
+  min-width: 0;
+}
+.fatu-public .premium-hero-visual > .fatu-photo {
+  height: 570px;
+  border-radius: 160px 10px 10px 10px;
+  overflow: hidden;
+  margin: 0;
+  position: relative;
+}
+.fatu-public .premium-hero-visual .fatu-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.fatu-public .premium-hero-visual picture {
+  display: block;
+  height: 100%;
+}
+.fatu-public .premium-hero-visual .fatu-photo figcaption {
+  background: #30231fd9;
+  color: #fffaf3;
+  padding: 5px 10px;
+  bottom: 12px;
+  position: absolute;
+  inset-inline-end: 12px;
+  font-size: 10px;
+  max-width: 80%;
+}
+.fatu-public .premium-hero-tag {
+  position: absolute;
+  bottom: 45px;
+  inset-inline-start: -32px;
+  background: #fffaf2f2;
+  padding: 22px 28px;
+  box-shadow: 0 10px 35px #3827181c;
+  border: 1px solid #ebdfcd;
+  border-radius: 8px;
+  max-width: 85%;
+}
+.fatu-public .premium-hero-tag > span {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  display: block;
+}
+.fatu-public .premium-hero-tag strong {
+  display: block;
+  font:
+    italic 25px/1.4 Georgia,
+    serif;
+  margin: 5px 0;
+}
+.fatu-public .premium-hero-tag a {
+  font-size: 12px;
+}
+.fatu-public .premium-section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 25px;
+  margin-bottom: 28px;
+}
+.fatu-public .premium-section-head h2 {
+  margin: 10px 0 0;
+}
+.fatu-public .premium-section-head > p {
+  max-width: 350px;
+  margin: 0;
+  font-size: 15px;
+}
+.fatu-public .premium-categories {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 22px;
+}
+.fatu-public .premium-category {
+  color: inherit;
+  text-decoration: none;
+  min-width: 0;
+}
+.fatu-public .premium-photo {
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #e6d9c8;
+}
+.fatu-public .premium-photo picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.fatu-public .premium-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s ease;
+}
+.fatu-public .premium-photo figcaption {
+  position: absolute;
+  bottom: 8px;
+  inset-inline-start: 8px;
+  font-size: 9px;
+  line-height: 1.4;
+  background: #fffdf5ed;
+  color: #554337;
+  padding: 4px 7px;
+  border-radius: 3px;
+  max-width: calc(100% - 16px);
+}
+.fatu-public .premium-category .premium-photo {
+  aspect-ratio: 4/5;
+}
+.fatu-public .premium-category:hover img {
+  transform: scale(1.035);
+}
+.fatu-public .premium-category .premium-photo-caftan {
+  background: #0c0916;
+}
+.fatu-public .premium-category .premium-photo-caftan img {
+  object-fit: contain;
+}
+.fatu-public .premium-category > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 16px;
+  gap: 12px;
+}
+.fatu-public .premium-category h3 {
+  margin: 0;
+  font-size: 27px;
+}
+.fatu-public .premium-category > div > span {
+  border: 1px solid #d6c5ae;
+  border-radius: 50%;
+  width: 35px;
+  height: 35px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.fatu-public .premium-category > p {
+  font-size: 13px;
+  margin: 8px 0 0;
+}
+.fatu-public .premium-offers-band {
+  background: #ece1d2;
+  border-block: 1px solid #e2d4c0;
+}
+.fatu-public .premium-offer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 22px;
+}
+.fatu-public .premium-offer-card {
+  border: 1px solid #d9c6ad;
+  background: var(--premium-paper);
+  border-radius: 10px;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  min-width: 0;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 28px #54371908;
+}
+.fatu-public .premium-offer-card.is-upcoming {
+  background: linear-gradient(140deg, #fffdf9 35%, #f3e7d6);
+  border-color: #c9ac82;
+}
+.fatu-public .premium-offer-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+  color: #63533c;
+  margin-bottom: 22px;
+}
+.fatu-public .premium-offer-status i {
+  width: 7px;
+  height: 7px;
+  background: #55734e;
+  border-radius: 50%;
+}
+.fatu-public .is-upcoming .premium-offer-status i {
+  background: #a77a3e;
+}
+.fatu-public .premium-offer-card .premium-offer-value {
+  font:
+    46px/1.1 Georgia,
+    serif;
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  color: #704a29;
+}
+.fatu-public .premium-offer-card .premium-offer-dates {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  border-block: 1px solid #e5d7c4;
+  padding-block: 16px;
+  margin-top: 20px;
+  width: 100%;
+}
+.fatu-public .premium-offer-dates > div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.fatu-public .premium-offer-dates span {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #806953;
+}
+.fatu-public .premium-offer-dates time {
+  font-size: 15px;
+  font-weight: 600;
+  color: #493425;
+}
+.fatu-public .premium-offer-dates small {
+  font-size: 12px;
+  color: #705d4b;
+}
+.fatu-public .premium-offer-card .premium-offer-note {
+  font-size: 13px;
+  color: #7a5e3d;
+  line-height: 1.65;
+}
+.fatu-public .premium-offer-value {
+  display: inline-block;
+  background: #e9dcc8;
+  color: #54391f;
+  padding: 7px 13px;
+  border-radius: 30px;
+  font-weight: 600;
+  font-size: 19px;
+}
+.fatu-public .premium-offer-card h3 {
+  margin: 20px 0 0;
+  font-size: 29px;
+}
+.fatu-public .premium-offer-card p {
+  margin: 12px 0 0;
+}
+.fatu-public .premium-offer-card .premium-offer-dates {
+  font-size: 12px;
+  color: #79634e;
+}
+.fatu-public .premium-offer-services {
+  padding-inline-start: 18px;
+  margin: 14px 0 0;
+  font-size: 14px;
+}
+.fatu-public .premium-offer-services li {
+  padding-block: 3px;
+}
+.fatu-public .premium-offer-terms {
+  font-size: 13px;
+  border-top: 1px solid #e5dacb;
+  padding-top: 12px;
+  width: 100%;
+}
+.fatu-public .premium-offer-detail {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  width: 100%;
+  flex: 1;
+}
+.fatu-public .premium-offer-detail > .fatu-text-link {
+  margin-top: auto;
+  padding-top: 24px;
+}
+@media (min-width: 1001px) {
+  .fatu-public .premium-offer-card:only-child {
+    display: grid;
+    grid-template-columns: 0.8fr 1.2fr;
+    align-items: start;
+    gap: 50px;
+    padding: 40px;
+  }
+  .fatu-public .premium-offer-card:only-child .premium-offer-dates {
+    margin-top: 0;
+  }
+  .fatu-public .premium-offer-card:only-child .premium-offer-value {
+    font-size: 76px;
+  }
+  .fatu-public .premium-offer-card:only-child h3 {
+    font-size: 38px;
+  }
+}
+.fatu-public .premium-offers-empty {
+  border-block: 1px solid #cdbba2;
+  display: flex;
+  gap: 30px;
+  justify-content: space-between;
+  align-items: center;
+  padding: 28px 0;
+}
+.fatu-public .premium-offers-empty h3 {
+  margin: 0;
+  font-size: 27px;
+}
+.fatu-public .premium-offers-empty p {
+  margin: 10px 0 0;
+  font-size: 15px;
+}
+.fatu-public .premium-offers-empty a {
+  flex-shrink: 0;
+}
+.fatu-public .premium-introduction {
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  gap: 65px;
+  align-items: center;
+}
+.fatu-public .premium-introduction h2 {
+  margin: 16px 0;
+}
+.fatu-public .premium-introduction p {
+  font-size: 16px;
+  white-space: pre-line;
+}
+.fatu-public .premium-intro-photos {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 15px;
+  align-items: center;
+}
+.fatu-public .premium-intro-photos .premium-photo:first-child {
+  height: 340px;
+}
+.fatu-public .premium-intro-photos .premium-photo:last-child {
+  height: 240px;
+}
+.fatu-public .premium-gallery-preview {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+}
+.fatu-public .premium-gallery-preview a {
+  text-decoration: none;
+}
+.fatu-public .premium-gallery-preview img {
+  width: 100%;
+  height: 330px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+.fatu-public .premium-gallery-preview span {
+  display: block;
+  padding-top: 10px;
+  font-size: 14px;
+}
+.fatu-public .premium-gallery-empty {
+  padding: 24px 28px;
+  background: #eee5d9;
+  border-radius: 8px;
+  display: flex;
+  gap: 25px;
+  justify-content: space-between;
+  align-items: center;
+}
+.fatu-public .premium-gallery-empty p {
+  margin: 0;
+}
+.fatu-public .premium-values-band {
+  background: #382b25;
+  color: #fff8ed;
+}
+.fatu-public .premium-values-band h2 {
+  color: inherit;
+  margin: 0 0 30px;
+}
+.fatu-public .premium-values {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 38px;
+}
+.fatu-public .premium-values article > span {
+  color: #d6bb97;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+}
+.fatu-public .premium-values h3 {
+  font-size: 25px;
+  color: inherit;
+  margin: 14px 0;
+}
+.fatu-public .premium-values p {
+  color: #d9cbbd;
+  font-size: 15px;
+  margin: 0;
+}
+.fatu-public .fatu-review-grid {
+  gap: 22px;
+}
+.fatu-public .fatu-review-grid figure {
+  padding: 26px;
+  margin: 0;
+  background: #fffaf3;
+  color: #352923;
+  border-radius: 8px;
+}
+.fatu-public .fatu-review-grid blockquote {
+  font:
+    italic 22px/1.6 Georgia,
+    serif;
+  margin: 0 0 20px;
+}
+.fatu-public .fatu-review-grid figcaption {
+  font-size: 13px;
+}
+.fatu-public .premium-final-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 36px;
+}
+.fatu-public .premium-final-cta h2 {
+  margin: 12px 0;
+}
+.fatu-public .premium-final-cta p {
+  margin: 0;
+  font-size: 14px;
+}
+.fatu-public .premium-final-cta > a {
+  flex-shrink: 0;
+}
+.fatu-public .service-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+.fatu-public .service-card {
+  background: var(--premium-paper);
+  border: 1px solid #e4d8ca;
+  border-radius: 9px;
+  padding: 24px;
+  box-shadow: 0 3px 12px #43291304;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.fatu-public .service-card:hover {
+  border-color: #b99b75;
+  box-shadow: 0 6px 24px #4329130b;
+}
+.fatu-public .service-card h3 {
+  font-size: 23px;
+  margin: 16px 0 10px;
+  line-height: 1.25;
+}
+.fatu-public .service-card h3 a {
+  text-decoration: none;
+}
+.fatu-public .service-card p {
+  font-size: 14px;
+  margin: 0 0 12px;
+}
+.fatu-public .service-top .eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.07em;
+}
+.fatu-public .service-price {
+  font-size: 17px;
+  color: #3d2d20;
+  padding-top: 14px;
+}
+.fatu-public .service-price del {
+  font-size: 13px;
+  color: #806f61;
+}
+.fatu-public .service-price small {
+  display: block;
+  width: fit-content;
+  padding: 4px 8px;
+  background: #eee0c8;
+  border-radius: 4px;
+  font-size: 11px;
+  margin-top: 7px;
+  color: #5d4028;
+}
+.fatu-public .official-service-actions {
+  gap: 12px;
+  margin-top: 18px;
+}
+.fatu-public .official-service-actions .fatu-text-link {
+  font-size: 12px;
+}
+.fatu-public .official-service-actions .button {
+  font-size: 12px;
+  padding: 10px 14px;
+}
+.fatu-public .service-photo {
+  height: 190px;
+  border-radius: 6px;
+  width: 100%;
+  object-fit: cover;
+}
+.fatu-public .catalog-tools {
+  margin-top: 28px;
+  padding: 22px;
+  border: 1px solid var(--premium-border);
+  border-radius: 9px;
+  background: #fffaf2;
+}
+.fatu-public .search-label {
+  font-size: 14px;
+  width: 100%;
+  max-width: 440px;
+}
+.fatu-public :is(input, textarea, select) {
+  font-size: 16px;
+  min-height: 48px;
+  border-radius: 5px;
+  padding: 12px;
+  border: 1px solid #ccbaa5;
+  background: #fffdf9;
+}
+.fatu-public input[type='checkbox'] {
+  min-height: 20px;
+}
+.fatu-public .filter-tabs {
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.fatu-public .filter-tabs button {
+  border-radius: 30px;
+  border: 1px solid #d8c5ad;
+  background: transparent;
+  min-height: 44px;
+  font-size: 13px;
+  padding: 10px 18px;
+}
+.fatu-public .filter-tabs button[aria-pressed='true'] {
+  background: #392a22;
+  border-color: #392a22;
+  color: #fff9ed;
+}
+.fatu-public .official-catalogue-category {
+  margin-top: 38px;
+}
+.fatu-public .official-catalogue-category > h2 {
+  font-size: 34px;
+  padding-bottom: 14px;
+}
+.fatu-public .official-catalogue-section {
+  margin-top: 24px;
+}
+.fatu-public .official-subcategory-title {
+  font-size: 26px;
+}
+.fatu-public .fatu-contact-grid {
+  gap: 56px;
+  align-items: start;
+}
+.fatu-public .fatu-contact-grid aside {
+  background: #eee3d4;
+  border: 1px solid #dfcdb5;
+  border-radius: 10px;
+  padding: 30px;
+}
+.fatu-public .fatu-contact-grid aside h2 {
+  font-size: 33px;
+  margin: 12px 0 18px;
+}
+.fatu-public .fatu-contact-grid aside > a {
+  display: table;
+  margin-block: 14px;
+  overflow-wrap: anywhere;
+}
+.fatu-public .fatu-contact-grid aside h3 {
+  font-size: 25px;
+  margin-top: 30px;
+}
+.fatu-public .fatu-contact-grid aside > p {
+  margin-block: 8px;
+  font-size: 14px;
+}
+.fatu-public .fatu-contact-grid form {
+  background: #fffdf9;
+  padding: 28px;
+  border: 1px solid var(--premium-border);
+  border-radius: 9px;
+  gap: 18px;
+}
+.fatu-public .fatu-contact-grid label {
+  font-size: 14px;
+}
+.fatu-public .fatu-contact-grid .checkbox {
+  align-items: start;
+  font-size: 12px;
+}
+.fatu-public .fatu-split {
+  gap: 55px;
+  align-items: center;
+}
+.fatu-public .fatu-split > .premium-photo {
+  height: 440px;
+}
+.fatu-public .fatu-split .prose {
+  font-size: 17px;
+}
+.fatu-public .fatu-portfolio-grid {
+  margin-block: 28px 60px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+}
+.fatu-public .fatu-image-button {
+  border-radius: 8px;
+  overflow: hidden;
+}
+.fatu-public .fatu-image-button img {
+  aspect-ratio: 4/5;
+  width: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+.fatu-public .fatu-image-button:hover img {
+  transform: scale(1.025);
+}
+.fatu-public .fatu-empty {
+  background: #eee5d9;
+  border: 1px solid #dfcfbb;
+  padding: 26px;
+  margin-block: 28px;
+  border-radius: 8px;
+  font-size: 15px;
+}
+.fatu-public .appointment-request-form {
+  background: #fffdf9;
+  border: 1px solid var(--premium-border);
+  border-radius: 10px;
+}
+.fatu-public .fatu-footer {
+  padding: 48px max(3.3%, calc((100% - 1248px) / 2)) 24px;
+  background: #eee3d4;
+  border-top: 1px solid #d9c7ae;
+  color: #443126;
+}
+.fatu-public .fatu-footer-bottom {
+  color: #6b5544;
+  border-top-color: #d1bea4;
+}
+.fatu-public .fatu-footer .fatu-eyebrow {
+  color: #785a3e;
+}
+.fatu-public .fatu-footer .fatu-languages button {
+  color: #72553e;
+}
+.fatu-public .fatu-footer-top {
+  gap: 40px;
+  padding-bottom: 32px;
+}
+.fatu-public .fatu-footer-top > div {
+  gap: 12px;
+}
+.fatu-public .fatu-footer-top a {
+  font-size: 14px;
+}
+.fatu-public .fatu-footer-top p {
+  font-size: 13px;
+  max-width: 240px;
+  margin-top: 18px;
+}
+.fatu-public .fatu-footer-bottom {
+  padding-top: 22px;
+  font-size: 12px;
+}
+.fatu-public .fatu-footer-bottom small {
+  font-size: 12px;
+}
+.fatu-public .fatu-floating-basket {
+  bottom: 20px;
+  inset-inline-end: 20px;
+}
+@media (min-width: 1001px) and (max-width: 1250px) {
+  .fatu-public .fatu-header {
+    gap: 16px;
+  }
+  .fatu-public .fatu-header nav {
+    gap: 14px;
+  }
+  .fatu-public .fatu-header .fatu-wordmark > span {
+    font-size: 21px;
+  }
+  .fatu-public .fatu-header-actions {
+    gap: 10px;
+  }
+  .fatu-public .fatu-header-book {
+    display: none;
+  }
+}
+@media (max-width: 1000px) {
+  .fatu-public .fatu-container {
+    width: calc(100% - 48px);
+  }
+  .fatu-public .fatu-header {
+    padding: 16px 24px;
+    flex-wrap: wrap;
+    gap: 14px;
+    min-height: 84px;
+  }
+  .fatu-public .fatu-header > .fatu-wordmark {
+    margin-inline-end: auto;
+  }
+  .fatu-public .fatu-menu {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-height: 44px;
+    padding: 8px 12px;
+    font-size: 13px;
+    border: 1px solid #d9c7b0;
+    border-radius: 5px;
+  }
+  .fatu-public .fatu-header nav {
+    display: none;
+    order: 4;
+    width: 100%;
+    margin: 0;
+    padding-block: 14px;
+    border-top: 1px solid #dfd2c0;
+  }
+  .fatu-public .fatu-header nav.is-open {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px 24px;
+  }
+  .fatu-public .fatu-header nav a {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+  .fatu-public .fatu-header-actions {
+    gap: 10px;
+  }
+  .fatu-public .fatu-header-book {
+    display: none;
+  }
+  .fatu-public .premium-hero {
+    gap: 32px;
+    padding-block: 30px 38px;
+  }
+  .fatu-public .premium-hero h1 {
+    font-size: 49px;
+  }
+  .fatu-public .premium-hero-copy > p {
+    font-size: 16px;
+  }
+  .fatu-public .premium-hero-visual > .fatu-photo {
+    height: 480px;
+    border-top-left-radius: 100px;
+  }
+  .fatu-public .premium-hero-tag {
+    inset-inline-start: -16px;
+    bottom: 35px;
+    padding: 16px 20px;
+  }
+  .fatu-public .premium-categories {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+  }
+  .fatu-public .premium-category .premium-photo {
+    aspect-ratio: 1;
+  }
+  .fatu-public .premium-introduction {
+    gap: 30px;
+  }
+  .fatu-public .premium-intro-photos {
+    grid-template-columns: 1fr;
+  }
+  .fatu-public .premium-intro-photos .premium-photo:last-child {
+    display: none;
+  }
+  .fatu-public .service-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .fatu-public .premium-section,
+  .fatu-public .fatu-section {
+    padding-block: 46px;
+  }
+  .fatu-public .fatu-contact-grid {
+    gap: 25px;
+  }
+  .fatu-public .fatu-contact-grid aside,
+  .fatu-public .fatu-contact-grid form {
+    padding: 22px;
+  }
+  .fatu-public .fatu-portfolio-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .fatu-public .fatu-footer-top {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 30px;
+  }
+}
+@media (max-width: 600px) {
+  .fatu-public .fatu-container {
+    width: calc(100% - 36px);
+  }
+  .fatu-public .fatu-header {
+    padding: 14px 18px;
+    gap: 12px;
+  }
+  .fatu-public .fatu-header .fatu-wordmark > span {
+    font-size: 22px;
+  }
+  .fatu-public .fatu-header-actions {
+    order: 3;
+    width: 100%;
+    justify-content: space-between;
+  }
+  .fatu-public .fatu-header-actions .fatu-languages button {
+    min-height: 36px;
+    padding: 6px 9px;
+  }
+  .fatu-public .fatu-header nav.is-open {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 16px;
+  }
+  .fatu-public .premium-hero {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding-top: 28px;
+  }
+  .fatu-public .premium-hero-copy {
+    padding: 0;
+  }
+  .fatu-public .premium-hero h1 {
+    font-size: 47px;
+    margin: 16px 0;
+  }
+  .fatu-public .premium-hero .fatu-actions {
+    margin-top: 22px;
+    gap: 16px;
+  }
+  .fatu-public .premium-hero .fatu-button {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .fatu-public .premium-hero-copy > small {
+    margin-top: 14px;
+    font-size: 12px;
+  }
+  .fatu-public .premium-hero-visual {
+    width: 100%;
+    padding-inline-start: 14px;
+  }
+  .fatu-public .premium-hero-visual > .fatu-photo {
+    height: 400px;
+    border-radius: 100px 8px 8px 8px;
+  }
+  .fatu-public .premium-hero-tag {
+    inset-inline-start: 0;
+    bottom: 35px;
+  }
+  .fatu-public .premium-section,
+  .fatu-public .fatu-section {
+    padding-block: 36px;
+  }
+  .fatu-public .premium-section-head {
+    display: block;
+    margin-bottom: 24px;
+  }
+  .fatu-public .premium-section-head > p,
+  .fatu-public .premium-section-head > a {
+    margin-top: 15px;
+    display: block;
+  }
+  .fatu-public h2 {
+    font-size: 33px;
+  }
+  .fatu-public .premium-categories {
+    gap: 22px 14px;
+  }
+  .fatu-public .premium-category .premium-photo {
+    aspect-ratio: 3/4;
+  }
+  .fatu-public .premium-category h3 {
+    font-size: 23px;
+  }
+  .fatu-public .premium-category > div > span {
+    width: 28px;
+    height: 28px;
+  }
+  .fatu-public .premium-category .premium-photo figcaption {
+    font-size: 8px;
+    padding: 3px 5px;
+    inset-inline-start: 5px;
+    bottom: 5px;
+  }
+  .fatu-public .premium-category > p {
+    font-size: 12px;
+  }
+  .fatu-public .premium-offers-empty {
+    display: block;
+    padding-block: 22px;
+  }
+  .fatu-public .premium-offers-empty > a {
+    margin-top: 16px;
+    display: inline-block;
+  }
+  .fatu-public .premium-offer-card {
+    padding: 24px;
+  }
+  .fatu-public .premium-introduction {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .fatu-public .premium-intro-photos {
+    grid-template-columns: 1.1fr 1fr;
+    gap: 12px;
+  }
+  .fatu-public .premium-intro-photos .premium-photo:first-child {
+    height: 240px;
+  }
+  .fatu-public .premium-intro-photos .premium-photo:last-child {
+    display: block;
+    height: 190px;
+  }
+  .fatu-public .premium-gallery-preview {
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .fatu-public .premium-gallery-preview img {
+    height: 230px;
+  }
+  .fatu-public .premium-gallery-empty {
+    display: block;
+    padding: 22px;
+  }
+  .fatu-public .premium-gallery-empty a {
+    display: inline-block;
+    margin-top: 16px;
+  }
+  .fatu-public .premium-values {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .fatu-public .premium-values article + article {
+    border-top: 1px solid #655447;
+    padding-top: 22px;
+  }
+  .fatu-public .premium-values h3 {
+    margin-block: 8px;
+  }
+  .fatu-public .premium-final-cta {
+    display: block;
+  }
+  .fatu-public .premium-final-cta > a {
+    width: 100%;
+    margin-top: 22px;
+  }
+  .fatu-public .service-grid {
+    grid-template-columns: 1fr;
+  }
+  .fatu-public .service-card {
+    padding: 22px;
+  }
+  .fatu-public .catalog-tools {
+    padding: 18px;
+  }
+  .fatu-public .catalog-tools input {
+    width: 100%;
+  }
+  .fatu-public .filter-tabs button {
+    padding: 9px 15px;
+  }
+  .fatu-public .fatu-contact-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .fatu-public .fatu-page-heading {
+    padding-block: 32px 25px;
+  }
+  .fatu-public .fatu-page-heading h1 {
+    font-size: 40px;
+  }
+  .fatu-public .fatu-page-heading p {
+    font-size: 16px;
+  }
+  .fatu-public .fatu-split {
+    grid-template-columns: 1fr;
+    gap: 25px;
+  }
+  .fatu-public .fatu-split > .premium-photo {
+    height: 300px;
+  }
+  .fatu-public .fatu-portfolio-grid {
+    gap: 12px;
+  }
+  .fatu-public .fatu-portfolio-grid .fatu-image-button span {
+    font-size: 12px;
+  }
+  .fatu-public .fatu-footer {
+    padding: 32px 18px 90px;
+  }
+  .fatu-public .fatu-footer-top {
+    gap: 26px 18px;
+  }
+  .fatu-public .fatu-footer-top > div:first-child {
+    grid-column: 1/-1;
+  }
+  .fatu-public .fatu-footer-top > div:last-child {
+    grid-column: 1/-1;
+  }
+  .fatu-public .fatu-footer-bottom {
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .fatu-public .fatu-floating-basket {
+    bottom: 14px;
+    inset-inline-end: 14px;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .fatu-public .premium-hero-copy {
+    animation: premium-enter 0.6s ease both;
+  }
+  .fatu-public .premium-hero-visual {
+    animation: premium-enter 0.8s ease both;
+  }
+  .fatu-public [data-reveal].is-revealed {
+    animation: premium-enter 0.65s ease both;
+  }
+  @keyframes premium-enter {
+    from {
+      opacity: 0.3;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fatu-public *,
+  .fatu-public *::before,
+  .fatu-public *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

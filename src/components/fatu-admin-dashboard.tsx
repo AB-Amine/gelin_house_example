@@ -1,6 +1,11 @@
 'use client';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { api, ApiError } from '@/lib/client';
 import { useI18n } from './locale-provider';
+import { AppointmentRequestActions } from './appointment-request-actions';
+import type { AppointmentRequestRow } from '@/lib/appointment-requests';
 type Amount = { currency: string; total_minor: number };
 export type AdminSummary = {
   total: number;
@@ -23,156 +28,312 @@ export type AdminSummary = {
   messages: number;
   notifications: number;
 };
+export type AgendaRow = {
+  id: string;
+  reference: string;
+  starts_at: string;
+  local_start?: string;
+  status: string;
+  customers: { name: string } | null;
+  appointment_items: { name: string }[];
+};
 export function FatuAdminDashboard({
   summary: s,
   from,
-  to,
   timezone,
+  dayLabel,
   preview = false,
+  today = [],
+  pendingRows = [],
+  upcomingCount = 0,
+  websiteRequests = [],
+  websiteRequestCount = 0,
 }: {
   summary: AdminSummary;
   from: string;
   to: string;
   timezone: string;
+  dayLabel?: string;
   preview?: boolean;
+  today?: AgendaRow[];
+  pendingRows?: AgendaRow[];
+  confirmed?: number;
+  upcomingCount?: number;
+  websiteRequests?: AppointmentRequestRow[];
+  websiteRequestCount?: number;
 }) {
-  const { t, money, date } = useI18n();
-  const href = (path: string) =>
-    preview
-      ? `/admin/preview?section=${path === '/admin' ? 'overview' : (path.split('/')[2] ?? 'overview')}`
-      : path;
+  const { t, date, time } = useI18n();
+  const router = useRouter();
+  const [action, setAction] = useState<{ id: string; action: string } | null>(
+    null,
+  );
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+  useEffect(() => {
+    if (preview || action || busy) return;
+    const refresh = () => {
+      if (document.visibilityState === 'visible') router.refresh();
+    };
+    const timer = window.setInterval(refresh, 30000);
+    window.addEventListener('focus', refresh);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener('focus', refresh);
+    };
+  }, [preview, action, busy, router]);
+  useEffect(() => {
+    if (action)
+      document
+        .getElementById('dashboard-action')
+        ?.scrollIntoView({ block: 'center' });
+  }, [action]);
+  const href = (path: string) => {
+    if (!preview) return path;
+    const [route, query = ''] = path.split('?');
+    return `/admin/preview?section=${route === '/admin' ? 'overview' : route === '/admin/appointments/new' ? 'bookings' : route.split('/')[2]}${query ? `&${query}` : ''}`;
+  };
   return (
     <>
       <header className="fatu-admin-heading">
         <div>
-          <span className="eyebrow">FATU / {t('nav.admin')}</span>
-          <h1>{t('admin.overview')}</h1>
-          <p>{t('admin.noRevenueClaim')}</p>
+          <span className="eyebrow">Votre journée au salon</span>
+          <h1>Tableau de bord</h1>
+          <p>
+            {dayLabel ??
+              new Intl.DateTimeFormat('fr-MA', {
+                dateStyle: 'full',
+                timeZone: 'UTC',
+              }).format(new Date(`${from}T12:00:00Z`))}
+          </p>
         </div>
         <Link className="button" href={href('/admin/appointments/new')}>
-          + {t('admin.manual')}
+          + Nouveau rendez-vous
         </Link>
       </header>
-      <form className="admin-toolbar">
-        <label>
-          {t('field.from')}
-          <input name="from" type="date" defaultValue={from} />
-        </label>
-        <label>
-          {t('field.to')}
-          <input name="to" type="date" defaultValue={to} />
-        </label>
-        <button className="button secondary">{t('common.filter')}</button>
-      </form>
-      <div className="stat-grid">
+      <div className="stat-grid salon-stats">
         {[
-          ['admin.bookings', s.total],
-          ['admin.pending', s.pending],
-          ['admin.clients', s.clients],
-          ['status.completed', s.completed],
-          ['admin.cancelled', s.cancelled],
-        ].map(([key, n]) => (
-          <article className="stat-card" key={key}>
-            <span>{t(String(key))}</span>
+          ['Rendez-vous aujourd’hui', s.total],
+          ['Rendez-vous à venir', upcomingCount],
+          ['Demandes du site à traiter', websiteRequestCount],
+        ].map(([label, n]) => (
+          <article className="stat-card" key={label}>
+            <span>{label}</span>
             <strong>{n}</strong>
           </article>
         ))}
       </div>
-      <div className="fatu-admin-finance">
-        {[
-          ['admin.paid', s.paid],
-          ['admin.bookedValue', s.booked_value],
-        ].map(([key, amounts]) => (
-          <article key={String(key)}>
-            <span className="eyebrow">{t(String(key))}</span>
-            {(amounts as Amount[]).length ? (
-              (amounts as Amount[]).map((a) => (
-                <strong key={a.currency}>
-                  {money(a.total_minor, a.currency)}
-                </strong>
-              ))
-            ) : (
-              <strong>—</strong>
-            )}
-            <p>
-              {t(key === 'admin.paid' ? 'admin.paidNote' : 'admin.bookedNote')}
-            </p>
-          </article>
-        ))}
+      <div className="salon-quick-actions" aria-label="Actions rapides">
+        <Link href={href('/admin/appointments/new')}>
+          Nouveau rendez-vous <span aria-hidden>↗</span>
+        </Link>
+        <Link href={href('/admin/services?new=1')}>
+          Ajouter une prestation <span aria-hidden>↗</span>
+        </Link>
+        <Link href={href('/admin/promotions?new=1')}>
+          Créer une offre <span aria-hidden>↗</span>
+        </Link>
       </div>
-      <div className="fatu-admin-inbox">
-        {[
-          ['admin.requests', s.requests, '/admin/requests'],
-          ['admin.messages', s.messages, '/admin/messages'],
-          ['admin.notifications', s.notifications, '/admin/notifications'],
-        ].map(([key, n, path]) => (
-          <Link key={key} href={href(String(path))}>
-            <span>{t(String(key))}</span>
-            <strong>{n} ↗</strong>
-          </Link>
-        ))}
-      </div>
-      <section className="fatu-admin-section">
+      <section
+        className="fatu-admin-section"
+        aria-label="Demandes de rendez-vous du site"
+      >
         <div className="section-heading">
-          <h2>{t('admin.upcoming')}</h2>
-          <Link className="text-link" href={href('/admin/calendar')}>
-            {t('admin.calendar')} ↗
-          </Link>
-        </div>
-        {s.upcoming.length ? (
-          <div className="fatu-admin-upcoming">
-            {s.upcoming.map((b) => (
-              <Link
-                key={b.id}
-                href={href(`/admin/bookings?reference=${b.reference}`)}
+          <h2>Demandes de rendez-vous du site</h2>
+          <div className="inline-actions">
+            {!preview && (
+              <button
+                type="button"
+                className="button secondary"
+                onClick={() => router.refresh()}
               >
-                <time>{date(b.starts_at, { timeZone: timezone })}</time>
-                <div>
-                  <strong>{b.name}</strong>
-                  <small>
-                    {b.reference} · {b.city_name}
-                  </small>
-                </div>
-                <span className="badge">{t(`status.${b.status}`)}</span>
-              </Link>
-            ))}
+                Actualiser
+              </button>
+            )}
+            <Link href={href('/admin/messages')} prefetch={false}>
+              Tout voir
+            </Link>
           </div>
+        </div>
+        {websiteRequests.length ? (
+          websiteRequests.map((request) => (
+            <article
+              className="salon-pending website-request-card"
+              key={request.id}
+            >
+              <strong>{request.name}</strong>
+              <p style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
+                {request.message
+                  .split('\n')
+                  .filter(
+                    (line) =>
+                      !line.startsWith('Date souhaitée :') &&
+                      !line.startsWith('Heure souhaitée :'),
+                  )
+                  .join('\n')}
+              </p>
+              <p>
+                {request.phone}
+                {request.email ? ` · ${request.email}` : ''}
+              </p>
+              <small>
+                Reçue le {date(request.created_at, { timeZone: timezone })}
+              </small>
+              {!preview && <AppointmentRequestActions request={request} />}
+            </article>
+          ))
         ) : (
-          <p className="empty-state">{t('common.empty')}</p>
+          <p className="empty-state">Aucune demande reçue depuis le site.</p>
         )}
       </section>
-      <section className="fatu-admin-section">
-        <h2>{t('admin.popular')}</h2>
-        {s.popular.map((p, i) => (
-          <div className="fatu-popular" key={p.name}>
-            <span>0{i + 1}</span>
-            <strong>{p.name}</strong>
-            <span>{p.bookings}</span>
+      <div className="salon-dashboard-columns">
+        <section className="fatu-admin-section">
+          <div className="section-heading">
+            <h2>Aujourd’hui</h2>
+            <Link href={href(`/admin/bookings?period=today`)}>Tout voir →</Link>
           </div>
-        ))}
-      </section>
-      <section className="website-workspace">
-        <h2>{t('admin.website')}</h2>
-        <div className="website-cards">
-          {[
-            ['admin.services', 'services'],
-            ['admin.portfolio', 'portfolio'],
-            ['admin.locations', 'locations'],
-            ['admin.content', 'content'],
-            ['admin.translations', 'translations'],
-            ['admin.settings', 'settings'],
-          ].map(([key, path], i) => (
-            <Link
-              className="website-card"
-              key={path}
-              href={href(`/admin/${path}`)}
-            >
-              <span className="website-card-number">0{i + 1} ↗</span>
-              <h3>{t(key)}</h3>
-              <span>{t('common.edit')} →</span>
+          {today.length ? (
+            <div className="salon-agenda">
+              {today.map((b) => (
+                <Link
+                  key={b.id}
+                  href={href(`/admin/bookings?reference=${b.reference}`)}
+                >
+                  <time>
+                    {b.local_start?.slice(11, 16) ??
+                      time(b.starts_at, timezone)}
+                  </time>
+                  <div>
+                    <strong>{b.customers?.name || 'Cliente'}</strong>
+                    <small>
+                      {b.appointment_items.map((i) => i.name).join(' · ')}
+                    </small>
+                  </div>
+                  <span className={`badge status-${b.status}`}>
+                    {t(`status.${b.status}`)}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <p className="empty-state">Aucun rendez-vous aujourd’hui.</p>
+          )}
+        </section>
+        <section className="fatu-admin-section">
+          <div className="section-heading">
+            <h2>À confirmer</h2>
+            <Link href={href('/admin/bookings?period=pending')}>
+              Tout voir →
             </Link>
-          ))}
+          </div>
+          {pendingRows.length ? (
+            pendingRows.map((b) => (
+              <article className="salon-pending" key={b.id}>
+                <strong>{b.customers?.name || 'Cliente'}</strong>
+                <p>
+                  {b.local_start?.replace('T', ' à ') ??
+                    date(b.starts_at, { timeZone: timezone })}{' '}
+                  · {b.appointment_items.map((i) => i.name).join(' · ')}
+                </p>
+                <div className="inline-actions">
+                  <button
+                    className="button"
+                    disabled={busy}
+                    onClick={() => setAction({ id: b.id, action: 'confirmed' })}
+                  >
+                    Confirmer
+                  </button>
+                  <button
+                    className="button secondary"
+                    disabled={busy}
+                    onClick={() => setAction({ id: b.id, action: 'rejected' })}
+                  >
+                    Refuser
+                  </button>
+                  <Link href={href(`/admin/bookings?reference=${b.reference}`)}>
+                    Voir les détails
+                  </Link>
+                </div>
+              </article>
+            ))
+          ) : (
+            <p className="empty-state">Aucune demande en attente.</p>
+          )}
+        </section>
+      </div>
+      {action && (
+        <form
+          id="dashboard-action"
+          className="admin-form"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            const reason = new FormData(e.currentTarget).get('reason') ?? '';
+            setBusy(true);
+            setMessage('');
+            try {
+              await api('/api/admin/appointments', { ...action, reason });
+              setAction(null);
+              router.refresh();
+            } catch (error) {
+              setMessage(
+                error instanceof ApiError
+                  ? t(`error.${error.code}`)
+                  : 'Impossible de modifier ce rendez-vous.',
+              );
+            } finally {
+              setBusy(false);
+            }
+          }}
+        >
+          <h2>
+            {action.action === 'confirmed'
+              ? 'Confirmer ce rendez-vous ?'
+              : 'Refuser ce rendez-vous ?'}
+          </h2>
+          {action.action === 'rejected' && (
+            <label>
+              Motif du refus
+              <textarea name="reason" required maxLength={2000} />
+            </label>
+          )}
+          <div className="inline-actions">
+            <button className="button" disabled={busy}>
+              {busy ? 'Enregistrement…' : 'Valider'}
+            </button>
+            <button
+              type="button"
+              className="button secondary"
+              disabled={busy}
+              onClick={() => setAction(null)}
+            >
+              Annuler
+            </button>
+          </div>
+        </form>
+      )}
+      {message && (
+        <p className="error" role="alert">
+          {message}
+        </p>
+      )}
+      <section className="fatu-admin-section">
+        <h2>À suivre</h2>
+        <div className="salon-context">
+          <Link href={href('/admin/requests')}>
+            {s.requests} demande(s) de modification
+          </Link>
+          <Link href={href('/admin/messages')}>
+            {s.messages} message(s) à traiter
+          </Link>
+          <Link href={href('/admin/notifications')}>
+            {s.notifications} notification(s) en attente d’envoi
+          </Link>
         </div>
+        {s.notifications > 0 && (
+          <p className="small">
+            Les notifications enregistrées ne sont pas envoyées automatiquement.
+            Contactez les clientes avec vos canaux habituels.
+          </p>
+        )}
       </section>
     </>
   );

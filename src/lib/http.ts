@@ -57,6 +57,20 @@ export async function rateLimit(req: NextRequest, scope: string, limit = 30) {
   if (!data) throw Error('RATE_LIMIT');
 }
 const messages: Record<string, string> = {
+  SALON_CLOSED:
+    'Le salon est fermé à cette date ou à cette heure. Choisissez une heure d’ouverture. La demande reste en attente.',
+  START_TIME_TAKEN:
+    'Un rendez-vous est déjà prévu à cette heure. Choisissez une autre heure de début.',
+  REQUEST_DATE_REQUIRED:
+    'Choisissez la date du rendez-vous. La demande reste en attente.',
+  REQUEST_TIME_REQUIRED:
+    'Choisissez une heure avant de confirmer. La demande reste en attente.',
+  REQUEST_DURATION_REQUIRED:
+    'Ajoutez la durée réelle des prestations dans Prestations avant de confirmer. La demande reste en attente.',
+  REQUEST_SETUP_REQUIRED:
+    'Complétez les horaires, les coordonnées et les règles de réservation du salon avant de confirmer. La demande reste en attente.',
+  REQUEST_LOCATION_REQUIRED:
+    'Le lieu du salon doit être défini sans ambiguïté pour ces prestations. Vérifiez Mon salon. La demande reste en attente.',
   AUTH_FAILED: 'auth.invalid',
   CITY_UNAVAILABLE: 'error.CITY_UNAVAILABLE',
   CITY_SERVICE_UNAVAILABLE: 'error.CITY_SERVICE_UNAVAILABLE',

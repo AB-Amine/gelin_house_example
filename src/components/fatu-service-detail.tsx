@@ -16,11 +16,6 @@ export function FatuServiceDetail({
   const { catalog, t, money } = useWebsiteCopy(initialCatalog);
   const s = catalog.services.find((s) => s.slug === slug);
   if (!s) return null;
-  const cities = (catalog.cities ?? []).filter((c) =>
-    catalog.service_cities?.some(
-      (sc) => sc.service_id === s.id && sc.city_id === c.id,
-    ),
-  );
   return (
     <div className="fatu-container">
       <header className="fatu-page-heading">
@@ -42,18 +37,42 @@ export function FatuServiceDetail({
           />
         )}
         <div>
-          <span className="fatu-eyebrow">{t('nav.services')}</span>
+          <span className="fatu-eyebrow">
+            {[
+              catalog.categories.find((c) => c.id === s.category_id)?.name,
+              s.subcategory,
+              s.service_group,
+            ]
+              .filter(Boolean)
+              .join(' · ') || t('nav.services')}
+          </span>
           <h2>
-            {s.price_type === 'consultation'
-              ? t('services.consultation')
+            {s.price_type === 'consultation' || s.price_minor === null
+              ? t('catalogue.priceOnRequest')
               : `${s.price_type === 'starting' ? t('services.starting') + ' ' : ''}${money(s.price_minor ?? 0, catalog.settings?.currency ?? 'MAD')}`}
           </h2>
-          <p>{s.duration_minutes} min</p>
-          <p>{t('common.notConfirmed')}</p>
-          <AddService id={s.id} disabled={!s.bookable} />
-          <Link className="fatu-text-link" href="/reservation">
-            {t('nav.booking')} ↗
-          </Link>
+          {s.duration_minutes !== null && s.duration_minutes > 0 && (
+            <p>{s.duration_minutes} min</p>
+          )}
+          {s.service_type !== 'rental' ? (
+            <>
+              <AddService id={s.id} />
+              <Link className="fatu-text-link" href="/reservation">
+                {t('nav.booking')} ↗
+              </Link>
+            </>
+          ) : (
+            <Link
+              className="button secondary"
+              href={`${s.service_type === 'rental' ? '/contact' : '/reservation'}?prestation=${encodeURIComponent(s.slug)}`}
+            >
+              {t(
+                s.service_type === 'rental'
+                  ? 'catalogue.rentalEnquiry'
+                  : 'requestForm.action',
+              )}
+            </Link>
+          )}
           {s.included_items && (
             <section>
               <h3>{t('services.included')}</h3>
@@ -66,22 +85,6 @@ export function FatuServiceDetail({
               <p className="prose">{s.preparation}</p>
             </section>
           )}
-          <section>
-            <h3>{t('services.cities')}</h3>
-            {cities.length ? (
-              cities.map((c) => (
-                <p key={c.id}>
-                  {c.name} · {t('booking.travel')}:{' '}
-                  {money(
-                    c.travel_fee_minor,
-                    catalog.settings?.currency ?? 'MAD',
-                  )}
-                </p>
-              ))
-            ) : (
-              <p>{t('common.awaiting')}</p>
-            )}
-          </section>
         </div>
       </div>
       <div className="service-grid">

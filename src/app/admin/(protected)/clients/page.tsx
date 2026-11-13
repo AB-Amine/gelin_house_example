@@ -1,6 +1,6 @@
 import { requirePageStaff } from '@/lib/auth';
 import { sessionDb } from '@/lib/supabase';
-import { getI18n } from '@/lib/i18n/server';
+import { getI18n } from '@/lib/admin-i18n';
 import { FatuClients } from '@/components/fatu-clients';
 export default async function Page({
   searchParams,

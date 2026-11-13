@@ -50,6 +50,8 @@ export async function POST(
         .parse(input);
       const { error } = await db.auth.signInWithPassword(v);
       if (error) throw Error('AUTH_FAILED');
+      const { error: profileError } = await db.rpc('client_profile');
+      if (profileError) throw Error('AUTH_FAILED');
       return ok({ authenticated: true });
     }
     if (action === 'reset') {

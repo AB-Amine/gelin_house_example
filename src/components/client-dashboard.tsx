@@ -5,6 +5,14 @@ import Link from 'next/link';
 import { Temporal } from '@js-temporal/polyfill';
 import { api, ApiError } from '@/lib/client';
 import { useI18n } from './locale-provider';
+import type { Settings } from '@/lib/domain';
+type ClientPolicies = Pick<
+  Settings,
+  | 'cancellation_enabled'
+  | 'rescheduling_enabled'
+  | 'cancellation_notice_hours'
+  | 'rescheduling_notice_hours'
+>;
 export type ClientBooking = {
   timezone?: string;
   id: string;
@@ -20,7 +28,7 @@ export type ClientBooking = {
   uncertain: boolean;
   items: {
     name: string;
-    duration_minutes: number;
+    duration_minutes: number | null;
     final_minor: number | null;
   }[];
   requests: {
@@ -60,11 +68,13 @@ export function ClientDashboard({
   name,
   all = false,
   timezone = 'Africa/Casablanca',
+  policies,
 }: {
   bookings: ClientBooking[];
   name: string;
   all?: boolean;
   timezone?: string;
+  policies?: ClientPolicies | null;
 }) {
   const { t, date, money } = useI18n();
   const [now] = useState(() => Date.now());
@@ -75,35 +85,17 @@ export function ClientDashboard({
         ['pending', 'confirmed', 'in_progress'].includes(b.status),
     )
     .sort((a, b) => a.starts_at.localeCompare(b.starts_at));
-  const shown = all ? bookings : upcoming.slice(0, 1);
+  const shown = all ? bookings : upcoming;
   return (
     <>
       <div className="fatu-client-heading">
         <div>
-          <span className="fatu-eyebrow">FATU / {t('nav.client')}</span>
-          <h1>{t(all ? 'client.bookings' : 'client.dashboard')}</h1>
+          <span className="fatu-eyebrow">GELIN HOUSE / Mon espace</span>
+          <h1>{all ? 'Historique et rendez-vous' : 'Mes rendez-vous'}</h1>
           <p>{name}</p>
         </div>
         <ClientLogout />
       </div>
-      {!all && (
-        <div className="fatu-client-stats">
-          <article>
-            <span>{t('client.bookings')}</span>
-            <strong>{bookings.length}</strong>
-          </article>
-          <article>
-            <span>{t('admin.pending')}</span>
-            <strong>
-              {bookings.filter((b) => b.status === 'pending').length}
-            </strong>
-          </article>
-          <article>
-            <span>{t('client.next')}</span>
-            <strong>{upcoming.length}</strong>
-          </article>
-        </div>
-      )}
       {shown.length ? (
         shown.map((b) => (
           <article className="fatu-client-booking" key={b.id}>
@@ -126,13 +118,18 @@ export function ClientDashboard({
             <ul>
               {b.items.map((i, k) => (
                 <li key={k}>
-                  {i.name} · {i.duration_minutes} min
+                  {i.name}
+                  {i.duration_minutes ? ` · ${i.duration_minutes} min` : ''}
                 </li>
               ))}
             </ul>
             <p>
               {t('booking.total')}:{' '}
-              <strong>{money(b.total_minor, b.currency)}</strong>
+              <strong>
+                {b.uncertain
+                  ? 'Prix à confirmer'
+                  : money(b.total_minor, b.currency)}
+              </strong>
             </p>
             {b.requests?.map((r) => (
               <p className="notice" key={r.id}>
@@ -148,7 +145,11 @@ export function ClientDashboard({
             ))}
             {['pending', 'confirmed'].includes(b.status) &&
               !b.requests?.some((r) => r.status === 'pending') && (
-                <ClientChange booking={b} timezone={b.timezone ?? timezone} />
+                <ClientChange
+                  booking={b}
+                  timezone={b.timezone ?? timezone}
+                  policies={policies}
+                />
               )}
           </article>
         ))
@@ -171,27 +172,43 @@ export function ClientDashboard({
 function ClientChange({
   booking,
   timezone,
+  policies,
 }: {
   booking: ClientBooking;
   timezone: string;
+  policies?: ClientPolicies | null;
 }) {
   const { t } = useI18n();
   const [kind, setKind] = useState('');
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const router = useRouter();
+  const [now] = useState(() => Date.now());
+  const allowed = (kind: 'cancel' | 'reschedule') =>
+    !!policies &&
+    (kind === 'cancel'
+      ? policies.cancellation_enabled &&
+        Date.parse(booking.starts_at) >=
+          now + policies.cancellation_notice_hours * 3600000
+      : policies.rescheduling_enabled &&
+        Date.parse(booking.starts_at) >=
+          now + policies.rescheduling_notice_hours * 3600000);
   return (
     <>
       <div className="fatu-actions">
-        <button className="fatu-text-link" onClick={() => setKind('cancel')}>
-          {t('client.cancelRequest')}
-        </button>
-        <button
-          className="fatu-text-link"
-          onClick={() => setKind('reschedule')}
-        >
-          {t('client.rescheduleRequest')}
-        </button>
+        {allowed('cancel') && (
+          <button className="fatu-text-link" onClick={() => setKind('cancel')}>
+            {t('client.cancelRequest')}
+          </button>
+        )}
+        {allowed('reschedule') && (
+          <button
+            className="fatu-text-link"
+            onClick={() => setKind('reschedule')}
+          >
+            {t('client.rescheduleRequest')}
+          </button>
+        )}
       </div>
       {kind && (
         <form
@@ -264,7 +281,7 @@ export function ClientProfile({
   profile: { name: string; phone: string; locale: string };
   email: string;
 }) {
-  const { t, setLocale } = useI18n();
+  const { t } = useI18n();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   return (
@@ -281,7 +298,6 @@ export function ClientProfile({
           const values = Object.fromEntries(new FormData(e.currentTarget));
           try {
             await api('/api/client/profile', values);
-            setLocale(values.locale as 'fr' | 'en' | 'ar');
             setMessage('common.saved');
           } catch {
             setMessage('common.error');
@@ -314,14 +330,7 @@ export function ClientProfile({
           {t('auth.email')}
           <input type="email" value={email} readOnly />
         </label>
-        <label>
-          {t('auth.language')}
-          <select name="locale" defaultValue={profile.locale}>
-            <option value="fr">Français</option>
-            <option value="en">English</option>
-            <option value="ar">العربية</option>
-          </select>
-        </label>
+        <input type="hidden" name="locale" value="fr" />
         {message && <p role="status">{t(message)}</p>}
         <button className="fatu-button" disabled={busy}>
           {t(busy ? 'common.saving' : 'common.save')}

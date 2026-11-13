@@ -6,6 +6,10 @@ import path from 'node:path';
 import { randomBytes, randomUUID, createHash } from 'node:crypto';
 import assert from 'node:assert/strict';
 import { testFatuDatabase } from './test-fatu-db.mjs';
+import { testAdminFormsDatabase } from './test-admin-forms-db.mjs';
+import { testCatalogueDatabase } from './test-catalogue-db.mjs';
+import { testAppointmentRequestsDatabase } from './test-appointment-requests-db.mjs';
+import { testSalonAccountsDatabase } from './test-salon-accounts-db.mjs';
 const password = randomBytes(24).toString('hex');
 const databaseDir = await mkdtemp(path.join(tmpdir(), 'gelin-pg-'));
 const cluster = new EmbeddedPostgres({
@@ -1061,6 +1065,10 @@ try {
     },
   );
   await testFatuDatabase(client, check);
+  await testAdminFormsDatabase(client, check);
+  await testCatalogueDatabase(client, check);
+  await testAppointmentRequestsDatabase(client, check);
+  await testSalonAccountsDatabase(client, check);
   console.log(
     `${passed} database integration checks passed. Auth/Storage HTTP integrations still require Supabase.`,
   );

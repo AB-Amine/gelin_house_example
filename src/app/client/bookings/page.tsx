@@ -12,6 +12,7 @@ export default async function Page() {
       bookings={bookings ?? []}
       name={user.user_metadata?.name || ''}
       timezone={catalog.settings?.timezone}
+      policies={catalog.settings}
     />
   );
 }

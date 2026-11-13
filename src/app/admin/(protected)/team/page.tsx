@@ -1,7 +1,7 @@
 import { requirePageStaff } from '@/lib/auth';
 import { privileged } from '@/lib/supabase';
 import { Team } from '@/components/team';
-import { getI18n } from '@/lib/i18n/server';
+import { getI18n } from '@/lib/admin-i18n';
 export default async function TeamPage() {
   await requirePageStaff();
   const { t } = await getI18n();

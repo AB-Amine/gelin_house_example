@@ -8,7 +8,9 @@ export async function clientSession() {
     data: { user },
     error,
   } = await db.auth.getUser();
-  return error || !user ? null : { db, user };
+  if (error || !user) return null;
+  const { error: profileError } = await db.rpc('client_profile');
+  return profileError ? null : { db, user };
 }
 export async function requireClient() {
   const session = await clientSession();

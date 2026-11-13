@@ -1,18 +1,24 @@
 ﻿'use client';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState, type CSSProperties, type ReactNode } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from 'react';
 import { usePathname } from 'next/navigation';
 import { useI18n, LanguageSwitcher } from './locale-provider';
 import type { Catalog } from '@/lib/domain';
 import { salonImage } from '@/lib/assets';
 import { BasketLink } from './basket';
 import { localizedCatalog } from '@/lib/localization';
-export function FatuWordmark() {
+export function FatuWordmark({ name }: { name?: string } = {}) {
   return (
-    <Link className="fatu-wordmark" href="/" aria-label="Fatu Makeup Artist">
-      <span>FATU</span>
-      <small>MAKEUP ARTIST</small>
+    <Link className="fatu-wordmark" href="/" aria-label={name || 'GELIN HOUSE'}>
+      <span>{name || 'GELIN HOUSE'}</span>
+      <small>MAISON DE BEAUTÉ</small>
     </Link>
   );
 }
@@ -28,11 +34,35 @@ export function FatuPublicFrame({
   const { t, locale } = useI18n();
   const [open, setOpen] = useState(false);
   const path = usePathname();
+  const main = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
+      !('IntersectionObserver' in window)
+    )
+      return;
+    const observer = new IntersectionObserver(
+      (entries) =>
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-revealed');
+            observer.unobserve(entry.target);
+          }
+        }),
+      { threshold: 0.12 },
+    );
+    main.current?.querySelectorAll('.premium-section').forEach((section) => {
+      section.setAttribute('data-reveal', '');
+      observer.observe(section);
+    });
+    return () => observer.disconnect();
+  }, [path]);
   const settings = localizedCatalog(catalog, locale).settings;
   const links = [
     ['/', 'nav.home'],
     ['/a-propos', 'nav.about'],
     ['/services', 'nav.services'],
+    ['/offres', 'nav.offers'],
     ['/portfolio', 'nav.portfolio'],
     ['/contact', 'nav.contact'],
   ];
@@ -48,14 +78,14 @@ export function FatuPublicFrame({
           <Link href="/">
             <Image
               src={salonImage(settings.logo_path)}
-              alt="Fatu Makeup Artist"
+              alt={settings.name}
               width={160}
               height={64}
               unoptimized
             />
           </Link>
         ) : (
-          <FatuWordmark />
+          <FatuWordmark name={settings?.name} />
         )}
         <button
           type="button"
@@ -101,25 +131,22 @@ export function FatuPublicFrame({
           )}
         </div>
       )}
-      <main id="main">{children}</main>
+      <main ref={main} id="main">
+        {children}
+      </main>
       <footer className="fatu-footer">
         <div className="fatu-footer-top">
           <div>
-            <FatuWordmark />
+            <FatuWordmark name={settings?.name} />
             <p>{t('brand.signature')}</p>
           </div>
           <div>
             <span className="fatu-eyebrow">{t('footer.connect')}</span>
-            <a
-              href={
-                settings?.instagram ||
-                'https://www.instagram.com/fatu_makeupartist/'
-              }
-              target="_blank"
-              rel="noreferrer"
-            >
-              Instagram ↗
-            </a>
+            {settings?.instagram && (
+              <a href={settings.instagram} target="_blank" rel="noreferrer">
+                Instagram ↗
+              </a>
+            )}
             {settings?.phone && (
               <a href={`tel:${settings.phone}`}>{settings.phone}</a>
             )}
@@ -127,6 +154,7 @@ export function FatuPublicFrame({
           </div>
           <div>
             <Link href="/services">{t('nav.services')}</Link>
+            <Link href="/offres">{t('nav.offers')}</Link>
             <Link href="/portfolio">{t('nav.portfolio')}</Link>
             <Link href="/faq">{t('nav.faq')}</Link>
             <Link href="/client">{t('nav.client')}</Link>
@@ -140,7 +168,10 @@ export function FatuPublicFrame({
         </div>
         <div className="fatu-footer-bottom">
           <small>
-            © {new Date().getFullYear()} {t('footer.copy')}
+            ©{' '}
+            {catalog.as_of !== undefined &&
+              new Date(catalog.as_of).getUTCFullYear()}{' '}
+            {settings?.name || t('footer.copy')}
           </small>
           <Link href="/confidentialite">{t('footer.privacy')}</Link>
           <Link href="/admin/login">{t('nav.admin')}</Link>
@@ -156,11 +187,10 @@ export function FatuClientShell({ children }: { children: ReactNode }) {
   const { t } = useI18n();
   const path = usePathname();
   return (
-    <div className="fatu-client">
+    <div className="fatu-client" lang="fr" dir="ltr">
       <header className="fatu-client-top">
         <FatuWordmark />
         <div>
-          <LanguageSwitcher />
           <Link className="fatu-text-link" href="/">
             {t('admin.visit')} ↗
           </Link>
@@ -171,9 +201,9 @@ export function FatuClientShell({ children }: { children: ReactNode }) {
           <span className="fatu-eyebrow">{t('client.title')}</span>
           <nav aria-label={t('nav.client')}>
             {[
-              ['/client', 'client.dashboard'],
-              ['/client/bookings', 'client.bookings'],
+              ['/client', 'client.bookings'],
               ['/client/profile', 'client.profile'],
+              ['/client/advantages', 'Mes avantages'],
             ].map(([href, key]) => (
               <Link
                 key={href}

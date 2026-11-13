@@ -190,31 +190,32 @@ export function FatuBooking({
     !catalog.cities?.length
   )
     return (
-      <div className="fatu-empty">
-        <h2>{t('booking.closed')}</h2>
-        {basket.ids.length > 0 && (
-          <div>
-            {basket.ids.map((id) => (
-              <div className="basket-row" key={id}>
-                <span>
-                  {catalog.services.find((s) => s.id === id)?.name ??
-                    t('common.unavailable')}
-                </span>
-                <button
-                  className="fatu-text-link"
-                  onClick={() => basket.remove(id)}
-                >
-                  {t('common.delete')}
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-        <p>{t('common.notConfirmed')}</p>
-        <Link className="fatu-text-link" href="/contact">
-          {t('nav.contact')} ↗
-        </Link>
-      </div>
+      <section>
+        <ServiceCatalog catalog={catalog} />
+        <div className="fatu-empty">
+          {basket.ids.length > 0 && (
+            <div>
+              {basket.ids.map((id) => (
+                <div className="basket-row" key={id}>
+                  <span>
+                    {catalog.services.find((s) => s.id === id)?.name ??
+                      t('common.unavailable')}
+                  </span>
+                  <button
+                    className="fatu-text-link"
+                    onClick={() => basket.remove(id)}
+                  >
+                    {t('common.delete')}
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          <Link className="fatu-text-link" href="/contact">
+            {t('nav.contact')} ↗
+          </Link>
+        </div>
+      </section>
     );
   const labels = [
     'booking.selection',
