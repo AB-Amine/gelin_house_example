@@ -184,5 +184,213 @@
         "bytes": 92332
       }
     ]
+  },
+  {
+    "id": "makeup-session",
+    "author": "OpenAI Imagegen",
+    "source": "Original AI-generated editorial illustration",
+    "generated": true,
+    "alt": "Mise en beauté dans une ambiance rose et dorée — illustration générée par IA",
+    "verified": "2026-11-13",
+    "sha256": "3df22d9c4d195c3e1d8a086d25ad5801c40fd171c5276cb75e4850782b3dddb5",
+    "width": 1536,
+    "height": 1024,
+    "illustrative": true,
+    "variants": [
+      {
+        "width": 320,
+        "path": "/images/premium/makeup-session-320.webp",
+        "bytes": 12490
+      },
+      {
+        "width": 720,
+        "path": "/images/premium/makeup-session-720.webp",
+        "bytes": 34960
+      },
+      {
+        "width": 1400,
+        "path": "/images/premium/makeup-session-1400.webp",
+        "bytes": 89060
+      }
+    ]
+  },
+  {
+    "id": "makeup-artistry",
+    "author": "ishola S.Oladimeji",
+    "source": "https://www.pexels.com/photo/makeup-artist-doing-makeup-of-a-woman-11041338/",
+    "license": "https://www.pexels.com/license/",
+    "alt": "Maquillage professionnel au pinceau — photographie d’inspiration",
+    "verified": "2026-11-13",
+    "sha256": "7cec860d75d181f240209744400bea3389fc557fdf02cb55c63a648f4053cf5c",
+    "width": 1600,
+    "height": 1078,
+    "illustrative": true,
+    "variants": [
+      {
+        "width": 320,
+        "path": "/images/premium/makeup-artistry-320.webp",
+        "bytes": 10836
+      },
+      {
+        "width": 720,
+        "path": "/images/premium/makeup-artistry-720.webp",
+        "bytes": 33044
+      },
+      {
+        "width": 1400,
+        "path": "/images/premium/makeup-artistry-1400.webp",
+        "bytes": 81646
+      }
+    ]
+  },
+  {
+    "id": "ritual-care",
+    "author": "OpenAI Imagegen",
+    "source": "Original AI-generated editorial illustration",
+    "generated": true,
+    "illustrative": true,
+    "prompt": "Original photorealistic premium beauty editorial photograph, portrait 3:4 composition, no text, logos, borders or watermarks. Close-up of an adult woman reclining with eyes closed, white towel turban and blush pink towel, a beautician's hand applying a creamy facial mask to her cheek with a soft brush. Face diagonally across frame, warm candle bokeh and pink hydrangeas in blurred background. Cohesive palette of blush pink, warm ivory and subtle gold, soft flattering natural warm light, realistic skin texture, feminine luxury, inviting and comfortable. This is a fictional illustrative beauty scene, never actual salon premises, clients or inventory. One single uninterrupted photograph, no collage.",
+    "alt": "Soin du visage dans une ambiance rose — illustration générée par IA",
+    "verified": "2026-11-13",
+    "sha256": "d4f010e507c628fca6e9152e1a325fe0539d64325d6651d801ee3821b7a0f11b",
+    "width": 1086,
+    "height": 1448,
+    "variants": [
+      {
+        "width": 320,
+        "path": "/images/premium/ritual-care-320.webp",
+        "bytes": 23254
+      },
+      {
+        "width": 720,
+        "path": "/images/premium/ritual-care-720.webp",
+        "bytes": 80194
+      },
+      {
+        "width": 1400,
+        "path": "/images/premium/ritual-care-1400.webp",
+        "bytes": 136128
+      }
+    ]
+  },
+  {
+    "id": "bridal-hair",
+    "author": "OpenAI Imagegen",
+    "source": "Original AI-generated editorial illustration",
+    "generated": true,
+    "illustrative": true,
+    "prompt": "Original photorealistic premium beauty editorial photograph, portrait 3:4 composition, no text, logos, borders or watermarks. Back view and slight side profile of an adult Moroccan woman with dark chestnut hair styled in a sophisticated loose low bridal chignon with small delicate pearl and gold hair pins. Warm pink salon, oval gold vanity mirrors and glowing bokeh behind her. Focus on intricate hairstyle, elegant gold earrings, modest champagne embroidered caftan neckline. Cohesive palette of blush pink, warm ivory and subtle gold, soft flattering natural warm light, realistic skin texture, feminine luxury, inviting and comfortable. This is a fictional illustrative beauty scene, never actual salon premises, clients or inventory. One single uninterrupted photograph, no collage.",
+    "alt": "Chignon de mariée orné de perles — illustration générée par IA",
+    "verified": "2026-11-13",
+    "sha256": "d55c312ffcaa1932eb4ca1ad187979f45af2571d923c09a73666e8202f3609d2",
+    "width": 1086,
+    "height": 1448,
+    "variants": [
+      {
+        "width": 320,
+        "path": "/images/premium/bridal-hair-320.webp",
+        "bytes": 27904
+      },
+      {
+        "width": 720,
+        "path": "/images/premium/bridal-hair-720.webp",
+        "bytes": 113944
+      },
+      {
+        "width": 1400,
+        "path": "/images/premium/bridal-hair-1400.webp",
+        "bytes": 218604
+      }
+    ]
+  },
+  {
+    "id": "rose-makeup",
+    "author": "OpenAI Imagegen",
+    "source": "Original AI-generated editorial illustration",
+    "generated": true,
+    "illustrative": true,
+    "prompt": "Original photorealistic premium beauty editorial photograph, portrait 3:4 composition, no text, logos, borders or watermarks. Close-up beauty portrait of an adult Moroccan woman in a blush pink silk robe, rich dark loosely pinned hair, understated gold flower earrings, sophisticated pink nude bridal makeup. Artist's hand applies rosy nude lipstick with a fine brush. Warm pink salon with softly glowing oval gold vanity mirror behind her. Cohesive palette of blush pink, warm ivory and subtle gold, soft flattering natural warm light, realistic skin texture, feminine luxury, inviting and comfortable. This is a fictional illustrative beauty scene, never actual salon premises, clients or inventory. One single uninterrupted photograph, no collage.",
+    "alt": "Mise en beauté au pinceau — illustration générée par IA",
+    "verified": "2026-11-13",
+    "sha256": "29a71ce0057d90fad9b970643345dadacc8928abf4a7fc39509cfada3461b6a5",
+    "width": 1086,
+    "height": 1448,
+    "variants": [
+      {
+        "width": 320,
+        "path": "/images/premium/rose-makeup-320.webp",
+        "bytes": 19578
+      },
+      {
+        "width": 720,
+        "path": "/images/premium/rose-makeup-720.webp",
+        "bytes": 73470
+      },
+      {
+        "width": 1400,
+        "path": "/images/premium/rose-makeup-1400.webp",
+        "bytes": 139950
+      }
+    ]
+  },
+  {
+    "id": "occasion-caftan",
+    "author": "OpenAI Imagegen",
+    "source": "Original AI-generated editorial illustration",
+    "generated": true,
+    "illustrative": true,
+    "prompt": "Original photorealistic premium beauty editorial photograph, portrait 3:4 composition, no text, logos, borders or watermarks. Three-quarter portrait of an adult Moroccan woman smiling softly and looking down, wearing an elegant deep raspberry fuchsia traditional Moroccan caftan with intricate fine gold embroidery and a gold belt. Elegant dark brown updo, refined gold earrings. Warm luminous pink and ivory salon, gold oval vanity mirrors and pink flowers blurred behind her. Show the outfit from head to mid-thigh. Cohesive palette of blush pink, warm ivory and subtle gold, soft flattering natural warm light, realistic skin texture, feminine luxury, inviting and comfortable. This is a fictional illustrative beauty scene, never actual salon premises, clients or inventory. One single uninterrupted photograph, no collage.",
+    "alt": "Caftan framboise brodé d’or — illustration générée par IA, modèle non contractuel",
+    "verified": "2026-11-13",
+    "sha256": "085b82a721567a0b9e7e22e8df7c0d92e7d7a228d7ac00d816d20bee2810f836",
+    "width": 1086,
+    "height": 1448,
+    "variants": [
+      {
+        "width": 320,
+        "path": "/images/premium/occasion-caftan-320.webp",
+        "bytes": 33020
+      },
+      {
+        "width": 720,
+        "path": "/images/premium/occasion-caftan-720.webp",
+        "bytes": 125082
+      },
+      {
+        "width": 1400,
+        "path": "/images/premium/occasion-caftan-1400.webp",
+        "bytes": 234564
+      }
+    ]
+  },
+  {
+    "id": "salon-interior",
+    "author": "OpenAI Imagegen",
+    "source": "Original AI-generated editorial illustration",
+    "generated": true,
+    "illustrative": true,
+    "prompt": "Create one high resolution photorealistic professional architectural editorial photograph of a luxurious feminine boutique beauty salon interior. Landscape 3:2 composition, visually balanced framing that also crops well to portrait. Soft blush pink velvet styling chairs, ivory marble vanity surfaces, tall elegant arched mirrors with fine brushed gold frames, sophisticated ivory wall mouldings, warm flattering sconces and soft daylight, small tasteful fresh pink flowers, clean refined uncluttered surfaces. Premium welcoming realistic beauty salon, sharp architectural details, natural photographic materials and subtle restrained luxury. No people, no treatment beds or massage beds, no medical equipment, no text, no logos, no watermarks, no collage, no borders. This is a fictional illustrative interior, never a depiction of actual GELIN HOUSE premises.",
+    "alt": "Intérieur de salon rose et ivoire, miroirs dorés — illustration générée par IA, distincte des locaux GELIN HOUSE",
+    "verified": "2026-11-14",
+    "sha256": "9e1b90d9e6c483a64a1fd5c6127bb0fdd22a3fbd3b90f4e692b2ef53cd156289",
+    "width": 1536,
+    "height": 1024,
+    "variants": [
+      {
+        "width": 320,
+        "path": "/images/premium/salon-interior-320.webp",
+        "bytes": 14456
+      },
+      {
+        "width": 720,
+        "path": "/images/premium/salon-interior-720.webp",
+        "bytes": 54914
+      },
+      {
+        "width": 1400,
+        "path": "/images/premium/salon-interior-1400.webp",
+        "bytes": 151106
+      }
+    ]
   }
 ]

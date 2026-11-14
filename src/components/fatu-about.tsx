@@ -3,6 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import type { Catalog } from '@/lib/domain';
 import { salonImage } from '@/lib/assets';
+import { salonInspirationPath } from '@/lib/public-gallery';
 import { useWebsiteCopy } from './website-copy';
 import { PremiumPhoto, categoryPhoto } from './premium-photo';
 import { SalonTestimonials } from './salon-testimonials';
@@ -141,7 +142,7 @@ export function FatuAbout({ catalog: initial }: { catalog: Catalog }) {
               03 / {t('aboutPage.atmosphere')}
             </span>
             <h2>
-              {t(salon.length ? 'aboutPage.ourSalon' : 'aboutPage.inspiration')}
+              {t(salon.some((photo) => photo.path !== salonInspirationPath) ? 'aboutPage.ourSalon' : 'aboutPage.inspiration')}
             </h2>
           </div>
           <Link className="fatu-text-link" href="/portfolio">

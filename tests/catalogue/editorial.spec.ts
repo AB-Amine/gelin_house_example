@@ -49,11 +49,16 @@ test('about content, real-gallery priority and category links work without ficti
   await expect(main.locator('.fatu-image-button')).toBeFocused();
 });
 
-test('four offers have photos and all remain discoverable on the homepage carousel', async ({
+test('homepage previews two current offers and the offers page keeps the complete carousel', async ({
   page,
 }, info) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
+  await expect(page.locator('main .premium-offer-card')).toHaveCount(2);
+  await expect(
+    page.locator('main .premium-offer-card.is-upcoming'),
+  ).toHaveCount(0);
+  await page.goto('/offres');
   const track = page.locator('main:visible .premium-offer-grid.is-carousel');
   await expect(track.locator('.premium-offer-card')).toHaveCount(4);
   await expect(track.locator('.premium-offer-photo img')).toHaveCount(4);

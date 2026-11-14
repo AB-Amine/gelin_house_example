@@ -15,14 +15,13 @@ export function FatuPhoto({
   id,
   className = '',
   priority = false,
-  caption = true,
 }: {
   id: string;
   className?: string;
   priority?: boolean;
   caption?: boolean;
 }) {
-  const { locale, t } = useI18n();
+  const { locale } = useI18n();
   const item = (imageManifest as Asset[]).find((a) => a.id === id);
   if (!item) return null;
   return (
@@ -45,7 +44,6 @@ export function FatuPhoto({
           fetchPriority={priority ? 'high' : undefined}
         />
       </picture>
-      {caption && <figcaption>{t('premium.inspiration')}</figcaption>}
     </figure>
   );
 }

@@ -21,8 +21,10 @@ export function OfferCards({
 }) {
   const { catalog, t, money, locale, dir } = useWebsiteCopy(initial);
   const track = useRef<HTMLDivElement>(null);
-  const published = catalog.promotions.filter((p) => p.active);
-  const carousel = published.length > 3;
+  const published = catalog.promotions.filter(
+    (p) => p.active && Date.parse(p.ends_at) > (catalog.as_of ?? 0),
+  );
+  const carousel = !compact && published.length > 3;
   const offers = carousel ? published : published.slice(0, limit);
   const move = (direction: number) => {
     const node = track.current;
@@ -110,7 +112,7 @@ export function OfferCards({
           const path = photo?.image_path || galleryPhoto?.path;
           return (
             <article
-              className={`premium-offer-card${upcoming ? ' is-upcoming' : ''}${compact ? ' is-compact' : ''}`}
+              className={`premium-offer-card${upcoming ? ' is-upcoming' : ''}${compact ? ' is-compact homepage-offer' : ''}`}
               key={offer.id}
             >
               <div className="premium-offer-photo">
@@ -143,33 +145,57 @@ export function OfferCards({
                 {offer.description && <p>{offer.description}</p>}
               </div>
               <div className="premium-offer-detail">
-                <div className="premium-offer-dates">
-                  <div>
-                    <span>{t('offers.starts')}</span>
+                {compact ? (
+                  <div className="homepage-offer-validity">
                     <time dateTime={offer.starts_at}>
                       {date(
                         offer.starts_on
                           ? `${offer.starts_on}T12:00:00Z`
                           : offer.starts_at,
                       )}
+                      {offer.starts_time && ` · ${offer.starts_time}`}
                     </time>
-                    {offer.starts_time && <small>{offer.starts_time}</small>}
-                  </div>
-                  <div>
-                    <span>{t('offers.ends')}</span>
+                    <span aria-hidden>—</span>
                     <time dateTime={offer.ends_at}>
                       {date(
                         offer.ends_on
                           ? `${offer.ends_on}T12:00:00Z`
                           : offer.ends_at,
                       )}
+                      {offer.ends_time && ` · ${offer.ends_time}`}
                     </time>
-                    {offer.ends_time && <small>{offer.ends_time}</small>}
                   </div>
-                </div>
-                {upcoming && !compact && (
+                ) : (
+                  <div className="premium-offer-dates">
+                    <div>
+                      <span>{t('offers.starts')}</span>
+                      <time dateTime={offer.starts_at}>
+                        {date(
+                          offer.starts_on
+                            ? `${offer.starts_on}T12:00:00Z`
+                            : offer.starts_at,
+                        )}
+                      </time>
+                      {offer.starts_time && <small>{offer.starts_time}</small>}
+                    </div>
+                    <div>
+                      <span>{t('offers.ends')}</span>
+                      <time dateTime={offer.ends_at}>
+                        {date(
+                          offer.ends_on
+                            ? `${offer.ends_on}T12:00:00Z`
+                            : offer.ends_at,
+                        )}
+                      </time>
+                      {offer.ends_time && <small>{offer.ends_time}</small>}
+                    </div>
+                  </div>
+                )}
+                {upcoming && (
                   <p className="premium-offer-note">
-                    {t('offers.upcomingNote')}
+                    {t(
+                      compact ? 'offers.upcomingShort' : 'offers.upcomingNote',
+                    )}
                   </p>
                 )}
                 {services.length > 0 && !compact && (
@@ -187,12 +213,12 @@ export function OfferCards({
                   <p className="premium-offer-terms">{offer.terms}</p>
                 )}
                 <Link
-                  className="fatu-text-link"
+                  className={compact ? 'fatu-button' : 'fatu-text-link'}
                   href={compact ? '/offres' : '/services'}
                 >
                   {t(
                     compact
-                      ? 'offers.view'
+                      ? 'offers.discover'
                       : upcoming
                         ? 'offers.exploreServices'
                         : 'premium.chooseServices',

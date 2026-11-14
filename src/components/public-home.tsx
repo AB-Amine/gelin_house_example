@@ -1,14 +1,14 @@
-'use client';
+﻿'use client';
 import Link from 'next/link';
 import Image from 'next/image';
 import { salonImage } from '@/lib/assets';
 import type { Catalog } from '@/lib/domain';
 import { useWebsiteCopy } from './website-copy';
-import { FatuPhoto } from './fatu-photo';
 import { PremiumPhoto, categoryPhoto } from './premium-photo';
-import { ServiceCard } from './catalog';
 import { OfferCards } from './fatu-offers';
 import { SalonTestimonials } from './salon-testimonials';
+import { BeautyIcon } from './beauty-icon';
+import { FloralMotif } from './floral-motif';
 import styles from './public-home.module.css';
 
 export function HomeExperience({
@@ -17,69 +17,88 @@ export function HomeExperience({
   initialCatalog: Catalog;
 }) {
   const { t, catalog } = useWebsiteCopy(initialCatalog);
-  const featured = catalog.services
-    .filter((s) => s.featured && s.published && !s.archived)
-    .slice(0, 3);
-  const gallery = catalog.gallery.slice(0, 3);
-  const categoryCards = ['esthetique', 'coiffure', 'makeup', 'location']
+  const categories = ['esthetique', 'coiffure', 'makeup', 'location']
     .map((slug) =>
       catalog.categories.find((category) => category.slug === slug),
     )
     .filter((category) => category !== undefined);
+  const gallery = catalog.gallery.slice(0, 6);
+  const detail = catalog.gallery.find((photo) =>
+    /ongl|nail|manuc/i.test(`${photo.album} ${photo.alt}`),
+  );
   return (
-    <>
-      <section className={`premium-hero fatu-container ${styles.hero}`}>
-        <div className="premium-hero-copy">
-          <span className="fatu-eyebrow">
-            {catalog.settings?.name || 'GELIN HOUSE'} /{' '}
-            {t('premium.beautyHouse')}
-          </span>
-          <h1>{catalog.settings?.hero_title || t('premium.heroTitle')}</h1>
-          <p>{catalog.settings?.hero_subtitle || t('premium.heroBody')}</p>
-          <div className="fatu-actions">
-            <Link className="fatu-button" href="/reservation">
-              {t('nav.booking')} <span aria-hidden>↗</span>
-            </Link>
-            <Link className="fatu-text-link" href="/services">
-              {t('premium.explore')} ↗
-            </Link>
+    <div className={styles.home}>
+      <div className={styles.firstScreen} data-home-first-screen>
+        <FloralMotif className={styles.heroFlowers} />
+        <section className={styles.hero}>
+          <div className={styles.copy}>
+            <span className="fatu-eyebrow">
+              {catalog.settings?.name || 'GELIN HOUSE'} ·{' '}
+              {t('redesign.location')}
+            </span>
+            <h1>{catalog.settings?.hero_title || t('premium.heroTitle')}</h1>
+            <span className={styles.flourish} aria-hidden>
+              <BeautyIcon name="heart" />
+            </span>
+            <p>{catalog.settings?.hero_subtitle || t('premium.heroBody')}</p>
+            <div className="fatu-actions">
+              <Link className="fatu-button" href="/services">
+                {t('premium.chooseServices')} <span aria-hidden>›</span>
+              </Link>
+              <Link className="fatu-button fatu-button-outline" href="/offres">
+                {t('redesign.seeOffers')}
+              </Link>
+            </div>
           </div>
-          <small>{t('premium.simpleBooking')}</small>
-        </div>
-        <div className="premium-hero-visual">
-          {catalog.settings?.hero_image_path ? (
-            <figure className="fatu-photo">
-              <Image
-                src={salonImage(catalog.settings.hero_image_path)}
-                alt={catalog.settings.hero_title || catalog.settings.name}
-                width={1400}
-                height={1800}
-                loading="eager"
-                fetchPriority="high"
-                unoptimized
-              />
-            </figure>
-          ) : (
-            <FatuPhoto id="editorial-beauty" priority />
-          )}
-          <div className="premium-hero-tag">
-            <span>{catalog.settings?.name || 'GELIN HOUSE'}</span>
-            <strong>{t('premium.heroTag')}</strong>
-            <Link href="/services">{t('nav.services')} ↗</Link>
+          <div className={`premium-hero-visual ${styles.visual}`}>
+            {catalog.settings?.hero_image_path ? (
+              <figure className="premium-photo">
+                <Image
+                  src={salonImage(catalog.settings.hero_image_path)}
+                  alt={catalog.settings.hero_title || catalog.settings.name}
+                  width={1400}
+                  height={930}
+                  sizes="(max-width: 700px) 100vw, 55vw"
+                  loading="eager"
+                  fetchPriority="high"
+                  unoptimized
+                />
+              </figure>
+            ) : (
+              <PremiumPhoto id="makeup-session" priority />
+            )}
           </div>
-        </div>
-      </section>
-      <section className="fatu-container premium-section">
-        <div className="premium-section-head">
-          <div>
-            <span className="fatu-eyebrow">01 / {t('nav.services')}</span>
-            <h2>{t('premium.universes')}</h2>
-          </div>
+        </section>
+        <section className={styles.booking} aria-label={t('redesign.steps')}>
+          <ol>
+            {(['choose', 'date', 'confirm'] as const).map((step, index) => (
+              <li key={step}>
+                <BeautyIcon
+                  name={(['lotus', 'calendar', 'check'] as const)[index]}
+                />
+                <span>
+                  {index + 1}. {t(`redesign.step.${step}`)}
+                </span>
+              </li>
+            ))}
+          </ol>
+          <p>{t('redesign.confirmation')}</p>
+        </section>
+      </div>
+      <section
+        className={`fatu-container premium-section ${styles.categories}`}
+        data-home-section="services"
+        aria-label={t('nav.services')}
+      >
+        <FloralMotif className={styles.sectionFlowers} />
+        <div className={styles.sectionHead}>
+          <span className="fatu-eyebrow">{t('reference.universes')}</span>
+          <h2>{t('premium.universes')}</h2>
           <p>{t('premium.universesBody')}</p>
         </div>
         <div className="premium-categories">
-          {(categoryCards.length
-            ? categoryCards
+          {(categories.length
+            ? categories
             : catalog.categories.slice(0, 4)
           ).map((category) => (
             <Link
@@ -93,161 +112,184 @@ export function HomeExperience({
                     src={salonImage(category.image_path)}
                     alt={category.name}
                     width={720}
-                    height={900}
+                    height={480}
+                    sizes="(max-width: 700px) 45vw, 24vw"
                     unoptimized
                   />
                 </figure>
               ) : (
-                <PremiumPhoto id={categoryPhoto(category.slug)} />
+                <PremiumPhoto
+                  id={
+                    category.slug === 'esthetique'
+                      ? 'ritual-care'
+                      : category.slug === 'coiffure'
+                        ? 'bridal-hair'
+                        : category.slug === 'makeup'
+                          ? 'rose-makeup'
+                          : category.slug === 'location'
+                            ? 'occasion-caftan'
+                            : categoryPhoto(category.slug)
+                  }
+                />
               )}
               <div>
+                <BeautyIcon
+                  name={
+                    category.slug === 'coiffure'
+                      ? 'scissors'
+                      : category.slug === 'location'
+                        ? 'hanger'
+                        : category.slug === 'makeup'
+                          ? 'sparkle'
+                          : 'lotus'
+                  }
+                />
                 <h3>{category.name}</h3>
-                <span aria-hidden>↗</span>
+                <span aria-hidden>›</span>
               </div>
-              {category.description && <p>{category.description}</p>}
             </Link>
           ))}
         </div>
+        <div className={styles.explore}>
+          <span aria-hidden>✦</span>
+          <Link className="fatu-button" href="/services">
+            {t('premium.explore')} <span aria-hidden>›</span>
+          </Link>
+          <span aria-hidden>✦</span>
+        </div>
       </section>
-      <section className="premium-offers-band">
+      <section
+        className={`premium-offers-band ${styles.offers}`}
+        data-home-section="offers"
+      >
+        <FloralMotif className={styles.offerFlowers} />
         <div className="fatu-container premium-section">
-          <div className="premium-section-head">
-            <div>
-              <span className="fatu-eyebrow">02 / {t('nav.offers')}</span>
-              <h2>{t('premium.offersTitle')}</h2>
-            </div>
-            <Link className="fatu-text-link" href="/offres">
-              {t('premium.allOffers')} ↗
-            </Link>
-          </div>
-          <OfferCards catalog={catalog} limit={3} compact />
-        </div>
-      </section>
-      {featured.length > 0 && (
-        <section className="fatu-container premium-section">
-          <div className="premium-section-head">
-            <h2>{t('home.services.title')}</h2>
-            <Link className="fatu-text-link" href="/services">
-              {t('nav.services')} ↗
-            </Link>
-          </div>
-          <div className="service-grid">
-            {featured.map((service) => (
-              <ServiceCard
-                key={service.id}
-                service={service}
-                catalog={catalog}
-              />
-            ))}
-          </div>
-        </section>
-      )}
-      <section className="fatu-container premium-section premium-introduction">
-        <div className="premium-intro-photos">
-          <PremiumPhoto id="interior" />
-          <PremiumPhoto id="facial" />
-        </div>
-        <div>
-          <span className="fatu-eyebrow">
-            {catalog.settings?.name || 'GELIN HOUSE'}
+          <span className={`fatu-eyebrow ${styles.offerEyebrow}`}>
+            {t('nav.offers')}
           </span>
-          <h2>{t('premium.aboutTitle')}</h2>
-          <p>{catalog.settings?.about || t('premium.aboutBody')}</p>
-          <Link className="fatu-text-link" href="/a-propos">
-            {t('home.about.more')} ↗
+          <div className={styles.heading}>
+            <span aria-hidden>✦</span>
+            <h2>{t('premium.offersTitle')}</h2>
+            <span aria-hidden>✦</span>
+          </div>
+          <OfferCards catalog={catalog} limit={2} compact />
+          <Link className={`fatu-text-link ${styles.more}`} href="/offres">
+            {t('premium.allOffers')} <span aria-hidden>›</span>
           </Link>
         </div>
       </section>
-      <section className="fatu-container premium-section">
-        <div className="premium-section-head">
-          <div>
-            <span className="fatu-eyebrow">03 / {t('nav.portfolio')}</span>
-            <h2>{t('premium.portfolioTitle')}</h2>
-          </div>
-          <Link className="fatu-text-link" href="/portfolio">
-            {t('hero.portfolio')} ↗
+      <section
+        className={`fatu-container premium-section ${styles.universe}`}
+        data-home-section="gallery"
+      >
+        <div className={styles.universeTitle}>
+          <h2>
+            {t('aboutPage.universe')} <BeautyIcon name="heart" />
+          </h2>
+          <p>
+            {t(gallery.length ? 'home.galleryIntro' : 'premium.inspiration')}
+          </p>
+          <Link className="fatu-button fatu-button-outline" href="/portfolio">
+            {t('redesign.gallery')} <span aria-hidden>›</span>
           </Link>
         </div>
-        {gallery.length ? (
-          <div className="premium-gallery-preview">
-            {gallery.map((photo) => (
-              <Link href="/portfolio" key={photo.id}>
-                <Image
-                  src={salonImage(photo.path)}
-                  alt={photo.alt}
-                  width={720}
-                  height={800}
-                  unoptimized
-                />
-                <span>{photo.title || photo.alt} ↗</span>
-              </Link>
-            ))}
-          </div>
-        ) : (
-          <div className="premium-gallery-empty">
-            <p>{t('premium.portfolioEmpty')}</p>
-            {catalog.settings?.instagram && (
-              <a
-                className="fatu-text-link"
-                href={catalog.settings.instagram}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Instagram ↗
-              </a>
+        <div className={styles.strip}>
+          {gallery.length
+            ? gallery.map((photo) => (
+                <Link href="/portfolio" key={photo.id}>
+                  <Image
+                    src={salonImage(photo.path)}
+                    alt={photo.alt}
+                    width={1000}
+                    height={700}
+                    sizes="(max-width: 700px) 90vw, (max-width: 1000px) 45vw, 48vw"
+                    unoptimized
+                  />
+                </Link>
+              ))
+            : (
+                [
+                  'interior',
+                  'nails',
+                  'makeup-session',
+                  'rose-makeup',
+                  'occasion-caftan',
+                  'ritual-care',
+                ] as const
+              ).map((id) => <PremiumPhoto id={id} key={id} />)}
+        </div>
+        <div className={styles.gallerySignature}>
+          <span aria-hidden>✦</span>
+          <span>
+            {t(
+              gallery.length
+                ? 'reference.gallerySignature'
+                : 'premium.inspiration',
+            )}
+          </span>
+          <span aria-hidden>✦</span>
+        </div>
+      </section>
+      <section
+        className={`premium-section ${styles.about}`}
+        data-home-section="about"
+      >
+        <FloralMotif className={styles.aboutFlowers} />
+        <div className={`fatu-container ${styles.aboutInner}`}>
+          <div className={styles.aboutPhoto}>
+            {detail ? (
+              <Image
+                src={salonImage(detail.path)}
+                alt={detail.alt}
+                width={900}
+                height={1000}
+                sizes="(max-width: 700px) 90vw, 45vw"
+                unoptimized
+              />
+            ) : (
+              <PremiumPhoto id="nails" />
             )}
           </div>
-        )}
-      </section>
-      <section className="premium-values-band">
-        <div className="fatu-container premium-section">
-          {catalog.reviews?.length ? (
-            <>
-              <div className="premium-section-head">
-                <h2>{t('home.reviews.title')}</h2>
-                <span className="fatu-eyebrow">{t('premium.realReviews')}</span>
-              </div>
-              <div className="fatu-review-grid">
-                {catalog.reviews.slice(0, 3).map((review) => (
-                  <figure key={review.id}>
-                    <blockquote>« {review.body} »</blockquote>
-                    <figcaption>
-                      {review.name}
-                      {review.rating !== null && (
-                        <span> · {review.rating}/5</span>
-                      )}
-                    </figcaption>
-                  </figure>
-                ))}
-              </div>
-            </>
-          ) : (
-            <>
-              <h2>{t('premium.valuesTitle')}</h2>
-              <div className="premium-values">
-                {['choice', 'clarity', 'contact'].map((key, index) => (
-                  <article key={key}>
-                    <span>0{index + 1}</span>
-                    <h3>{t(`premium.value.${key}`)}</h3>
-                    <p>{t(`premium.value.${key}Body`)}</p>
-                  </article>
-                ))}
-              </div>
-            </>
-          )}
+          <div className={styles.aboutCopy}>
+            <span className="fatu-eyebrow">{t('premium.beautyHouse')}</span>
+            <h2>{t('premium.aboutTitle')}</h2>
+            <p>{catalog.settings?.about || t('premium.aboutBody')}</p>
+            <div className={styles.values}>
+              {(['lotus', 'sparkle', 'heart'] as const).map((icon, index) => (
+                <div key={icon}>
+                  <BeautyIcon name={icon} />
+                  <span>{t(`reference.value.${index}`)}</span>
+                </div>
+              ))}
+            </div>
+            <Link className="fatu-button" href="/a-propos">
+              {t('home.about.more')} <span aria-hidden>›</span>
+            </Link>
+          </div>
         </div>
       </section>
-      {!catalog.reviews?.length && <SalonTestimonials catalog={catalog} />}
-      <section className="fatu-container premium-section premium-final-cta">
-        <div>
+      {!!catalog.reviews?.length && (
+        <div className={styles.reviews}>
+          <FloralMotif className={styles.sectionFlowers} />
+          <SalonTestimonials catalog={catalog} />
+        </div>
+      )}
+      <section className={`premium-section premium-final-cta ${styles.final}`}>
+        <FloralMotif className={styles.finalFlowers} />
+        <div className={styles.finalCopy}>
+          <BeautyIcon name="lotus" />
           <span className="fatu-eyebrow">{t('premium.yourMoment')}</span>
           <h2>{t('premium.ctaTitle')}</h2>
-          <p>{t('premium.simpleBooking')}</p>
+          <p>{t('reference.finalBody')}</p>
+          <Link className="fatu-button" href="/reservation">
+            <BeautyIcon name="calendar" />
+            {t('nav.booking')}
+          </Link>
         </div>
-        <Link className="fatu-button" href="/reservation">
-          {t('nav.booking')} ↗
-        </Link>
+        <div className={styles.finalPhoto}>
+          <PremiumPhoto id="makeup-session" />
+        </div>
       </section>
-    </>
+    </div>
   );
 }

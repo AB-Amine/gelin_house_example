@@ -9,6 +9,77 @@ test('public design shows database categories, active offers and licensed photos
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');
   await expect(page.locator('.premium-categories > a')).toHaveCount(4);
+  await expect(
+    page.getByRole('heading', {
+      name: 'Les attentions du moment',
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(page.locator('.salon-testimonials')).toHaveCount(0);
+  const servicesBounds = await page
+    .locator('[data-home-section="services"]')
+    .boundingBox();
+  const galleryBounds = await page
+    .locator('[data-home-section="gallery"]')
+    .boundingBox();
+  const aboutBounds = await page
+    .locator('[data-home-section="about"] .fatu-container')
+    .boundingBox();
+  expect(servicesBounds).not.toBeNull();
+  expect(galleryBounds).not.toBeNull();
+  expect(aboutBounds).not.toBeNull();
+  expect(Math.abs(servicesBounds!.x - galleryBounds!.x)).toBeLessThanOrEqual(1);
+  expect(
+    Math.abs(servicesBounds!.width - aboutBounds!.width),
+  ).toBeLessThanOrEqual(1);
+  if (info.project.name === 'desktop') {
+    for (const height of [720, 900, 1000]) {
+      await page.setViewportSize({ width: 1440, height });
+      await expect
+        .poll(async () =>
+          page.locator('[data-home-section="services"]').evaluate((node) => {
+            const band = node.parentElement?.querySelector(
+              '[data-home-first-screen] > section:last-child',
+            );
+            return (
+              !!band &&
+              node.getBoundingClientRect().top >= innerHeight - 1 &&
+              Math.abs(band.getBoundingClientRect().bottom - innerHeight) <= 2
+            );
+          }),
+        )
+        .toBe(true);
+      const strip = page.getByRole('region', {
+        name: 'Votre demande de rendez-vous',
+      });
+      await expect
+        .poll(async () =>
+          strip.evaluate(
+            (node) => Math.abs(node.getBoundingClientRect().bottom - innerHeight) <= 2,
+          ),
+        )
+        .toBe(true);
+    }
+    await expect(
+      page.locator('.premium-categories .premium-photo').first(),
+    ).toHaveCSS('aspect-ratio', '3 / 4');
+    expect(
+      await page.locator('main:visible h1').evaluate((node) => {
+        const range = document.createRange();
+        range.selectNodeContents(node);
+        return new Set(
+          [...range.getClientRects()].map((rect) => Math.round(rect.top)),
+        ).size;
+      }),
+    ).toBe(2);
+    const buttons = await page
+      .locator('main:visible [data-home-first-screen] .fatu-actions a')
+      .evaluateAll((nodes) =>
+        nodes.map((node) => node.getBoundingClientRect().top),
+      );
+    expect(Math.abs(buttons[0] - buttons[1])).toBeLessThanOrEqual(1);
+  }
+  await expect(page.locator('[data-home-section]')).toHaveCount(4);
   const activeOffer = page
     .locator('.premium-offer-card')
     .filter({ hasText: 'TEST offre active' });
@@ -17,17 +88,56 @@ test('public design shows database categories, active offers and licensed photos
     .filter({ hasText: 'TEST offre future' });
   await expect(activeOffer).toContainText('TEST offre active');
   await expect(activeOffer).toContainText('20 %');
-  await expect(upcomingOffer).toContainText('À venir');
-  await expect(upcomingOffer).toContainText('2098');
-  await expect(upcomingOffer.locator('time')).toHaveCount(2);
+  await expect(activeOffer.locator('.premium-offer-services')).toHaveCount(0);
+  await expect(
+    activeOffer.getByRole('link', { name: /Découvrir l’offre/ }),
+  ).toHaveAttribute('href', '/offres');
+  if (info.project.name === 'desktop') {
+    const cardBounds = await activeOffer.boundingBox();
+    const photoBounds = await activeOffer
+      .locator('.premium-offer-photo')
+      .boundingBox();
+    expect(cardBounds!.height).toBeLessThan(380);
+    expect(
+      Math.abs(photoBounds!.height - cardBounds!.height),
+    ).toBeLessThanOrEqual(3);
+    expect(photoBounds!.width / cardBounds!.width).toBeGreaterThan(0.4);
+    expect(photoBounds!.width / cardBounds!.width).toBeLessThan(0.46);
+  }
+  await expect(upcomingOffer).toHaveCount(0);
+  await expect(page.locator('.premium-offer-card')).toHaveCount(2);
+  await expect(
+    page.getByRole('region', { name: 'Votre demande de rendez-vous' }),
+  ).toContainText('Le salon vous confirme');
+  await expect(
+    page.getByText(
+      'Votre rendez-vous est confirmé uniquement après validation par le salon.',
+    ),
+  ).toBeVisible();
   await expect(page.getByText(/TEST offre (expirée|inactive)/)).toHaveCount(0);
   await page
     .locator('.premium-hero-visual img')
     .evaluate((img: HTMLImageElement) => img.decode());
-  await expect(page.locator('.premium-hero-visual figcaption')).toContainText(
-    'inspiration',
+  await expect(
+    page.locator('main .premium-photo figcaption, main .fatu-photo figcaption'),
+  ).toHaveCount(0);
+  await page.locator('.public-image-disclosure summary').click();
+  await expect(page.locator('.public-image-disclosure')).toContainText(
+    'images générées par IA',
   );
+  await page.locator('.public-image-disclosure summary').click();
+  await page.evaluate(() => window.scrollTo(0, 0));
   await expect(page.locator('main')).not.toContainText(/Fatu|FATU/);
+  await page
+    .locator('main img')
+    .evaluateAll(async (images: HTMLImageElement[]) => {
+      await Promise.all(
+        images.map(async (image) => {
+          image.loading = 'eager';
+          await image.decode();
+        }),
+      );
+    });
   await page.screenshot({
     path: info.outputPath('premium-home.png'),
     fullPage: true,
@@ -45,6 +155,9 @@ test('public design shows database categories, active offers and licensed photos
     .getByRole('link', { name: 'Offres', exact: true })
     .click();
   await expect(page).toHaveURL(/\/offres$/);
+  await expect(upcomingOffer).toContainText('À venir');
+  await expect(upcomingOffer).toContainText('2098');
+  await expect(upcomingOffer.locator('time')).toHaveCount(2);
   await expect(activeOffer).toContainText('TEST conditions');
   await expect(activeOffer.locator('.premium-offer-services')).toContainText(
     'TEST panier 1',

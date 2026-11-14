@@ -14,9 +14,13 @@ import type { Catalog } from '@/lib/domain';
 import { salonImage } from '@/lib/assets';
 import { BasketLink } from './basket';
 import { localizedCatalog } from '@/lib/localization';
+import { BeautyIcon } from './beauty-icon';
 export function FatuWordmark({ name }: { name?: string } = {}) {
   return (
     <Link className="fatu-wordmark" href="/" aria-label={name || 'GELIN HOUSE'}>
+      <i className="salon-brand-heart">
+        <BeautyIcon name="heart" />
+      </i>
       <span>{name || 'GELIN HOUSE'}</span>
       <small>MAISON DE BEAUTÉ</small>
     </Link>
@@ -35,6 +39,23 @@ export function FatuPublicFrame({
   const [open, setOpen] = useState(false);
   const path = usePathname();
   const main = useRef<HTMLElement>(null);
+  const header = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const node = header.current;
+    if (path !== '/' || !node) return;
+    const measure = () =>
+      node.parentElement?.style.setProperty(
+        '--public-header-height',
+        `${node.getBoundingClientRect().height}px`,
+      );
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(node);
+    return () => {
+      observer.disconnect();
+      node.parentElement?.style.removeProperty('--public-header-height');
+    };
+  }, [path]);
   useEffect(() => {
     if (
       window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
@@ -60,10 +81,10 @@ export function FatuPublicFrame({
   const settings = localizedCatalog(catalog, locale).settings;
   const links = [
     ['/', 'nav.home'],
-    ['/a-propos', 'nav.about'],
     ['/services', 'nav.services'],
     ['/offres', 'nav.offers'],
     ['/portfolio', 'nav.portfolio'],
+    ['/a-propos', 'nav.about'],
     ['/contact', 'nav.contact'],
   ];
   return (
@@ -73,7 +94,7 @@ export function FatuPublicFrame({
         { '--fatu-accent': settings?.brand_color ?? '#B89B72' } as CSSProperties
       }
     >
-      <header className="fatu-header">
+      <header ref={header} className="fatu-header">
         {settings?.logo_path ? (
           <Link href="/">
             <Image
@@ -119,7 +140,7 @@ export function FatuPublicFrame({
             {t('nav.client')}
           </Link>
           <Link className="fatu-button fatu-header-book" href="/reservation">
-            {t('nav.booking')} <span aria-hidden>↗</span>
+            <BeautyIcon name="calendar" /> {t('nav.booking')}
           </Link>
         </div>
       </header>
@@ -176,6 +197,13 @@ export function FatuPublicFrame({
           <Link href="/confidentialite">{t('footer.privacy')}</Link>
           <Link href="/admin/login">{t('nav.admin')}</Link>
         </div>
+        <details className="public-image-disclosure">
+          <summary>{t('images.disclosureTitle')}</summary>
+          <p>
+            {t('images.disclosureBody')}{' '}
+            <a href="/images/premium/CREDITS.md">{t('images.sources')}</a>
+          </p>
+        </details>
       </footer>
       <div className="fatu-floating-basket">
         <BasketLink />

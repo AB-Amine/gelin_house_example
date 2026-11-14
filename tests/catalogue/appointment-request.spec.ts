@@ -99,13 +99,22 @@ test('customers browse two services and send a request using only name and phone
     return route.fulfill({ json: { saved: true, status: 'pending' } });
   });
   await page.goto('/services');
-  for (const name of ['Gel naturel', 'Brushing simple'])
+  for (const name of ['Gel naturel', 'Brushing simple']) {
+    await page.getByRole('searchbox').fill(name);
     await page
       .locator('.official-service-card')
       .filter({ has: page.getByRole('heading', { name, exact: true }) })
       .getByRole('button')
       .click();
-  await page.locator('.basket-link:visible').click();
+  }
+  const summaryToggle = page
+    .locator('#catalogue-basket')
+    .getByRole('button', { name: /Mon rendez-vous/ });
+  if (await summaryToggle.isVisible()) await summaryToggle.click();
+  await page
+    .locator('#catalogue-basket')
+    .getByRole('link', { name: 'Choisir une date' })
+    .click();
   const form = page.getByRole('main').locator('.appointment-request-form');
   await expect(form.locator('.basket-row')).toHaveCount(2);
   await form

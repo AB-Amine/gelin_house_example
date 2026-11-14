@@ -4,12 +4,15 @@ import type { Catalog } from '@/lib/domain';
 import { salonImage } from '@/lib/assets';
 import Image from 'next/image';
 import { Placeholder } from '@/components/site-shell';
+import { publicGallery } from '@/lib/public-gallery';
+import { useI18n } from './locale-provider';
 export function GalleryExperience({
   initialCatalog,
 }: {
   initialCatalog: Catalog;
 }) {
   const catalog = useLocalCatalog(initialCatalog);
+  const { locale } = useI18n();
   return (
     <div className="container">
       <header className="page-heading">
@@ -23,7 +26,7 @@ export function GalleryExperience({
       </header>
       {catalog.gallery.length ? (
         <div className="gallery-grid">
-          {catalog.gallery.map((g) => (
+          {publicGallery(catalog.gallery, locale).map((g) => (
             <figure key={g.id}>
               <Image
                 src={salonImage(g.path)}

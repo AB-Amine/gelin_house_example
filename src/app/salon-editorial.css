@@ -552,3 +552,570 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* GELIN HOUSE: shared public design tokens. Scoped to keep the admin and client areas independent. */
+.fatu-public {
+  --salon-cream: #fff8f2;
+  --salon-paper: #fffdfa;
+  --salon-blush: #f9e1e2;
+  --salon-raspberry: #ce0050;
+  --salon-chocolate: #32170f;
+  --salon-gold: #bf8b35;
+  --salon-line: #eed4ce;
+  --premium-paper: var(--salon-paper);
+  --premium-border: var(--salon-line);
+  --fatu-ivory: var(--salon-cream);
+  --fatu-espresso: var(--salon-chocolate);
+  --fatu-line: var(--salon-line);
+  --ivory: var(--salon-cream);
+  --paper: var(--salon-paper);
+  --ink: var(--salon-chocolate);
+  --rose: var(--salon-raspberry);
+  --line: var(--salon-line);
+  --sand: var(--salon-blush);
+  --muted: #795d55;
+  background: var(--salon-cream);
+  color: var(--salon-chocolate);
+}
+.fatu-public :is(h1, h2, h3) {
+  color: var(--salon-chocolate);
+}
+.fatu-public p {
+  color: #795d55;
+}
+.fatu-public .fatu-eyebrow,
+.fatu-public .eyebrow {
+  color: #9a3155;
+}
+.fatu-public :is(a, button, input, select, textarea):focus-visible {
+  outline-color: var(--salon-raspberry);
+}
+.fatu-public .fatu-header {
+  background: var(--salon-cream);
+  backdrop-filter: none;
+  border-color: var(--salon-line);
+  gap: 24px;
+  min-height: 104px;
+  padding-block: 12px;
+  flex-wrap: wrap;
+}
+.fatu-public .fatu-wordmark > span {
+  font-size: 30px;
+  letter-spacing: -0.035em;
+  line-height: 1;
+}
+.fatu-public .fatu-wordmark > small {
+  letter-spacing: 0.23em;
+  font-size: 8px;
+  margin-top: 5px;
+}
+.fatu-public .salon-brand-heart {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: #a80a3d;
+  margin-bottom: 3px;
+}
+.fatu-public .salon-brand-heart::before,
+.fatu-public .salon-brand-heart::after {
+  content: '';
+  width: 38px;
+  height: 1px;
+  background: var(--salon-gold);
+}
+.fatu-public .salon-brand-heart svg {
+  height: 19px;
+  width: 19px;
+}
+.fatu-public .fatu-header nav {
+  gap: 25px;
+}
+.fatu-public .fatu-header nav a {
+  font:
+    18px/1.5 Georgia,
+    serif;
+  color: var(--salon-chocolate);
+}
+.fatu-public .fatu-header nav a[aria-current='page']::after {
+  height: 2px;
+  background: var(--salon-raspberry);
+}
+.fatu-public .fatu-header nav a:hover {
+  color: var(--salon-raspberry);
+}
+.fatu-public .fatu-header-actions {
+  column-gap: 14px;
+}
+.fatu-public :is(.fatu-button, .button) {
+  border-radius: 40px;
+  background: var(--salon-raspberry);
+  border-color: var(--salon-raspberry);
+  color: #fff;
+  letter-spacing: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+.fatu-public :is(.fatu-button, .button):hover {
+  background: #ad0043;
+  border-color: #ad0043;
+  box-shadow: 0 5px 15px #ce00501a;
+}
+.fatu-public :is(.fatu-button-outline, .button.secondary) {
+  border-color: #c69456;
+  background: transparent;
+  color: var(--salon-chocolate);
+}
+.fatu-public :is(.fatu-button-outline, .button.secondary):hover {
+  background: #f9e1e2;
+  border-color: var(--salon-raspberry);
+}
+.fatu-public .fatu-header-book {
+  font:
+    600 17px/1.3 Georgia,
+    serif;
+  white-space: nowrap;
+  gap: 10px;
+}
+.fatu-public .fatu-header-book svg {
+  width: 21px;
+  height: 21px;
+}
+.fatu-public .fatu-text-link {
+  color: #9d1747;
+}
+.fatu-public .fatu-menu {
+  border-radius: 24px;
+  border-color: var(--salon-line);
+  color: var(--salon-chocolate);
+}
+.fatu-public .fatu-page-heading {
+  position: relative;
+  padding-block: 45px 30px;
+}
+.fatu-public .fatu-page-heading h1 {
+  font-weight: 500;
+}
+.fatu-public .fatu-page-heading::after {
+  content: '♡';
+  position: absolute;
+  right: 4%;
+  top: 28px;
+  color: var(--salon-raspberry);
+  font:
+    65px/1 Georgia,
+    serif;
+  transform: rotate(14deg);
+}
+.fatu-public .premium-section-head h2 {
+  font-weight: 500;
+}
+.fatu-public .premium-offers-band {
+  background: var(--salon-cream);
+  border: 0;
+}
+.fatu-public .premium-offer-card {
+  border-color: var(--salon-line);
+  box-shadow: none;
+  background: #fff0eb;
+  border-radius: 20px;
+}
+.fatu-public .premium-offer-card.is-upcoming {
+  background: #fff8f2;
+  border-color: #e4c28d;
+}
+.fatu-public .premium-offer-card .premium-offer-value {
+  color: var(--salon-raspberry);
+}
+.fatu-public .premium-offer-grid:has(.is-compact) {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.fatu-public .premium-offer-card.is-compact {
+  display: grid;
+  grid-template-columns: 42% 1fr;
+  gap: 8px 22px;
+  padding: 0 22px 0 0;
+  align-items: start;
+}
+.fatu-public .premium-offer-card.is-compact .premium-offer-photo {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  height: 100%;
+  min-height: 260px;
+  margin: 0;
+  border-radius: 18px 0 0 18px;
+}
+.fatu-public .premium-offer-card.is-compact .premium-offer-photo figure {
+  border-radius: 0;
+}
+.fatu-public .premium-offer-card.is-compact .premium-offer-heading {
+  grid-column: 2;
+  grid-row: 1;
+  padding-top: 20px;
+}
+.fatu-public .premium-offer-card.is-compact .premium-offer-detail {
+  grid-column: 2;
+  grid-row: 2;
+  padding-bottom: 18px;
+}
+.fatu-public .premium-offer-card.is-compact .premium-offer-status {
+  font-size: 10px;
+  margin-bottom: 5px;
+}
+.fatu-public .premium-offer-card.is-compact .premium-offer-value {
+  font-size: 30px;
+}
+.fatu-public .premium-offer-card.is-compact h3 {
+  font-size: 25px;
+  margin-top: 8px;
+}
+.fatu-public .premium-offer-card.is-compact .premium-offer-dates {
+  padding-block: 8px;
+  margin-top: 0;
+  border-color: #edc8c7;
+}
+.fatu-public .premium-offer-card.is-compact .premium-offer-dates span {
+  font-size: 9px;
+  letter-spacing: 0;
+}
+.fatu-public .premium-offer-card.is-compact .premium-offer-dates time {
+  font-size: 12px;
+}
+.fatu-public .premium-offer-card.is-compact .premium-offer-detail > a {
+  padding: 9px 16px;
+  margin-top: 12px;
+  border-radius: 30px;
+  color: white;
+  background: var(--salon-raspberry);
+  text-decoration: none;
+}
+.fatu-public .premium-offer-card.is-compact:only-child {
+  grid-column: 1 / -1;
+  grid-template-columns: 36% 1fr;
+  max-width: 850px;
+  width: 100%;
+  margin: auto;
+}
+.fatu-public .premium-offer-card.is-compact:only-child .premium-offer-photo {
+  grid-row: 1 / span 2;
+  min-height: 260px;
+}
+.fatu-public .premium-offer-card.is-compact:only-child .premium-offer-detail {
+  grid-column: 2;
+  grid-row: 2;
+}
+.fatu-public .service-card {
+  background: var(--salon-paper);
+  border: 1px solid var(--salon-line);
+  border-radius: 16px;
+  box-shadow: none;
+}
+.fatu-public .service-card:hover {
+  border-color: #d29aa8;
+  box-shadow: 0 6px 20px #ce005008;
+}
+.fatu-public .service-card h3 {
+  color: var(--salon-chocolate);
+}
+.fatu-public .service-price small {
+  color: #b70045;
+  background: #ffe5ed;
+  padding: 3px 10px;
+  border-radius: 20px;
+  width: fit-content;
+  margin-top: 8px;
+}
+.fatu-public .official-catalogue-group > h4 {
+  color: #8d4b60;
+}
+.fatu-public .filter-tabs button {
+  border-radius: 30px;
+  border-color: var(--salon-line);
+  color: #6f3847;
+  background: var(--salon-paper);
+}
+.fatu-public .filter-tabs button[aria-pressed='true'] {
+  color: #fff;
+  background: var(--salon-raspberry);
+  border-color: var(--salon-raspberry);
+}
+.fatu-public .filter-tabs button:hover {
+  border-color: var(--salon-raspberry);
+}
+.fatu-public :is(input, select, textarea) {
+  border-radius: 10px;
+  border-color: #ddbdbe;
+  background: var(--salon-paper);
+  font-size: 16px;
+}
+.fatu-public input[type='checkbox'] {
+  accent-color: var(--salon-raspberry);
+}
+.fatu-public .appointment-request-form {
+  background: var(--salon-paper);
+  border-color: var(--salon-line);
+  border-radius: 20px;
+}
+.fatu-public .fatu-contact-grid aside {
+  background: var(--salon-blush);
+  border-color: var(--salon-line);
+  border-radius: 20px;
+}
+.fatu-public .fatu-contact-grid form {
+  background: var(--salon-paper);
+  border-color: var(--salon-line);
+  border-radius: 20px;
+}
+.fatu-public .salon-about-hero h1 em {
+  color: #a60e43;
+}
+.fatu-public .salon-about-hero .salon-about-subtitle {
+  color: #8f3e58;
+}
+.fatu-public .salon-about-photo-note {
+  background: var(--salon-blush);
+  color: #8f3e58;
+  border: 1px solid var(--salon-line);
+}
+.fatu-public .salon-about-philosophy,
+.fatu-public .salon-about-cta,
+.fatu-public .salon-portfolio-cta {
+  background: var(--salon-blush);
+  border-color: var(--salon-line);
+}
+.fatu-public .salon-philosophy-grid article {
+  border-color: #d59ba9;
+}
+.fatu-public .salon-philosophy-grid article > span {
+  color: var(--salon-raspberry);
+}
+.fatu-public .premium-category > div > span {
+  border-color: #e8c2cb;
+  color: var(--salon-raspberry);
+}
+.fatu-public .premium-photo {
+  background: #f4dcd4;
+}
+.fatu-public .salon-testimonials {
+  background: var(--salon-cream);
+}
+.fatu-public .salon-testimonials .fatu-review-grid figure {
+  border-color: var(--salon-line);
+  background: var(--salon-paper);
+  border-radius: 16px;
+}
+.fatu-public .salon-portfolio .fatu-image-button {
+  border-radius: 15px;
+}
+.fatu-public .fatu-footer {
+  background: #f7e1e1;
+  color: var(--salon-chocolate);
+  border-color: var(--salon-line);
+}
+.fatu-public .fatu-footer p,
+.fatu-public .fatu-footer a,
+.fatu-public .fatu-footer-bottom small {
+  color: #64414a;
+}
+.fatu-public .fatu-footer-top .fatu-button {
+  color: white;
+}
+.fatu-public .fatu-footer-bottom {
+  border-color: #e4bfc1;
+}
+.fatu-public .fatu-floating-basket .basket-link {
+  background: var(--salon-raspberry);
+  color: white;
+  border-color: var(--salon-raspberry);
+  border-radius: 30px;
+  box-shadow: 0 5px 22px #8d14332b;
+}
+@media (min-width: 1280px) {
+  .fatu-public .fatu-header {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+  }
+  .fatu-public .fatu-header-actions {
+    display: grid;
+    grid-template-columns: auto auto;
+    row-gap: 3px;
+  }
+  .fatu-public .fatu-header-actions .fatu-header-book {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+  .fatu-public .fatu-header-actions .fatu-account-link {
+    grid-column: 1;
+    font-size: 11px;
+  }
+  .fatu-public .fatu-header-actions .fatu-languages {
+    grid-column: 1;
+  }
+}
+@media (min-width: 701px) and (max-width: 1279px) {
+  .fatu-public .fatu-header nav {
+    gap: 18px;
+  }
+  .fatu-public .fatu-header nav a {
+    font-size: 16px;
+  }
+  .fatu-public .fatu-header {
+    gap: 16px;
+  }
+}
+@media (max-width: 1000px) {
+  .fatu-public .premium-offer-grid:has(.is-compact) {
+    grid-template-columns: 1fr;
+  }
+  .fatu-public .premium-offer-card.is-compact {
+    grid-template-columns: 35% 1fr;
+  }
+}
+@media (max-width: 700px) {
+  .fatu-public .fatu-container {
+    width: calc(100% - 36px);
+  }
+  .fatu-public .fatu-header {
+    padding: 12px 18px;
+    gap: 12px;
+    min-height: 88px;
+  }
+  .fatu-public .fatu-header .fatu-wordmark > span {
+    font-size: 25px;
+  }
+  .fatu-public .fatu-header .fatu-wordmark > small {
+    font-size: 7px;
+  }
+  .fatu-public .fatu-header nav.is-open {
+    background: var(--salon-cream);
+  }
+  .fatu-public .fatu-header nav a {
+    font-size: 18px;
+  }
+  .fatu-public .fatu-header-actions {
+    justify-content: space-between;
+    width: 100%;
+    gap: 10px;
+    padding-top: 9px;
+    border-top: 1px solid var(--salon-line);
+  }
+  .fatu-public .fatu-header-actions .fatu-header-book {
+    display: inline-flex;
+    padding: 10px 16px;
+    min-height: 42px;
+    font-size: 15px;
+  }
+  .fatu-public .fatu-header-actions .fatu-languages {
+    display: none;
+  }
+  .fatu-public .fatu-header-actions .fatu-account-link {
+    font-size: 12px;
+  }
+  .fatu-public .fatu-header {
+    position: relative;
+  }
+  .fatu-public .fatu-page-heading::after {
+    font-size: 43px;
+    top: 22px;
+  }
+  .fatu-public .fatu-page-heading h1 {
+    max-width: 92%;
+  }
+  .fatu-public .premium-offer-card.is-compact,
+  .fatu-public .premium-offer-card.is-compact:only-child {
+    padding: 0 16px 0 0;
+    gap: 8px 16px;
+    grid-template-columns: 34% 1fr;
+  }
+  .fatu-public .premium-offer-card.is-compact .premium-offer-photo {
+    min-height: 280px;
+  }
+  .fatu-public .premium-offer-card.is-compact h3 {
+    font-size: 23px;
+  }
+  .fatu-public .premium-offer-card.is-compact .premium-offer-detail > a {
+    padding-inline: 12px;
+    font-size: 12px;
+  }
+  .fatu-public .premium-offer-card.is-compact .premium-offer-dates {
+    gap: 8px;
+  }
+  .fatu-public .fatu-footer {
+    padding-bottom: 90px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fatu-public *,
+  .fatu-public *::before,
+  .fatu-public *::after {
+    scroll-behavior: auto !important;
+    animation: none !important;
+    transition: none !important;
+  }
+}
+.fatu-public .premium-offer-card.is-compact .premium-offer-services {
+  font-size: 12px;
+  margin-block: 8px;
+}
+.fatu-public .premium-offer-card.is-compact .premium-offer-terms {
+  font-size: 12px;
+  margin-top: 5px;
+  padding-top: 8px;
+}
+.fatu-public .fatu-header-actions .fatu-account-link {
+  display: inline-block;
+}
+.fatu-public .fatu-header-actions .fatu-header-book {
+  display: inline-flex;
+}
+.fatu-public .fatu-text-link {
+  border-bottom: 0;
+}
+.fatu-public .salon-about-cta {
+  color: var(--salon-chocolate);
+}
+.fatu-public .salon-about-cta p {
+  color: #795d55;
+}
+.fatu-public .salon-about-cta .fatu-eyebrow {
+  color: #9a3155;
+}
+.fatu-public .salon-about-cta .fatu-button {
+  background: var(--salon-raspberry);
+  color: #fff;
+  border-color: var(--salon-raspberry);
+}
+.fatu-public .salon-about-cta .fatu-button:hover {
+  background: #ad0043;
+  border-color: #ad0043;
+}
+.fatu-public .fatu-contact-grid .checkbox {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  align-items: flex-start;
+}
+.fatu-public .fatu-contact-grid .checkbox input {
+  flex-shrink: 0;
+}
+
+/* Source disclosures belong outside photographs, in the public footer. */
+.fatu-public .public-image-disclosure {
+  margin-top: 18px;
+  font-size: 12px;
+  color: inherit;
+}
+.fatu-public .public-image-disclosure summary {
+  cursor: pointer;
+  width: fit-content;
+  padding-block: 8px;
+}
+.fatu-public .public-image-disclosure p {
+  max-width: 880px;
+  font-size: 13px;
+  margin-block: 8px 0;
+  color: inherit;
+}
+.fatu-public .public-image-disclosure a {
+  text-decoration: underline;
+}

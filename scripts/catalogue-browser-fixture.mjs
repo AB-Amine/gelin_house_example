@@ -45,6 +45,11 @@ services.push(
     bookable: true,
   })),
 );
+// Public UI must never expose unpublished or archived records even in a malformed payload.
+services.push(
+  {...services[0], id: id(900), name: 'TEST non publié', slug: 'test-non-publie', published: false},
+  {...services[0], id: id(901), name: 'TEST archivé', slug: 'test-archive', archived: true},
+);
 const catalog = {
   settings: {
     name: 'TEST catalogue',
