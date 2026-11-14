@@ -760,24 +760,24 @@
   }
   .grid {
     grid-template-columns: minmax(0, 1fr);
-    gap: 14px;
+    gap: 12px;
   }
   .page .card {
-    grid-template-columns: 40px minmax(0, 1fr) auto;
-    padding: 18px 12px;
-    min-height: 116px;
-    gap: 10px;
+    grid-template-columns: 32px minmax(0, 1fr) auto;
+    padding: 14px 12px;
+    min-height: 104px;
+    gap: 8px;
   }
   .page .card h3 {
-    font-size: 19px;
+    font-size: 18px;
   }
   .symbol {
-    width: 40px;
-    height: 48px;
+    width: 32px;
+    height: 38px;
   }
   .symbol svg {
-    width: 28px;
-    height: 28px;
+    width: 24px;
+    height: 24px;
   }
   .cardCopy {
     padding-inline-start: 10px;
@@ -788,11 +788,57 @@
     font-size: 14px;
   }
   .price {
-    font-size: 16px;
+    font-size: 15.5px;
+  }
+  .promotion {
+    display: none;
   }
   .sectionTitle {
     margin-bottom: 20px;
     font-size: 29px;
+  }
+}
+@media (min-width: 390px) and (max-width: 700px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .page .card {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    min-height: 0;
+    padding: 12px;
+    gap: 8px;
+  }
+  .symbol {
+    width: 28px;
+    height: 28px;
+    align-self: start;
+  }
+  .symbol svg {
+    width: 21px;
+    height: 21px;
+  }
+  .cardCopy {
+    flex: 1;
+    padding: 0;
+    border: 0;
+  }
+  .page .card h3 {
+    font-size: 16.5px;
+    line-height: 1.3;
+    margin-bottom: 6px;
+  }
+  .price {
+    font-size: 15px;
+    line-height: 1.4;
+  }
+  .card .add {
+    width: 100%;
+    max-width: none;
+    min-height: 44px;
+    margin-top: auto;
+    align-self: stretch;
   }
 }
 @media (prefers-reduced-motion: reduce) {

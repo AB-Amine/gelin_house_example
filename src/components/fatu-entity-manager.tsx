@@ -10,6 +10,7 @@ import { newSlug, promotionState, toMinor, weekdays } from '@/lib/admin-ui';
 import { api, ApiError } from '@/lib/client';
 import { useI18n } from './locale-provider';
 import { CustomerPrivacy } from './customer-privacy';
+import { AdminIcon } from './admin-icon';
 type Row = Record<string, unknown>;
 type Hour = { weekday: number; opens: string; closes: string };
 export type OwnerRelations = { services: string[]; hours: Hour[] };
@@ -127,10 +128,11 @@ const advancedFields = [
   'max_uses',
   'temporary',
   'video_url',
+  'duration_minutes',
+  'featured',
 ];
 const infoFields = [
   'name',
-  'logo_path',
   'phone',
   'whatsapp',
   'email',
@@ -139,12 +141,8 @@ const infoFields = [
   'instagram',
   'about',
 ];
-const websiteFields = [
-  'hero_title',
-  'hero_subtitle',
-  'hero_image_path',
-  'brand_color',
-];
+const websiteFields = ['hero_title', 'hero_subtitle', 'brand_color'];
+const photoFields = ['hero_image_path', 'logo_path'];
 const policyFields = [
   'approved',
   'booking_enabled',
@@ -249,7 +247,11 @@ export function FatuEntityManager({
   );
   const [open, setOpen] = useState(settings || params.get('new') === '1');
   const [busy, setBusy] = useState(false);
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(params.get('q') ?? '');
+  const [categoryFilter, setCategoryFilter] = useState(
+    params.get('category') ?? '',
+  );
+  const [offerFilter, setOfferFilter] = useState('Toutes');
   const [message, setMessage] = useState('');
   const [affected, setAffected] = useState<{ reference: string }[]>([]);
   const [remove, setRemove] = useState<string | null>(null);
@@ -280,6 +282,12 @@ export function FatuEntityManager({
   }
   function update(key: string, value: unknown) {
     setValues((v) => ({ ...v, [key]: value }));
+  }
+  function searchServices(category = categoryFilter) {
+    if (!onSave && slug === 'services')
+      router.push(
+        `/admin/services?${new URLSearchParams({ q: query, category })}`,
+      );
   }
   function fail(error: unknown) {
     setMessage(
@@ -324,15 +332,24 @@ export function FatuEntityManager({
     setAffected([]);
     try {
       const settingsKeys = settings
-        ? view === 'website'
-          ? websiteFields
-          : view === 'policies'
-            ? policyFields
-            : view === 'advanced'
-              ? config.fields
-                  .map((f) => f.key)
-                  .filter((k) => ![...infoFields, ...websiteFields].includes(k))
-              : infoFields
+        ? view === 'photos'
+          ? photoFields
+          : view === 'website'
+            ? websiteFields
+            : view === 'policies'
+              ? policyFields
+              : view === 'advanced'
+                ? config.fields
+                    .map((f) => f.key)
+                    .filter(
+                      (k) =>
+                        ![
+                          ...infoFields,
+                          ...websiteFields,
+                          ...photoFields,
+                        ].includes(k),
+                    )
+                : infoFields
         : null;
       const payload = settingsKeys
         ? Object.fromEntries(
@@ -602,7 +619,7 @@ export function FatuEntityManager({
         </label>
       );
     return (
-      <label key={key}>
+      <label key={key} data-field={key}>
         {label}
         <input
           type={f.type}
@@ -656,18 +673,54 @@ export function FatuEntityManager({
       !(faq && f.key === 'key') &&
       !((employee || slug === 'equipment') && f.key === 'kind') &&
       (!settings ||
-        (view === 'website'
-          ? websiteFields.includes(f.key)
-          : view === 'policies'
-            ? policyFields.includes(f.key)
-            : view === 'advanced'
-              ? ![...infoFields, ...websiteFields].includes(f.key)
-              : infoFields.includes(f.key))),
+        (view === 'photos'
+          ? photoFields.includes(f.key)
+          : view === 'website'
+            ? websiteFields.includes(f.key)
+            : view === 'policies'
+              ? policyFields.includes(f.key)
+              : view === 'advanced'
+                ? ![...infoFields, ...websiteFields, ...photoFields].includes(
+                    f.key,
+                  )
+                : infoFields.includes(f.key))),
   );
-  const primary = visibleFields.filter((f) => !advancedFields.includes(f.key));
-  const advanced = visibleFields.filter((f) => advancedFields.includes(f.key));
+  const isAdvanced = (key: string) =>
+    advancedFields.includes(key) ||
+    (settings && key === 'map_url') ||
+    (slug === 'services' && ['description', 'image_path'].includes(key));
+  const primary = visibleFields.filter((f) => !isAdvanced(f.key));
+  const advanced = visibleFields.filter((f) => isAdvanced(f.key));
+  const offerStatus = (row: Row) =>
+    ({
+      Active: 'En cours',
+      Programmée: 'À venir',
+      Expirée: 'Terminée',
+      Épuisée: 'Épuisée',
+      Désactivée: 'Désactivée',
+    })[
+      promotionState(
+        row as { active: unknown; starts_at: unknown; ends_at: unknown },
+      )
+    ] ?? 'Désactivée';
+  const fold = (value: string) =>
+    value.normalize('NFD').replace(/\p{M}/gu, '').toLocaleLowerCase('fr');
+  const shownRows = (settings ? [] : rows).filter(
+    (row) =>
+      fold(
+        slug === 'services' ? String(row.name ?? '') : JSON.stringify(row),
+      ).includes(fold(query)) &&
+      (!categoryFilter || row.category_id === categoryFilter) &&
+      (!promotion ||
+        offerFilter === 'Toutes' ||
+        offerStatus(row) === offerFilter),
+  );
   return (
-    <>
+    <div
+      className="salon-entity-workspace"
+      data-entity={slug}
+      data-editing={open}
+    >
       {message && (
         <p className="notice" role="status">
           {message}
@@ -699,14 +752,52 @@ export function FatuEntityManager({
       )}
       {!settings && (
         <div className="admin-toolbar">
+          {slug === 'services' && (
+            <label>
+              Filtrer par catégorie
+              <select
+                value={categoryFilter}
+                onChange={(e) => {
+                  setCategoryFilter(e.target.value);
+                  searchServices(e.target.value);
+                }}
+              >
+                <option value="">Toutes les catégories</option>
+                {(refs.categories ?? []).map((c) => (
+                  <option key={String(c.id)} value={String(c.id)}>
+                    {String(c.name)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
           <label>
-            Rechercher sur cette page
+            {slug === 'services'
+              ? 'Rechercher une prestation'
+              : promotion
+                ? 'Rechercher une offre'
+                : 'Rechercher sur cette page'}
             <input
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && slug === 'services') {
+                  e.preventDefault();
+                  searchServices();
+                }
+              }}
             />
           </label>
+          {slug === 'services' && !onSave && (
+            <button
+              className="button secondary"
+              type="button"
+              onClick={() => searchServices()}
+            >
+              Rechercher
+            </button>
+          )}
           <button
             className="button"
             onClick={() => openForm(settings ? rows[0] : undefined)}
@@ -721,12 +812,68 @@ export function FatuEntityManager({
                     ? 'Ajouter une prestation'
                     : 'Ajouter'}
           </button>
+          {slug === 'services' && (
+            <Link
+              className="button secondary"
+              href={
+                onSave
+                  ? '/admin/preview?section=categories'
+                  : '/admin/categories'
+              }
+            >
+              Gérer les catégories
+            </Link>
+          )}
+        </div>
+      )}
+      {promotion && (
+        <div
+          className="salon-offer-filters"
+          role="group"
+          aria-label="Statut des offres"
+        >
+          {['Toutes', 'En cours', 'À venir', 'Terminée', 'Désactivée'].map(
+            (status) => (
+              <button
+                key={status}
+                type="button"
+                aria-pressed={offerFilter === status}
+                onClick={() => setOfferFilter(status)}
+              >
+                {status === 'Terminée'
+                  ? 'Terminées'
+                  : status === 'Désactivée'
+                    ? 'Désactivées'
+                    : status}
+              </button>
+            ),
+          )}
         </div>
       )}
       {open && (
         <form className="admin-form" onSubmit={save}>
           <h2>
-            {edit ? 'Modifier' : promotion ? 'Créer une offre' : 'Ajouter'}
+            {settings
+              ? view === 'photos'
+                ? 'Images de votre site'
+                : view === 'website'
+                  ? 'Textes de l’accueil'
+                  : view === 'policies'
+                    ? 'Conditions et réservation'
+                    : view === 'advanced'
+                      ? 'Réglages avancés'
+                      : 'Informations du salon'
+              : edit
+                ? slug === 'services'
+                  ? 'Modifier la prestation'
+                  : promotion
+                    ? 'Modifier l’offre'
+                    : 'Modifier'
+                : promotion
+                  ? 'Créer une offre'
+                  : slug === 'services'
+                    ? 'Ajouter une prestation'
+                    : 'Ajouter'}
           </h2>
           <fieldset disabled={busy}>
             <div className="form-grid">{primary.map(field)}</div>
@@ -874,223 +1021,285 @@ export function FatuEntityManager({
         </form>
       )}
       <div className="admin-record-grid">
-        {(settings ? [] : rows)
-          .filter((r) =>
-            JSON.stringify(r)
-              .toLocaleLowerCase('fr')
-              .includes(query.toLocaleLowerCase('fr')),
-          )
-          .map((row) => (
-            <article className="admin-record-card" key={String(row.id)}>
-              {config.table === 'gallery' && row.path && !onSave ? (
-                <Image
-                  className="salon-record-photo"
-                  unoptimized
-                  src={salonImage(String(row.path))}
-                  alt={String(row.alt ?? 'Photo du salon')}
-                  width={320}
-                  height={200}
-                />
-              ) : null}
-              <h3>
-                {String(
-                  row.name ??
-                    row.title ??
-                    (config.table === 'working_hours' ||
-                    config.table === 'city_hours'
-                      ? weekdays[Number(row.weekday)]
-                      : config.table === 'closures'
-                        ? row.reason
-                        : 'Fiche du salon'),
-                )}
-              </h3>
-              {promotion ? (
-                <>
-                  <span className="badge">
-                    {promotionState(
-                      row as {
-                        active: unknown;
-                        starts_at: unknown;
-                        ends_at: unknown;
-                      },
-                    )}
-                  </span>
-                  <p>
-                    {row.kind === 'percentage'
-                      ? `${row.value} %`
-                      : money(Number(row.value))}{' '}
-                    de réduction
-                  </p>
-                  <span className="badge">
-                    {row.audience === 'members'
-                      ? 'Réservée aux clientes inscrites'
-                      : 'Pour toutes les clientes'}
-                  </span>
-                  <p>
-                    {date(String(row.starts_at), { timeZone: timezone })} →{' '}
-                    {date(String(row.ends_at), { timeZone: timezone })}
-                  </p>
-                  <p>
-                    {(refs.promotion_services ?? [])
-                      .filter((r) => r.promotion_id === row.id)
-                      .map(
-                        (r) =>
-                          refs.services?.find((s) => s.id === r.service_id)
-                            ?.name,
-                      )
-                      .filter(Boolean)
-                      .join(' · ')}
-                  </p>
-                </>
-              ) : (
-                <dl>
-                  {config.fields
-                    .filter(
-                      (f) =>
-                        ![
-                          'slug',
-                          'key',
-                          'fields',
-                          'entity_id',
-                          ...imageFields,
-                        ].includes(f.key) &&
-                        !(
-                          ['exceptions', 'closures'].includes(slug) &&
-                          f.key === 'resource_id'
-                        ) &&
-                        f.type !== 'textarea' &&
-                        f.key !== 'name' &&
-                        (!settings ||
-                          visibleFields.some((v) => v.key === f.key)) &&
-                        (!advancedFields.includes(f.key) ||
-                          (f.key === 'archived' && row.archived)) &&
-                        !(
-                          (employee || slug === 'equipment') &&
-                          f.key === 'kind'
-                        ),
-                    )
-                    .map((f) => (
-                      <div key={f.key}>
-                        <dt>{labels[f.key] ?? t(f.label)}</dt>
-                        <dd>
-                          {f.key === 'weekday'
-                            ? weekdays[Number(row[f.key])]
-                            : f.type === 'checkbox'
-                              ? row[f.key]
-                                ? 'Oui'
-                                : 'Non'
-                              : f.ref
-                                ? String(
-                                    refs[f.ref]?.find(
-                                      (r) => r.id === row[f.key],
-                                    )?.name ?? 'Tout le salon',
-                                  )
-                                : monetary(f.key, row)
-                                  ? row[f.key] == null
-                                    ? 'Sur demande'
-                                    : money(Number(row[f.key]))
-                                  : (options[String(row[f.key])] ??
-                                    String(row[f.key] ?? '—'))}
-                        </dd>
-                      </div>
-                    ))}
-                </dl>
+        {slug === 'services' && (
+          <div className="salon-service-columns" aria-hidden="true">
+            <span>Prestation</span>
+            <span>Catégorie</span>
+            <span>Prix</span>
+            <span>Sur le site</span>
+            <span>Action</span>
+          </div>
+        )}
+        {shownRows.map((row) => (
+          <article className="admin-record-card" key={String(row.id)}>
+            {slug === 'services' && (
+              <span className="salon-service-icon">
+                <AdminIcon name="services" />
+              </span>
+            )}
+            {promotion && (
+              <Image
+                className="salon-offer-image"
+                src={`/images/premium/${/coiff|cheveu|hair/i.test(String(row.name)) ? 'bridal-hair' : /caftan|location/i.test(String(row.name)) ? 'occasion-caftan' : 'ritual-care'}-720.webp`}
+                alt="Illustration d’ambiance"
+                width={360}
+                height={300}
+              />
+            )}
+            {config.table === 'gallery' && row.path && !onSave ? (
+              <Image
+                className="salon-record-photo"
+                unoptimized
+                src={salonImage(String(row.path))}
+                alt={String(row.alt ?? 'Photo du salon')}
+                width={320}
+                height={200}
+              />
+            ) : null}
+            <h3>
+              {String(
+                row.name ??
+                  row.title ??
+                  (config.table === 'working_hours' ||
+                  config.table === 'city_hours'
+                    ? weekdays[Number(row.weekday)]
+                    : config.table === 'closures'
+                      ? row.reason
+                      : 'Fiche du salon'),
               )}
-              {employee && (
+            </h3>
+            {promotion ? (
+              <>
+                <span className="badge">{offerStatus(row)}</span>
+                <p className="salon-offer-discount">
+                  {row.kind === 'percentage'
+                    ? `${row.value} %`
+                    : money(Number(row.value))}{' '}
+                  de réduction
+                </p>
+                <span className="badge">
+                  {row.audience === 'members'
+                    ? 'Réservée aux clientes inscrites'
+                    : 'Pour toutes les clientes'}
+                </span>
+                <p className="salon-offer-dates">
+                  {date(String(row.starts_at), { timeZone: timezone })} →{' '}
+                  {date(String(row.ends_at), { timeZone: timezone })}
+                </p>
                 <p>
-                  {(refs.qualifications ?? [])
-                    .filter((q) => q.resource_id === row.id)
+                  {(refs.promotion_services ?? [])
+                    .filter((r) => r.promotion_id === row.id)
                     .map(
-                      (q) =>
-                        refs.services?.find((s) => s.id === q.service_id)?.name,
+                      (r) =>
+                        refs.services?.find((s) => s.id === r.service_id)?.name,
                     )
                     .filter(Boolean)
-                    .join(' · ') || 'Aucune prestation attribuée'}
+                    .join(' · ')}
                 </p>
-              )}
+              </>
+            ) : slug === 'services' ? (
+              <>
+                <span className="salon-service-category">
+                  {String(
+                    refs.categories?.find((c) => c.id === row.category_id)
+                      ?.name ?? 'Sans catégorie',
+                  )}
+                </span>
+                <span className="salon-service-price">
+                  {row.price_minor == null || row.price_type === 'consultation'
+                    ? 'Sur demande'
+                    : `${row.price_type === 'starting' ? 'À partir de ' : ''}${money(Number(row.price_minor))}`}
+                </span>
+                <span
+                  className={`badge ${row.published && !row.archived ? 'badge-confirmed' : ''}`}
+                >
+                  {row.archived
+                    ? 'Archivée'
+                    : row.published
+                      ? 'Publiée'
+                      : 'Masquée'}
+                </span>
+              </>
+            ) : (
+              <dl>
+                {config.fields
+                  .filter(
+                    (f) =>
+                      ![
+                        'slug',
+                        'key',
+                        'fields',
+                        'entity_id',
+                        ...imageFields,
+                      ].includes(f.key) &&
+                      !(
+                        ['exceptions', 'closures'].includes(slug) &&
+                        f.key === 'resource_id'
+                      ) &&
+                      f.type !== 'textarea' &&
+                      f.key !== 'name' &&
+                      (!settings ||
+                        visibleFields.some((v) => v.key === f.key)) &&
+                      (!advancedFields.includes(f.key) ||
+                        (f.key === 'archived' && row.archived)) &&
+                      !((employee || slug === 'equipment') && f.key === 'kind'),
+                  )
+                  .map((f) => (
+                    <div key={f.key}>
+                      <dt>{labels[f.key] ?? t(f.label)}</dt>
+                      <dd>
+                        {f.key === 'weekday'
+                          ? weekdays[Number(row[f.key])]
+                          : f.type === 'checkbox'
+                            ? row[f.key]
+                              ? 'Oui'
+                              : 'Non'
+                            : f.ref
+                              ? String(
+                                  refs[f.ref]?.find((r) => r.id === row[f.key])
+                                    ?.name ?? 'Tout le salon',
+                                )
+                              : monetary(f.key, row)
+                                ? row[f.key] == null
+                                  ? 'Sur demande'
+                                  : money(Number(row[f.key]))
+                                : (options[String(row[f.key])] ??
+                                  String(row[f.key] ?? '—'))}
+                      </dd>
+                    </div>
+                  ))}
+              </dl>
+            )}
+            {employee && (
+              <p>
+                {(refs.qualifications ?? [])
+                  .filter((q) => q.resource_id === row.id)
+                  .map(
+                    (q) =>
+                      refs.services?.find((s) => s.id === q.service_id)?.name,
+                  )
+                  .filter(Boolean)
+                  .join(' · ') || 'Aucune prestation attribuée'}
+              </p>
+            )}
+            <button className="button secondary" onClick={() => openForm(row)}>
+              Modifier
+            </button>
+            {config.table === 'gallery' && !onSave && (
               <button
                 className="button secondary"
-                onClick={() => openForm(row)}
+                disabled={busy}
+                onClick={async () => {
+                  setBusy(true);
+                  try {
+                    await api('/api/admin/settings', {
+                      id: 1,
+                      hero_image_path: row.path,
+                    });
+                    setMessage('Photo d’accueil enregistrée.');
+                    router.refresh();
+                  } catch (error) {
+                    fail(error);
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
               >
-                Modifier
+                Utiliser en photo d’accueil
               </button>
-              {config.table === 'gallery' && !onSave && (
+            )}
+            {config.deletable && (
+              <button
+                className="button secondary"
+                onClick={() => setRemove(String(row.id))}
+              >
+                Supprimer
+              </button>
+            )}
+            {remove === row.id && (
+              <div className="notice">
+                <p>
+                  Supprimer cet élément ? Cette action peut modifier les
+                  disponibilités. Les photos déjà envoyées restent dans le
+                  stockage.
+                </p>
                 <button
                   className="button secondary"
                   disabled={busy}
                   onClick={async () => {
                     setBusy(true);
                     try {
-                      await api('/api/admin/settings', {
-                        id: 1,
-                        hero_image_path: row.path,
-                      });
-                      setMessage('Photo d’accueil enregistrée.');
-                      router.refresh();
-                    } catch (error) {
-                      fail(error);
+                      if (onRemove) await onRemove(String(row.id));
+                      else
+                        await api(
+                          `/api/admin/${slug}`,
+                          { id: row.id },
+                          'DELETE',
+                        );
+                      setRemove(null);
+                      if (!onRemove) router.refresh();
+                    } catch (e) {
+                      fail(e);
                     } finally {
                       setBusy(false);
                     }
                   }}
                 >
-                  Utiliser en photo d’accueil
+                  Confirmer la suppression
                 </button>
-              )}
-              {config.deletable && (
-                <button
-                  className="button secondary"
-                  onClick={() => setRemove(String(row.id))}
-                >
-                  Supprimer
-                </button>
-              )}
-              {remove === row.id && (
-                <div className="notice">
-                  <p>
-                    Supprimer cet élément ? Cette action peut modifier les
-                    disponibilités. Les photos déjà envoyées restent dans le
-                    stockage.
-                  </p>
-                  <button
-                    className="button secondary"
-                    disabled={busy}
-                    onClick={async () => {
-                      setBusy(true);
-                      try {
-                        if (onRemove) await onRemove(String(row.id));
-                        else
-                          await api(
-                            `/api/admin/${slug}`,
-                            { id: row.id },
-                            'DELETE',
-                          );
-                        setRemove(null);
-                        if (!onRemove) router.refresh();
-                      } catch (e) {
-                        fail(e);
-                      } finally {
-                        setBusy(false);
-                      }
-                    }}
-                  >
-                    Confirmer la suppression
-                  </button>
-                  <button onClick={() => setRemove(null)}>Conserver</button>
-                </div>
-              )}
-              {config.table === 'customers' && !onSave && (
-                <CustomerPrivacy id={String(row.id)} />
-              )}
-            </article>
-          ))}
+                <button onClick={() => setRemove(null)}>Conserver</button>
+              </div>
+            )}
+            {config.table === 'customers' && !onSave && (
+              <CustomerPrivacy id={String(row.id)} />
+            )}
+          </article>
+        ))}
       </div>
-      {!rows.length && (
+      {settings && !view && (
+        <aside className="salon-settings-preview">
+          <h2>
+            <AdminIcon name="photos" /> Aperçu sur le site
+          </h2>
+          {rows[0]?.hero_image_path ? (
+            <Image
+              src={salonImage(String(rows[0].hero_image_path))}
+              alt="Image d’accueil actuellement enregistrée"
+              width={700}
+              height={350}
+              unoptimized
+            />
+          ) : (
+            <div className="salon-preview-placeholder">
+              <AdminIcon name="photos" />
+              <span>Votre photo d’accueil se gère dans Photos.</span>
+            </div>
+          )}
+          <h3>{String(values.name ?? 'Votre salon')}</h3>
+          <div className="salon-preview-contact">
+            {['address', 'phone', 'whatsapp', 'email', 'instagram']
+              .filter((key) => !!values[key])
+              .map((key) => (
+                <p key={key}>{String(values[key])}</p>
+              ))}
+          </div>
+          {!!values.about && (
+            <p className="salon-preview-description">{String(values.about)}</p>
+          )}
+          <Link className="button secondary" href="/">
+            Voir le site ↗
+          </Link>
+          <p className="notice">
+            Vos modifications apparaissent sur le site après enregistrement.
+          </p>
+        </aside>
+      )}
+      {!settings && !shownRows.length && (
         <p className="empty-state">
           Aucun élément pour le moment. Utilisez le bouton Ajouter pour
           commencer.
         </p>
       )}
-    </>
+    </div>
   );
 }

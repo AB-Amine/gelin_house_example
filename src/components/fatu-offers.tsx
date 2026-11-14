@@ -1,36 +1,63 @@
 'use client';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { salonImage } from '@/lib/assets';
 import type { Catalog } from '@/lib/domain';
 import { useWebsiteCopy } from './website-copy';
 import { FatuHeading } from './fatu-pages';
 import { PremiumPhoto, categoryPhoto } from './premium-photo';
+import styles from './offer-layout.module.css';
 
 // Supabase applies publication, date, code and usage-limit rules in fatu_catalog.
 // Render that request's snapshot rather than evaluating a second browser clock.
 export function OfferCards({
   catalog: initial,
-  limit,
   compact = false,
 }: {
   catalog: Catalog;
-  limit?: number;
   compact?: boolean;
 }) {
   const { catalog, t, money, locale, dir } = useWebsiteCopy(initial);
   const track = useRef<HTMLDivElement>(null);
+  const [navigation, setNavigation] = useState({
+    start: true,
+    end: false,
+    scrollable: false,
+  });
   const published = catalog.promotions.filter(
     (p) => p.active && Date.parse(p.ends_at) > (catalog.as_of ?? 0),
   );
-  const carousel = !compact && published.length > 3;
-  const offers = carousel ? published : published.slice(0, limit);
+  const carousel = compact && published.length > 1;
+  const offers = published;
+  const updateNavigation = useCallback(() => {
+    const node = track.current;
+    if (!node) return;
+    const max = node.scrollWidth - node.clientWidth;
+    const position = Math.abs(node.scrollLeft);
+    setNavigation({
+      start: position <= 2,
+      end: position >= max - 2,
+      scrollable: max > 2,
+    });
+  }, []);
+  useEffect(() => {
+    if (!carousel || !track.current) return;
+    updateNavigation();
+    const observer = new ResizeObserver(updateNavigation);
+    observer.observe(track.current);
+    return () => observer.disconnect();
+  }, [carousel, offers.length, updateNavigation]);
   const move = (direction: number) => {
     const node = track.current;
     if (node)
       node.scrollBy({
-        left: node.clientWidth * direction * (dir === 'rtl' ? -1 : 1),
+        left:
+          ((node.firstElementChild?.getBoundingClientRect().width ??
+            node.clientWidth) +
+            parseFloat(getComputedStyle(node).columnGap || '0')) *
+          direction *
+          (dir === 'rtl' ? -1 : 1),
         behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
           ? 'auto'
           : 'smooth',
@@ -54,9 +81,9 @@ export function OfferCards({
       </div>
     );
   return (
-    <div className="salon-offers-presentation">
-      {carousel && (
-        <div className="salon-carousel-controls">
+    <div className={`salon-offers-presentation ${styles.presentation}`}>
+      {carousel && navigation.scrollable && (
+        <div className={`salon-carousel-controls ${styles.controls}`}>
           <span>
             {offers.length} {t('nav.offers').toLocaleLowerCase(locale)}
           </span>
@@ -65,6 +92,7 @@ export function OfferCards({
               type="button"
               onClick={() => move(-1)}
               aria-label={t('offers.previous')}
+              disabled={navigation.start}
             >
               ←
             </button>
@@ -72,6 +100,7 @@ export function OfferCards({
               type="button"
               onClick={() => move(1)}
               aria-label={t('offers.next')}
+              disabled={navigation.end}
             >
               →
             </button>
@@ -80,13 +109,17 @@ export function OfferCards({
       )}
       <div
         ref={track}
-        className={`premium-offer-grid${carousel ? ' is-carousel' : ''}`}
+        className={`premium-offer-grid ${styles.grid}${carousel ? ` is-carousel ${styles.carousel}` : ''}`}
         role={carousel ? 'region' : undefined}
         aria-label={carousel ? t('offers.title') : undefined}
         tabIndex={carousel ? 0 : undefined}
+        onScroll={carousel ? updateNavigation : undefined}
       >
         {offers.map((offer) => {
           const upcoming = Date.parse(offer.starts_at) > (catalog.as_of ?? 0);
+          const demonstration = offer.terms.startsWith(
+            'DÉMONSTRATION VISUELLE UNIQUEMENT.',
+          );
           const services = catalog.services.filter((service) =>
             catalog.promotion_services.some(
               (link) =>
@@ -94,9 +127,26 @@ export function OfferCards({
                 link.service_id === service.id,
             ),
           );
-          const category = catalog.categories.find(
-            (item) => item.id === services[0]?.category_id,
-          );
+          const offerText = `${offer.name} ${offer.description}`
+            .normalize('NFD')
+            .replace(/\p{M}/gu, '')
+            .toLocaleLowerCase();
+          const category =
+            catalog.categories.find(
+              (item) => item.id === services[0]?.category_id,
+            ) ??
+            (!services.length
+              ? catalog.categories.find(
+                  (item) =>
+                    offerText.includes(item.slug) ||
+                    offerText.includes(
+                      item.name
+                        .normalize('NFD')
+                        .replace(/\p{M}/gu, '')
+                        .toLocaleLowerCase(),
+                    ),
+                )
+              : undefined);
           const album =
             category?.slug === 'coiffure'
               ? /coiff/i
@@ -109,7 +159,9 @@ export function OfferCards({
             album.test(photo.album),
           );
           const photo = services.find((service) => service.image_path);
-          const path = photo?.image_path || galleryPhoto?.path;
+          const path =
+            photo?.image_path ||
+            (services.length ? galleryPhoto?.path : undefined);
           return (
             <article
               className={`premium-offer-card${upcoming ? ' is-upcoming' : ''}${compact ? ' is-compact homepage-offer' : ''}`}
@@ -127,13 +179,31 @@ export function OfferCards({
                     />
                   </figure>
                 ) : (
-                  <PremiumPhoto id={categoryPhoto(category?.slug || '')} />
+                  <PremiumPhoto
+                    id={
+                      !services.length
+                        ? category?.slug === 'coiffure'
+                          ? 'bridal-hair'
+                          : category?.slug === 'location'
+                            ? 'occasion-caftan'
+                            : category?.slug === 'makeup'
+                              ? 'rose-makeup'
+                              : 'ritual-care'
+                        : categoryPhoto(category?.slug || '')
+                    }
+                  />
                 )}
               </div>
               <div className="premium-offer-heading">
                 <span className="premium-offer-status">
                   <i aria-hidden />
-                  {t(upcoming ? 'offers.upcoming' : 'offers.available')}
+                  {t(
+                    demonstration
+                      ? 'offers.demonstration'
+                      : upcoming
+                        ? 'offers.upcoming'
+                        : 'offers.available',
+                  )}
                 </span>
                 <span className="premium-offer-value">
                   −
@@ -191,7 +261,10 @@ export function OfferCards({
                     </div>
                   </div>
                 )}
-                {upcoming && (
+                {demonstration && (
+                  <p className="premium-offer-note">{t('offers.demoNotice')}</p>
+                )}
+                {upcoming && !demonstration && (
                   <p className="premium-offer-note">
                     {t(
                       compact ? 'offers.upcomingShort' : 'offers.upcomingNote',
@@ -210,10 +283,13 @@ export function OfferCards({
                   </ul>
                 )}
                 {offer.terms && !compact && (
-                  <p className="premium-offer-terms">{offer.terms}</p>
+                  <details className={styles.conditions}>
+                    <summary>{t('offers.conditions')}</summary>
+                    <p className="premium-offer-terms">{offer.terms}</p>
+                  </details>
                 )}
                 <Link
-                  className={compact ? 'fatu-button' : 'fatu-text-link'}
+                  className="fatu-button"
                   href={compact ? '/offres' : '/services'}
                 >
                   {t(
@@ -235,9 +311,9 @@ export function OfferCards({
 }
 export function FatuOffers({ initialCatalog }: { initialCatalog: Catalog }) {
   return (
-    <div className="fatu-container">
+    <div className={`fatu-container ${styles.page}`}>
       <FatuHeading title="offers.title" body="premium.offersBody" />
-      <section className="fatu-section">
+      <section className={styles.collection}>
         <OfferCards catalog={initialCatalog} />
       </section>
     </div>

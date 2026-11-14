@@ -25,7 +25,11 @@ export default async function Page({
       view={p.view}
       today={today}
       dayLabel={dayLabel}
-      period={calendarWindow(p.date ?? today, p.view, 'Africa/Casablanca')}
+      period={calendarWindow(
+        p.date ?? today,
+        p.view ?? (p.section === 'calendar' ? 'week' : undefined),
+        'Africa/Casablanca',
+      )}
     />
   );
 }

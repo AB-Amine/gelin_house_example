@@ -55,7 +55,8 @@ test('public design shows database categories, active offers and licensed photos
       await expect
         .poll(async () =>
           strip.evaluate(
-            (node) => Math.abs(node.getBoundingClientRect().bottom - innerHeight) <= 2,
+            (node) =>
+              Math.abs(node.getBoundingClientRect().bottom - innerHeight) <= 2,
           ),
         )
         .toBe(true);
@@ -104,8 +105,8 @@ test('public design shows database categories, active offers and licensed photos
     expect(photoBounds!.width / cardBounds!.width).toBeGreaterThan(0.4);
     expect(photoBounds!.width / cardBounds!.width).toBeLessThan(0.46);
   }
-  await expect(upcomingOffer).toHaveCount(0);
-  await expect(page.locator('.premium-offer-card')).toHaveCount(2);
+  await expect(upcomingOffer).toHaveCount(1);
+  await expect(page.locator('.premium-offer-card')).toHaveCount(4);
   await expect(
     page.getByRole('region', { name: 'Votre demande de rendez-vous' }),
   ).toContainText('Le salon vous confirme');
@@ -163,22 +164,21 @@ test('public design shows database categories, active offers and licensed photos
     'TEST panier 1',
   );
   await page.goto('/services');
-  const card = page.locator('.service-card').filter({
+  await page.getByRole('searchbox').fill('TEST panier');
+  const card = page.locator('.official-service-card').filter({
     has: page.getByRole('heading', { name: 'TEST panier 1', exact: true }),
   });
-  await expect(card.locator('.service-price small')).toHaveText(
-    'TEST offre active',
-  );
+  await expect(card.locator('small')).toHaveText('TEST offre active');
   await expect(card.locator('del')).toContainText('100');
-  await expect(card.locator('.service-price')).toContainText('80');
-  const futureService = page.locator('.service-card').filter({
+  await expect(card.locator('p')).toContainText('80');
+  const futureService = page.locator('.official-service-card').filter({
     has: page.getByRole('heading', { name: 'TEST panier 2', exact: true }),
   });
-  await expect(futureService.locator('.service-price')).toContainText('100');
+  await expect(futureService.locator('p')).toContainText('100');
   await expect(futureService.locator('del')).toHaveCount(0);
-  await expect(futureService.locator('.service-price small')).toHaveCount(0);
+  await expect(futureService.locator('small')).toHaveCount(0);
   await page.getByRole('searchbox').fill('TEST panier');
-  await expect(page.locator('.service-card')).toHaveCount(2);
+  await expect(page.locator('.official-service-card')).toHaveCount(2);
   await page.screenshot({
     path: info.outputPath('premium-services.png'),
     fullPage: true,

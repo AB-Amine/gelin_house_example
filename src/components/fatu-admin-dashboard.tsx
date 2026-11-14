@@ -6,6 +6,7 @@ import { api, ApiError } from '@/lib/client';
 import { useI18n } from './locale-provider';
 import { AppointmentRequestActions } from './appointment-request-actions';
 import type { AppointmentRequestRow } from '@/lib/appointment-requests';
+import { AdminIcon } from './admin-icon';
 type Amount = { currency: string; total_minor: number };
 export type AdminSummary = {
   total: number;
@@ -44,8 +45,8 @@ export function FatuAdminDashboard({
   dayLabel,
   preview = false,
   today = [],
+  confirmed = 0,
   pendingRows = [],
-  upcomingCount = 0,
   websiteRequests = [],
   websiteRequestCount = 0,
 }: {
@@ -97,8 +98,10 @@ export function FatuAdminDashboard({
       <header className="fatu-admin-heading">
         <div>
           <span className="eyebrow">Votre journée au salon</span>
-          <h1>Tableau de bord</h1>
-          <p>
+          <h1>Bonjour, bienvenue au salon</h1>
+          <p>Voici l’essentiel de votre journée.</p>
+          <p className="salon-today-label">
+            <AdminIcon name="bookings" />
             {dayLabel ??
               new Intl.DateTimeFormat('fr-MA', {
                 dateStyle: 'full',
@@ -112,80 +115,91 @@ export function FatuAdminDashboard({
       </header>
       <div className="stat-grid salon-stats">
         {[
-          ['Rendez-vous aujourd’hui', s.total],
-          ['Rendez-vous à venir', upcomingCount],
-          ['Demandes du site à traiter', websiteRequestCount],
-        ].map(([label, n]) => (
+          ['Demandes en attente', websiteRequestCount, 'hourglass'],
+          ['Rendez-vous aujourd’hui', s.total, 'bookings'],
+          ['Rendez-vous confirmés à venir', confirmed, 'check'],
+        ].map(([label, n, icon]) => (
           <article className="stat-card" key={label}>
+            <AdminIcon name={String(icon)} />
             <span>{label}</span>
             <strong>{n}</strong>
           </article>
         ))}
       </div>
-      <div className="salon-quick-actions" aria-label="Actions rapides">
-        <Link href={href('/admin/appointments/new')}>
-          Nouveau rendez-vous <span aria-hidden>↗</span>
-        </Link>
-        <Link href={href('/admin/services?new=1')}>
-          Ajouter une prestation <span aria-hidden>↗</span>
-        </Link>
-        <Link href={href('/admin/promotions?new=1')}>
-          Créer une offre <span aria-hidden>↗</span>
-        </Link>
-      </div>
-      <section
-        className="fatu-admin-section"
-        aria-label="Demandes de rendez-vous du site"
-      >
-        <div className="section-heading">
-          <h2>Demandes de rendez-vous du site</h2>
-          <div className="inline-actions">
-            {!preview && (
-              <button
-                type="button"
-                className="button secondary"
-                onClick={() => router.refresh()}
-              >
-                Actualiser
-              </button>
-            )}
-            <Link href={href('/admin/messages')} prefetch={false}>
-              Tout voir
-            </Link>
-          </div>
+      <details className="salon-shortcuts">
+        <summary>Prestations et offres : accès rapides</summary>
+        <div className="salon-quick-actions" aria-label="Actions rapides">
+          <Link href={href('/admin/appointments/new')}>
+            Nouveau rendez-vous <span aria-hidden>↗</span>
+          </Link>
+          <Link href={href('/admin/services?new=1')}>
+            Ajouter une prestation <span aria-hidden>↗</span>
+          </Link>
+          <Link href={href('/admin/promotions?new=1')}>
+            Créer une offre <span aria-hidden>↗</span>
+          </Link>
         </div>
-        {websiteRequests.length ? (
-          websiteRequests.map((request) => (
-            <article
-              className="salon-pending website-request-card"
-              key={request.id}
-            >
-              <strong>{request.name}</strong>
-              <p style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
-                {request.message
-                  .split('\n')
-                  .filter(
-                    (line) =>
-                      !line.startsWith('Date souhaitée :') &&
-                      !line.startsWith('Heure souhaitée :'),
-                  )
-                  .join('\n')}
-              </p>
-              <p>
-                {request.phone}
-                {request.email ? ` · ${request.email}` : ''}
-              </p>
-              <small>
-                Reçue le {date(request.created_at, { timeZone: timezone })}
-              </small>
-              {!preview && <AppointmentRequestActions request={request} />}
-            </article>
-          ))
-        ) : (
-          <p className="empty-state">Aucune demande reçue depuis le site.</p>
-        )}
-      </section>
+      </details>
       <div className="salon-dashboard-columns">
+        <section
+          className="fatu-admin-section"
+          aria-label="Demandes de rendez-vous du site"
+        >
+          <div className="section-heading">
+            <h2>Demandes à traiter</h2>
+            <div className="inline-actions">
+              {!preview && (
+                <button
+                  type="button"
+                  className="button secondary"
+                  onClick={() => router.refresh()}
+                >
+                  Actualiser
+                </button>
+              )}
+              <Link href={href('/admin/messages')} prefetch={false}>
+                Voir toutes les demandes
+              </Link>
+            </div>
+          </div>
+          {websiteRequests.some(
+            (request) => request.request_status === 'pending',
+          ) ? (
+            websiteRequests
+              .filter((request) => request.request_status === 'pending')
+              .slice(0, 4)
+              .map((request) => (
+                <article
+                  className="salon-pending website-request-card"
+                  key={request.id}
+                >
+                  <strong>{request.name}</strong>
+                  <p
+                    style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}
+                  >
+                    {request.message
+                      .split('\n')
+                      .filter(
+                        (line) =>
+                          !line.startsWith('Date souhaitée :') &&
+                          !line.startsWith('Heure souhaitée :'),
+                      )
+                      .join('\n')}
+                  </p>
+                  <p>
+                    <a href={`tel:${request.phone}`}>{request.phone}</a>
+                    {request.email ? ` · ${request.email}` : ''}
+                  </p>
+                  <small>
+                    Reçue le {date(request.created_at, { timeZone: timezone })}
+                  </small>
+                  {!preview && <AppointmentRequestActions request={request} />}
+                </article>
+              ))
+          ) : (
+            <p className="empty-state">Aucune demande reçue depuis le site.</p>
+          )}
+        </section>
         <section className="fatu-admin-section">
           <div className="section-heading">
             <h2>Aujourd’hui</h2>
@@ -193,7 +207,7 @@ export function FatuAdminDashboard({
           </div>
           {today.length ? (
             <div className="salon-agenda">
-              {today.map((b) => (
+              {today.slice(0, 6).map((b) => (
                 <Link
                   key={b.id}
                   href={href(`/admin/bookings?reference=${b.reference}`)}
@@ -217,7 +231,16 @@ export function FatuAdminDashboard({
           ) : (
             <p className="empty-state">Aucun rendez-vous aujourd’hui.</p>
           )}
+          <Link
+            className="salon-calendar-link"
+            href={href(`/admin/calendar?date=${from}&view=day`)}
+          >
+            Voir le calendrier →
+          </Link>
         </section>
+      </div>
+      <details className="salon-disclosure">
+        <summary>Autres rendez-vous à confirmer · {pendingRows.length}</summary>
         <section className="fatu-admin-section">
           <div className="section-heading">
             <h2>À confirmer</h2>
@@ -259,7 +282,7 @@ export function FatuAdminDashboard({
             <p className="empty-state">Aucune demande en attente.</p>
           )}
         </section>
-      </div>
+      </details>
       {action && (
         <form
           id="dashboard-action"
@@ -315,26 +338,29 @@ export function FatuAdminDashboard({
           {message}
         </p>
       )}
-      <section className="fatu-admin-section">
-        <h2>À suivre</h2>
-        <div className="salon-context">
-          <Link href={href('/admin/requests')}>
-            {s.requests} demande(s) de modification
-          </Link>
-          <Link href={href('/admin/messages')}>
-            {s.messages} message(s) à traiter
-          </Link>
-          <Link href={href('/admin/notifications')}>
-            {s.notifications} notification(s) en attente d’envoi
-          </Link>
-        </div>
-        {s.notifications > 0 && (
-          <p className="small">
-            Les notifications enregistrées ne sont pas envoyées automatiquement.
-            Contactez les clientes avec vos canaux habituels.
-          </p>
-        )}
-      </section>
+      <details className="salon-disclosure">
+        <summary>Suivi et historique du salon</summary>
+        <section className="fatu-admin-section">
+          <h2>À suivre</h2>
+          <div className="salon-context">
+            <Link href={href('/admin/requests')}>
+              {s.requests} demande(s) de modification
+            </Link>
+            <Link href={href('/admin/messages')}>
+              {s.messages} message(s) à traiter
+            </Link>
+            <Link href={href('/admin/notifications')}>
+              {s.notifications} notification(s) en attente d’envoi
+            </Link>
+          </div>
+          {s.notifications > 0 && (
+            <p className="small">
+              Les notifications enregistrées ne sont pas envoyées
+              automatiquement. Contactez les clientes avec vos canaux habituels.
+            </p>
+          )}
+        </section>
+      </details>
     </>
   );
 }

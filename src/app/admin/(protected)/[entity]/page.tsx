@@ -18,6 +18,8 @@ export default async function Page({
     view?: string;
     new?: string;
     appointment?: string;
+    q?: string;
+    category?: string;
   }>;
 }) {
   await requirePageStaff();
@@ -29,7 +31,7 @@ export default async function Page({
   const db = await sessionDb();
   const page = Math.max(1, Math.min(10000, Number(p.page) || 1));
   const nextHref = (n: number) =>
-    `?${new URLSearchParams({ ...(p.view ? { view: p.view } : {}), page: String(n) })}`;
+    `?${new URLSearchParams({ ...(p.view ? { view: p.view } : {}), ...(p.q ? { q: p.q } : {}), ...(p.category ? { category: p.category } : {}), page: String(n) })}`;
   const inbox = {
     requests: 'change_requests',
     messages: 'contact_messages',
@@ -121,6 +123,18 @@ export default async function Page({
     );
   }
   let query = db.from(config.table).select('*', { count: 'exact' });
+  if (entity === 'services') {
+    if (p.q?.trim())
+      query = query.ilike(
+        'name',
+        `%${p.q
+          .trim()
+          .slice(0, 100)
+          .replace(/[\\%_]/g, '\\$&')}%`,
+      );
+    if (p.category && /^[a-f0-9-]{36}$/i.test(p.category))
+      query = query.eq('category_id', p.category);
+  }
   if (entity === 'staff' || entity === 'equipment')
     query = query.eq('kind', entity === 'staff' ? 'staff' : 'equipment');
   if (entity === 'faqs') query = query.like('key', 'faq.%');
@@ -222,6 +236,21 @@ export default async function Page({
   return (
     <>
       <h1>{title}</h1>
+      {entity === 'settings' && !p.view && (
+        <p className="salon-page-intro">
+          Modifiez les informations visibles sur votre site, simplement.
+        </p>
+      )}
+      {entity === 'services' && (
+        <p className="salon-page-intro">
+          Gérez vos prestations, leurs tarifs et leur visibilité sur le site.
+        </p>
+      )}
+      {['offers', 'promotions'].includes(entity) && (
+        <p className="salon-page-intro">
+          Créez et gérez les offres publiées sur votre site.
+        </p>
+      )}
       {error || loadErrors.length > 0 ? (
         <p className="error">
           Les informations nécessaires n’ont pas pu être chargées intégralement.
@@ -229,8 +258,14 @@ export default async function Page({
         </p>
       ) : (
         <>
+          {['portfolio', 'gallery'].includes(entity) && (
+            <SalonContent
+              section="photos"
+              timezone={settings?.timezone ?? 'Africa/Casablanca'}
+            />
+          )}
           <FatuEntityManager
-            key={`${entity}-${p.view ?? ''}-${page}`}
+            key={`${entity}-${p.view ?? ''}-${page}-${p.q ?? ''}-${p.category ?? ''}`}
             slug={entity}
             rows={rows ?? []}
             refs={refs}

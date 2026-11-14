@@ -8,10 +8,27 @@ export async function SalonContent({
   section,
   timezone,
 }: {
-  section: 'hours' | 'website';
+  section: 'hours' | 'website' | 'photos';
   timezone: string;
 }) {
   const db = await sessionDb();
+  if (section === 'photos') {
+    const { data, error } = await db
+      .from('salon_settings')
+      .select('*')
+      .single();
+    return error ? (
+      <p className="error">Impossible de charger les images du site.</p>
+    ) : (
+      <FatuEntityManager
+        slug="settings"
+        rows={data ? [data] : []}
+        refs={{}}
+        view="photos"
+        timezone={timezone}
+      />
+    );
+  }
   const panels =
     section === 'hours'
       ? [

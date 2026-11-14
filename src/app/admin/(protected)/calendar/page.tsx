@@ -5,6 +5,9 @@ import { sessionDb } from '@/lib/supabase';
 import { requirePageStaff } from '@/lib/auth';
 import { calendarWindow } from '@/lib/calendar';
 import { Calendar, type CalendarEntry } from '@/components/calendar';
+import { AdminCalendar } from '@/components/admin-calendar';
+import { businessToday } from '@/lib/dates';
+import { localizeSalonClosures } from '@/lib/salon-schedule-server';
 
 export default async function CalendarPage({
   searchParams,
@@ -14,6 +17,7 @@ export default async function CalendarPage({
     view?: string;
     resource?: string;
     q?: string;
+    display?: string;
   }>;
 }) {
   await requirePageStaff();
@@ -25,14 +29,14 @@ export default async function CalendarPage({
     .select('timezone')
     .single();
   const timezone = settings?.timezone ?? 'Africa/Casablanca';
-  const period = calendarWindow(p.date, p.view, timezone);
+  const period = calendarWindow(p.date, p.view ?? 'week', timezone);
   const resource = '';
   const q = (p.q ?? '').slice(0, 80);
   const [
     { data: rows, error },
-    { data: closures },
-    { data: hours },
-    { data: exceptions },
+    { data: closures, error: closuresError },
+    { data: hours, error: hoursError },
+    { data: exceptions, error: exceptionsError },
   ] = await Promise.all([
     db
       .rpc('search_appointments', {
@@ -69,11 +73,42 @@ export default async function CalendarPage({
   ]);
   const href = (date: string) =>
     // Keep all filters when navigating between periods.
-    `/admin/calendar?${new URLSearchParams({ date, view: period.view, resource, q })}`;
+    `/admin/calendar?${new URLSearchParams({ date, view: period.view, resource, q, display: 'details' })}`;
+  const calendarClosures = localizeSalonClosures(closures ?? []);
+  const scheduleUnavailable = Boolean(
+    closuresError || hoursError || exceptionsError,
+  );
+  const calendarRows = (Array.isArray(rows)
+    ? rows.map((row) => ({
+        ...row,
+        local_start: Temporal.Instant.from(row.starts_at)
+          .toZonedDateTimeISO(timezone)
+          .toPlainDateTime()
+          .toString()
+          .slice(0, 16),
+      }))
+    : []) as unknown as CalendarEntry[];
   return (
-    <>
+    <AdminCalendar
+      window={period}
+      rows={calendarRows}
+      closures={calendarClosures}
+      hours={hours ?? []}
+      exceptions={exceptions ?? []}
+      resource={resource}
+      query={q}
+      timezone={timezone}
+      today={businessToday(timezone)}
+      failed={Boolean(error)}
+      scheduleUnavailable={scheduleUnavailable}
+      limited={calendarRows.length === 500}
+    >
       <h1>{t('admin.calendar')}</h1>
-      <form className="admin-toolbar">
+      <form
+        key={`${period.anchor}:${period.view}:${q}`}
+        className="admin-toolbar"
+      >
+        <input type="hidden" name="display" value="details" />
         <label>
           {t('field.day')}
           <input name="date" type="date" defaultValue={period.anchor} />
@@ -112,19 +147,11 @@ export default async function CalendarPage({
       ) : (
         <Calendar
           window={period}
-          rows={
-            (Array.isArray(rows)
-              ? rows.map((row) => ({
-                  ...row,
-                  local_start: Temporal.Instant.from(row.starts_at)
-                    .toZonedDateTimeISO(timezone)
-                    .toPlainDateTime()
-                    .toString()
-                    .slice(0, 16),
-                }))
-              : []) as unknown as CalendarEntry[]
-          }
-          closures={closures ?? []}
+          rows={calendarRows}
+          emptyLabel="Aucun rendez-vous sur cette journée."
+          display="details"
+          scheduleUnavailable={scheduleUnavailable}
+          closures={calendarClosures}
           hours={hours ?? []}
           exceptions={exceptions ?? []}
           resource={resource}
@@ -140,6 +167,6 @@ export default async function CalendarPage({
       {Array.isArray(rows) && rows.length === 500 && (
         <p className="notice">{t('calendar.limit')}</p>
       )}
-    </>
+    </AdminCalendar>
   );
 }

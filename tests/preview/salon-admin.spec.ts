@@ -8,11 +8,13 @@ test('six main sections, real form shortcuts, and no technical fields', async ({
   await expect(page.locator('#admin-navigation a')).toHaveCount(6);
   await expect(page.locator('#admin-navigation')).toContainText('Mon salon');
   await expect(page.locator('.salon-stats .stat-card')).toHaveCount(3);
+  await page.locator('.salon-shortcuts summary').click();
   await page
     .locator('.salon-quick-actions')
     .getByRole('link', { name: 'Ajouter une prestation' })
     .click();
   await expect(page.locator('form.admin-form')).toBeVisible();
+  await page.getByText('Paramètres avancés', { exact: true }).click();
   await expect(
     page.getByRole('spinbutton', { name: 'Durée (minutes)', exact: true }),
   ).toBeEmpty();
@@ -58,6 +60,7 @@ test('catalogue, offer and employee forms retain relationships and major-unit pr
   await page
     .getByRole('spinbutton', { name: 'Prix (MAD)', exact: true })
     .fill('150.25');
+  await page.getByText('Paramètres avancés', { exact: true }).click();
   await page
     .getByRole('spinbutton', { name: 'Durée (minutes)', exact: true })
     .fill('45');
@@ -217,14 +220,12 @@ test('five salon tabs reuse hours, website, photo and account editors without ad
   await expect(
     page.getByRole('heading', { name: 'Avis clients', exact: true }),
   ).toBeVisible();
-  const faq = page
-    .locator('section')
-    .filter({
-      has: page.getByRole('heading', {
-        name: 'Questions fréquentes',
-        exact: true,
-      }),
-    });
+  const faq = page.locator('section').filter({
+    has: page.getByRole('heading', {
+      name: 'Questions fréquentes',
+      exact: true,
+    }),
+  });
   await faq.getByRole('button', { name: 'Ajouter', exact: true }).click();
   await faq.getByLabel('Question', { exact: true }).fill('Question de test ?');
   await faq.getByLabel('Réponse', { exact: true }).fill('Réponse enregistrée.');

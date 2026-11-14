@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { adminSection, adminSections } from '@/lib/admin-ui';
+import { AdminIcon } from './admin-icon';
 export function AdminNavigation({ preview = false }: { preview?: boolean }) {
   const path = usePathname();
   const params = useSearchParams();
@@ -38,7 +39,7 @@ export function AdminNavigation({ preview = false }: { preview?: boolean }) {
               onClick={() => setMenuFor('')}
             >
               <span className="nav-icon" aria-hidden>
-                {s.icon}
+                <AdminIcon name={s.key} />
               </span>
               {s.label}
             </Link>
@@ -62,24 +63,19 @@ export function AdminSectionTabs({ preview = false }: { preview?: boolean }) {
   const tabs =
     section === 'bookings'
       ? [
-          ['messages', 'Demandes'],
           ['calendar', 'Calendrier'],
-          ['bookings?period=history', 'Historique'],
+          ['messages', 'Demandes du site'],
+          ['bookings', 'Liste'],
         ]
-      : section === 'services'
+      : section === 'settings'
         ? [
-            ['services', 'Prestations'],
-            ['categories', 'Catégories'],
+            ['settings', 'Informations'],
+            ['availability', 'Horaires'],
+            ['portfolio', 'Photos'],
+            ['settings?view=website', 'Site web'],
+            ['account', 'Mon compte'],
           ]
-        : section === 'settings'
-          ? [
-              ['settings', 'Informations'],
-              ['availability', 'Horaires'],
-              ['portfolio', 'Photos'],
-              ['settings?view=website', 'Site web'],
-              ['account', 'Mon compte'],
-            ]
-          : [];
+        : [];
   const renderLink = ([slug, label]: string[]) => {
     const [route, query] = slug.split('?');
     const currentPage = ['exceptions', 'closures'].includes(page)

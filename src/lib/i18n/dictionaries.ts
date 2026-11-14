@@ -5,6 +5,9 @@ export function validLocale(value: unknown): Locale {
 }
 export const localeTag = { fr: 'fr-MA', en: 'en-GB', ar: 'ar-MA' };
 const copy: readonly (readonly [string, string, string, string])[] = [
+  ['offers.conditions', 'Conditions de l’offre', 'Offer conditions', 'شروط العرض'],
+  ['offers.demonstration', 'Démonstration', 'Demonstration', 'عرض تجريبي'],
+  ['offers.demoNotice', 'Réduction fictive : test visuel uniquement.', 'Illustrative discount: visual test only.', 'تخفيض افتراضي للاختبار البصري فقط.'],
   ['cataloguePage.eyebrow', 'La carte des soins', 'The beauty menu', 'قائمة العناية'],
   ['cataloguePage.title', 'Choisissez votre moment beauté', 'Choose your beauty moment', 'اختاري لحظة جمالك'],
   ['cataloguePage.intro', 'Parcourez nos prestations et composez votre rendez-vous à votre rythme.', 'Explore our services and build your appointment at your own pace.', 'تصفحي خدماتنا واختاري موعدك بالوتيرة التي تناسبك.'],

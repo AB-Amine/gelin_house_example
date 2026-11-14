@@ -83,10 +83,25 @@ export function useI18n() {
   if (!value) throw Error('LocaleProvider is required');
   return value;
 }
-export function LanguageSwitcher() {
+export function LanguageSwitcher({
+  compact = false,
+}: { compact?: boolean } = {}) {
   const { locale, setLocale, t, pending } = useI18n();
   return (
     <div className="fatu-languages" role="group" aria-label={t('nav.language')}>
+      {compact && (
+        <select
+          className="home-language-select"
+          aria-label={t('nav.language')}
+          value={locale}
+          disabled={pending}
+          onChange={(event) => setLocale(event.target.value as Locale)}
+        >
+          <option value="fr">FR</option>
+          <option value="en">EN</option>
+          <option value="ar">العربية</option>
+        </select>
+      )}
       {(['fr', 'en', 'ar'] as const).map((code) => (
         <button
           key={code}

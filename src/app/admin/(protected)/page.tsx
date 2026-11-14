@@ -53,6 +53,7 @@ export default async function Page() {
         'id,name,phone,email,message,created_at,handled,service_ids,preferred_date,preferred_time,request_status,appointment_id,appointments(reference,starts_at,status)',
       )
       .eq('subject', 'Demande de rendez-vous')
+      .eq('request_status', 'pending')
       .order('created_at', { ascending: false })
       .limit(6),
     db

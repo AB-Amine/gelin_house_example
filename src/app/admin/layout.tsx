@@ -1,5 +1,6 @@
 ﻿import './admin.css';
 import { LocaleProvider } from '@/components/locale-provider';
+import './admin-premium.css';
 export const metadata = {
   title: { absolute: 'Administration | GELIN HOUSE' },
   robots: { index: false, follow: false },

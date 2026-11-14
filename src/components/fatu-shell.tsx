@@ -41,6 +41,14 @@ export function FatuPublicFrame({
   const main = useRef<HTMLElement>(null);
   const header = useRef<HTMLElement>(null);
   useEffect(() => {
+    if (!open) return;
+    const close = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setOpen(false);
+    };
+    window.addEventListener('keydown', close);
+    return () => window.removeEventListener('keydown', close);
+  }, [open]);
+  useEffect(() => {
     const node = header.current;
     if (path !== '/' || !node) return;
     const measure = () =>
@@ -115,7 +123,13 @@ export function FatuPublicFrame({
           aria-expanded={open}
           onClick={() => setOpen(!open)}
         >
-          {t(open ? 'nav.close' : 'nav.menu')}
+          {path === '/' ? (
+            <span className="fatu-menu-label">
+              {t(open ? 'nav.close' : 'nav.menu')}
+            </span>
+          ) : (
+            t(open ? 'nav.close' : 'nav.menu')
+          )}
           <span aria-hidden>{open ? '×' : '☰'}</span>
         </button>
         <nav
@@ -133,9 +147,27 @@ export function FatuPublicFrame({
               {t(key)}
             </Link>
           ))}
+          {path === '/' && (
+            <>
+              <Link
+                className="home-mobile-link"
+                href="/client"
+                onClick={() => setOpen(false)}
+              >
+                {t('nav.client')}
+              </Link>
+              <Link
+                className="home-mobile-link"
+                href="/reservation"
+                onClick={() => setOpen(false)}
+              >
+                {t('nav.booking')}
+              </Link>
+            </>
+          )}
         </nav>
         <div className="fatu-header-actions">
-          <LanguageSwitcher />
+          <LanguageSwitcher compact={path === '/'} />
           <Link className="fatu-account-link" href="/client">
             {t('nav.client')}
           </Link>

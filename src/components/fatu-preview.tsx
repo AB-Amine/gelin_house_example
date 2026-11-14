@@ -1,10 +1,18 @@
 'use client';
 import { useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { AdminShell } from './admin-shell';
-import { FatuAdminDashboard, type AdminSummary } from './fatu-admin-dashboard';
+import {
+  FatuAdminDashboard,
+  type AdminSummary,
+  type AgendaRow,
+} from './fatu-admin-dashboard';
+import type { AppointmentRequestRow } from '@/lib/appointment-requests';
 import { FatuEntityManager } from './fatu-entity-manager';
 import { Calendar, type CalendarEntry } from './calendar';
+import { AdminCalendar } from './admin-calendar';
+import type { SalonSchedule } from '@/lib/salon-schedule';
 import { useI18n } from './locale-provider';
 import { entities, entitySchema } from '@/lib/admin-config';
 import type { calendarWindow } from '@/lib/calendar';
@@ -75,7 +83,9 @@ export function FatuPreview({
   period: ReturnType<typeof calendarWindow>;
 }) {
   const { t } = useI18n();
+  const calendarQuery = useSearchParams().get('q') ?? '';
   const [fallback] = useState(seed);
+  const [previewNow] = useState(() => Date.now());
   const raw = useSyncExternalStore(subscribe, snapshot, () => '');
   let data = fallback;
   try {
@@ -110,8 +120,30 @@ export function FatuPreview({
     qualifications: data.qualifications ?? [],
     working_hours: data.working_hours ?? [],
   };
+  const calendarRows = (data.calendar ?? []) as unknown as (CalendarEntry & {
+    id: string;
+  })[];
+  const todayRows = calendarRows.filter(
+    (row) =>
+      Temporal.Instant.from(row.starts_at)
+        .toZonedDateTimeISO('Africa/Casablanca')
+        .toPlainDate()
+        .toString() === today,
+  );
+  const filteredCalendarRows = calendarRows.filter((row) =>
+    `${row.reference} ${row.customers?.name ?? ''} ${row.customers?.phone ?? ''}`
+      .toLocaleLowerCase('fr')
+      .includes(calendarQuery.toLocaleLowerCase('fr')),
+  );
+  const calendarSchedule = {
+    hours: data.working_hours ?? [],
+    exceptions: data.exceptions ?? [],
+    closures: data.closures ?? [],
+  } as unknown as SalonSchedule;
+  const localRequests = (data.website_requests ??
+    []) as unknown as AppointmentRequestRow[];
   const summary: AdminSummary = {
-    total: 0,
+    total: todayRows.length,
     pending: 0,
     clients: 0,
     completed: 0,
@@ -134,13 +166,37 @@ export function FatuPreview({
         to={Temporal.PlainDate.from(today).add({ days: 30 }).toString()}
         dayLabel={dayLabel}
         timezone="Africa/Casablanca"
+        today={todayRows as unknown as AgendaRow[]}
+        confirmed={
+          calendarRows.filter(
+            (row) =>
+              row.status === 'confirmed' &&
+              Date.parse(row.starts_at) >= previewNow,
+          ).length
+        }
+        websiteRequests={localRequests}
+        websiteRequestCount={
+          localRequests.filter((row) => row.request_status === 'pending').length
+        }
       />
     );
   else if (slug === 'calendar')
     content = (
-      <>
+      <AdminCalendar
+        preview
+        window={period}
+        rows={filteredCalendarRows}
+        {...calendarSchedule}
+        resource=""
+        query={calendarQuery}
+        today={today}
+      >
         <h1>{t('admin.calendar')}</h1>
-        <form className="admin-toolbar">
+        <form
+          key={`${period.anchor}:${period.view}:${calendarQuery}`}
+          className="admin-toolbar"
+        >
+          <input type="hidden" name="display" value="details" />
           <input type="hidden" name="section" value="calendar" />
           <label>
             {t('field.day')}
@@ -157,10 +213,25 @@ export function FatuPreview({
             </select>
           </label>
           <button className="button">{t('common.filter')}</button>
+          <label>
+            {t('calendar.search')}
+            <input
+              name="q"
+              type="search"
+              defaultValue={calendarQuery}
+              maxLength={80}
+            />
+          </label>
+          <Link
+            className="button secondary"
+            href="/admin/preview?section=bookings&new=1"
+          >
+            + Ajouter un rendez-vous
+          </Link>
         </form>
         <div className="calendar-navigation">
           <Link
-            href={`/admin/preview?section=calendar&date=${period.previous}&view=${period.view}`}
+            href={`/admin/preview?section=calendar&date=${period.previous}&view=${period.view}&display=details&q=${encodeURIComponent(calendarQuery)}`}
           >
             ← {t('common.back')}
           </Link>
@@ -168,7 +239,7 @@ export function FatuPreview({
             {period.from} — {period.to}
           </span>
           <Link
-            href={`/admin/preview?section=calendar&date=${period.next}&view=${period.view}`}
+            href={`/admin/preview?section=calendar&date=${period.next}&view=${period.view}&display=details&q=${encodeURIComponent(calendarQuery)}`}
           >
             {t('common.next')} →
           </Link>
@@ -176,22 +247,28 @@ export function FatuPreview({
         <Calendar
           preview
           window={period}
-          rows={[] as CalendarEntry[]}
-          closures={[]}
-          hours={[]}
-          exceptions={[]}
+          rows={filteredCalendarRows}
+          {...calendarSchedule}
           resource=""
-          query=""
+          query={calendarQuery}
+          emptyLabel="Aucun rendez-vous sur cette journée."
+          display="details"
         />
-      </>
+      </AdminCalendar>
     );
   else if (section === 'clients')
     content = (
       <FatuClients
-        rows={[]}
+        rows={
+          (data.customers ?? []).filter(
+            (c) => c.kind === 'account',
+          ) as unknown as import('./fatu-clients').ClientRecord[]
+        }
         query=""
         page={1}
-        count={0}
+        count={
+          (data.customers ?? []).filter((c) => c.kind === 'account').length
+        }
         timezone="Africa/Casablanca"
       />
     );
@@ -283,6 +360,20 @@ export function FatuPreview({
                   ? 'Galerie'
                   : t(entities[slug].title)}
         </h1>
+        {slug === 'gallery' && (
+          <FatuEntityManager
+            slug="settings"
+            rows={data.settings ?? []}
+            refs={{}}
+            view="photos"
+            onSave={async (row) =>
+              persist({
+                ...data,
+                settings: [{ ...(data.settings?.[0] ?? {}), ...row }],
+              })
+            }
+          />
+        )}
         <FatuEntityManager
           key={`${slug}-${view ?? ''}`}
           slug={slug}

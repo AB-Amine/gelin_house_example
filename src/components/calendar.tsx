@@ -6,6 +6,11 @@ import { useI18n } from './locale-provider';
 import { Temporal } from '@js-temporal/polyfill';
 import { type calendarWindow } from '@/lib/calendar';
 import { type Status } from '@/lib/domain';
+import {
+  salonDaySchedule,
+  scheduleLabel,
+  startWithinSchedule,
+} from '@/lib/salon-schedule';
 export type CalendarEntry = {
   local_start?: string;
   reference: string;
@@ -20,6 +25,8 @@ export type CalendarEntry = {
   }[];
 };
 type Closure = {
+  local_start?: string;
+  local_end?: string;
   starts_at: string;
   ends_at: string;
   reason: string;
@@ -52,6 +59,9 @@ export function Calendar({
   query,
   preview = false,
   timezone = 'Africa/Casablanca',
+  emptyLabel,
+  display,
+  scheduleUnavailable = false,
 }: {
   window: ReturnType<typeof calendarWindow>;
   rows: CalendarEntry[];
@@ -62,6 +72,9 @@ export function Calendar({
   query: string;
   preview?: boolean;
   timezone?: string;
+  emptyLabel?: string;
+  display?: 'details';
+  scheduleUnavailable?: boolean;
 }) {
   const { t, locale, date, time } = useI18n();
   const router = useRouter();
@@ -71,13 +84,17 @@ export function Calendar({
       if (document.visibilityState === 'visible') router.refresh();
     };
     window.addEventListener('focus', refresh);
-    return () => window.removeEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', refresh);
+    return () => {
+      window.removeEventListener('focus', refresh);
+      document.removeEventListener('visibilitychange', refresh);
+    };
   }, [preview, router]);
   const businessDate = (instant: string) => businessDateAt(instant, timezone);
   const dateLabel = (value: string) => date(value, { timeZone: timezone });
   const timeLabel = (value: string) => time(value, timezone);
   function dayLink(day: string) {
-    return `${preview ? '/admin/preview' : '/admin/calendar'}?${new URLSearchParams({ ...(preview ? { section: 'calendar' } : {}), date: day, view: 'day', resource, q: query })}`;
+    return `${preview ? '/admin/preview' : '/admin/calendar'}?${new URLSearchParams({ ...(preview ? { section: 'calendar' } : {}), ...(display ? { display } : {}), date: day, view: 'day', resource, q: query })}`;
   }
   function intervals(day: string, id: string | null) {
     const overrides = exceptions.filter(
@@ -101,15 +118,14 @@ export function Calendar({
         businessDate(c.ends_at) >= day &&
         (!resource || c.resource_id === null || c.resource_id === resource),
     );
-    const opening = intervals(day, null);
+    const schedule = { hours, exceptions, closures };
+    const opening = salonDaySchedule(day, schedule);
     return (
       <>
         <p className="calendar-hours">
-          {opening.length
-            ? opening
-                .map((h) => `${h.opens.slice(0, 5)}–${h.closes.slice(0, 5)}`)
-                .join(' / ')
-            : t('calendar.closed')}
+          {scheduleUnavailable
+            ? 'Horaires indisponibles'
+            : scheduleLabel(opening)}
           {resource && (
             <>
               {' '}
@@ -146,6 +162,19 @@ export function Calendar({
             <small>{a.appointment_items.map((i) => i.name).join(' · ')}</small>
             {a.customers?.phone && <small>{a.customers.phone}</small>}
             <small>{t(`status.${a.status}`)}</small>
+            {!scheduleUnavailable &&
+              !startWithinSchedule(
+                a.local_start ??
+                  Temporal.Instant.from(a.starts_at)
+                    .toZonedDateTimeISO(timezone)
+                    .toPlainDateTime()
+                    .toString(),
+                schedule,
+              ) && (
+                <small className="calendar-schedule-warning">
+                  Hors horaires du salon · rendez-vous conservé
+                </small>
+              )}
             {!compact && <></>}
           </Link>
         ))}
@@ -155,7 +184,7 @@ export function Calendar({
           </Link>
         )}
         {!appointments.length && !compact && (
-          <p className="small">{t('client.noBookings')}</p>
+          <p className="small">{emptyLabel ?? t('client.noBookings')}</p>
         )}
       </>
     );

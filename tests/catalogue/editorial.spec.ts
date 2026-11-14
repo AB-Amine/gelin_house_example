@@ -44,40 +44,75 @@ test('about content, real-gallery priority and category links work without ficti
   await expect(main.locator('.fatu-image-button')).toHaveCount(1);
   await main.locator('.fatu-image-button').click();
   await expect(page.getByRole('dialog')).toBeVisible();
-  await expect(page.locator('.salon-gallery-counter')).toHaveText('1 / 1');
+  await expect(
+    page.getByRole('dialog').locator('.salon-gallery-counter'),
+  ).toHaveText('1 / 1');
   await page.keyboard.press('Escape');
   await expect(main.locator('.fatu-image-button')).toBeFocused();
 });
 
-test('homepage previews two current offers and the offers page keeps the complete carousel', async ({
+test('homepage offers scroll while the offers page stays an ordered grid', async ({
   page,
 }, info) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
-  await expect(page.locator('main .premium-offer-card')).toHaveCount(2);
+  await expect(page.locator('main .premium-offer-card')).toHaveCount(4);
   await expect(
     page.locator('main .premium-offer-card.is-upcoming'),
-  ).toHaveCount(0);
-  await page.goto('/offres');
+  ).toHaveCount(1);
   const track = page.locator('main:visible .premium-offer-grid.is-carousel');
   await expect(track.locator('.premium-offer-card')).toHaveCount(4);
   await expect(track.locator('.premium-offer-photo img')).toHaveCount(4);
   expect(
     await track.evaluate((node) => node.scrollWidth > node.clientWidth),
   ).toBe(true);
-  for (let i = 0; i < 3; i++)
+  for (
+    let i = 0;
+    i < 4 &&
+    (await page.getByRole('button', { name: 'Offres suivantes' }).isEnabled());
+    i++
+  ) {
     await page.getByRole('button', { name: 'Offres suivantes' }).click();
+    await page.waitForTimeout(100);
+  }
   await expect
     .poll(() => track.evaluate((node) => Math.abs(node.scrollLeft)))
     .toBeGreaterThan(0);
   await track.scrollIntoViewIfNeeded();
   await expect(track.locator('.is-upcoming')).toBeInViewport();
-  for (let i = 0; i < 3; i++)
+  for (
+    let i = 0;
+    i < 4 &&
+    (await page
+      .getByRole('button', { name: 'Offres précédentes' })
+      .isEnabled());
+    i++
+  ) {
     await page.getByRole('button', { name: 'Offres précédentes' }).click();
+    await page.waitForTimeout(100);
+  }
   await expect
     .poll(() => track.evaluate((node) => Math.abs(node.scrollLeft)))
     .toBeLessThanOrEqual(4);
-  await track.screenshot({ path: info.outputPath('offers-carousel.png') });
+  await track.screenshot({ path: info.outputPath('home-offers-carousel.png') });
+  await page.goto('/offres');
+  await expect(
+    page.locator('main .premium-offer-grid.is-carousel'),
+  ).toHaveCount(0);
+  await expect(page.locator('main .premium-offer-card')).toHaveCount(4);
+  await expect(
+    page.getByRole('button', { name: 'Offres suivantes' }),
+  ).toHaveCount(0);
+  const cards = await page.locator('main .premium-offer-card').all();
+  const first = await cards[0].boundingBox();
+  const second = await cards[1].boundingBox();
+  if (info.project.name === 'mobile')
+    expect(second!.y).toBeGreaterThan(first!.y);
+  else expect(Math.abs(second!.y - first!.y)).toBeLessThanOrEqual(1);
+  await page.screenshot({
+    path: info.outputPath('ordered-offers.png'),
+    fullPage: true,
+  });
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,

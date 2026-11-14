@@ -7,17 +7,25 @@ import { businessToday } from '@/lib/dates';
 import { api, errorMessage } from '@/lib/client';
 import { useBasket } from './basket';
 import { useWebsiteCopy } from './website-copy';
+import {
+  salonDaySchedule,
+  scheduleLabel,
+  startWithinSchedule,
+  type SalonSchedule,
+} from '@/lib/salon-schedule';
 
 export function AppointmentRequest({
   catalog: initial,
   configured,
   initialService = '',
   manual = false,
+  salonSchedule,
 }: {
   catalog: Catalog;
   configured: boolean;
   initialService?: string;
   manual?: boolean;
+  salonSchedule?: SalonSchedule;
 }) {
   const { catalog, t } = useWebsiteCopy(initial);
   const basket = useBasket();
@@ -39,6 +47,8 @@ export function AppointmentRequest({
   const [key, setKey] = useState(() => crypto.randomUUID());
   const [reference, setReference] = useState('');
   const [savedDate, setSavedDate] = useState('');
+  const [chosenDate, setChosenDate] = useState('');
+  const [chosenTime, setChosenTime] = useState('');
   const today = businessToday(
     catalog.settings?.timezone ?? 'Africa/Casablanca',
   );
@@ -208,13 +218,53 @@ export function AppointmentRequest({
           <div className="form-grid">
             <label>
               {manual ? 'Date' : t('requestForm.date')}
-              <input name="date" type="date" min={today} required />
+              <input
+                name="date"
+                type="date"
+                min={today}
+                required
+                onChange={(e) => setChosenDate(e.target.value)}
+              />
             </label>
             <label>
               {manual ? 'Heure de début' : 'Heure de début souhaitée'}
-              <input name="time" type="time" required />
+              <input
+                name="time"
+                type="time"
+                required
+                onChange={(e) => setChosenTime(e.target.value)}
+                aria-describedby={manual ? 'manual-salon-hours' : undefined}
+              />
             </label>
           </div>
+          {manual && (
+            <div className="notice" id="manual-salon-hours" role="status">
+              {!salonSchedule ? (
+                'Horaires indisponibles. La validation habituelle du salon reste appliquée à l’enregistrement.'
+              ) : !chosenDate ? (
+                'Choisissez une date pour consulter les horaires du salon (Africa/Casablanca).'
+              ) : (
+                <>
+                  <strong>
+                    Horaires du salon :{' '}
+                    {scheduleLabel(salonDaySchedule(chosenDate, salonSchedule))}
+                  </strong>{' '}
+                  · Africa/Casablanca
+                  {chosenTime &&
+                    !startWithinSchedule(
+                      `${chosenDate}T${chosenTime}`,
+                      salonSchedule,
+                    ) && (
+                      <p>
+                        Cette heure est en dehors des horaires configurés.
+                        Vérifiez la date et l’heure ; les règles de validation
+                        existantes restent appliquées.
+                      </p>
+                    )}
+                </>
+              )}
+            </div>
+          )}
           <h2>3. Vos coordonnées</h2>
           <div className="form-grid">
             <label>

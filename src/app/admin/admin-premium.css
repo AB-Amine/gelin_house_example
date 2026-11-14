@@ -1,0 +1,1171 @@
+/* Scoped presentation layer for the existing protected salon workspace. */
+.salon-admin {
+  --admin-ink: #46192e;
+  --admin-muted: #806675;
+  --admin-pink: #bd0751;
+  --admin-line: #e6ccd2;
+  --admin-gold: #c9a46d;
+  --ink: #46192e;
+  --muted: #806675;
+  --line: #e6ccd2;
+  --paper: #fffaf8;
+  grid-template-columns: 250px minmax(0, 1fr);
+  background: #fffaf7;
+  color: var(--admin-ink);
+  font:
+    15px/1.55 Arial,
+    sans-serif;
+}
+.salon-admin :is(h1, h2, h3, h4) {
+  color: var(--admin-ink);
+  font-family: Georgia, serif;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+}
+.salon-admin h1 {
+  font-size: clamp(34px, 3.3vw, 54px);
+  line-height: 1.15;
+  margin: 14px 0 12px;
+}
+.salon-admin h2 {
+  font-size: clamp(25px, 2vw, 33px);
+  line-height: 1.25;
+}
+.salon-admin h3 {
+  font-size: 23px;
+}
+.salon-admin :is(p, small, label) {
+  color: inherit;
+}
+.salon-admin a {
+  color: #a30d47;
+}
+.salon-admin .admin-sidebar {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  background: #fff5f2;
+  padding: 30px 14px 22px;
+  border-inline-end: 1px solid #ddc5b1;
+  isolation: isolate;
+}
+.salon-admin .admin-sidebar > .wordmark {
+  display: block;
+  text-align: center;
+  font:
+    26px/1.2 Georgia,
+    serif;
+  letter-spacing: 0.025em;
+  color: var(--admin-ink);
+  padding: 0 0 32px;
+}
+.salon-admin .admin-sidebar .wordmark > svg {
+  display: block;
+  width: 44px;
+  height: 44px;
+  color: var(--admin-pink);
+  margin: 0 auto 12px;
+}
+.salon-admin .admin-sidebar .wordmark small {
+  display: block;
+  font:
+    10px/1.5 Arial,
+    sans-serif;
+  letter-spacing: 0.23em;
+  margin-top: 8px;
+  color: #946e45;
+}
+.salon-admin .admin-sidebar nav a {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  min-height: 53px;
+  font-size: 16px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  margin-block: 5px;
+  color: var(--admin-ink);
+}
+.salon-admin .nav-icon {
+  display: flex;
+  width: 26px;
+  flex-shrink: 0;
+  color: #a33b61;
+}
+.salon-admin .admin-sidebar nav a[aria-current='page'] {
+  background: var(--admin-pink);
+  color: white;
+  box-shadow: 0 3px 12px #bd075110;
+}
+.salon-admin .admin-sidebar nav a[aria-current='page'] .nav-icon {
+  color: inherit;
+}
+.salon-admin .admin-sidebar nav a:hover:not([aria-current='page']) {
+  background: #fbe6ed;
+}
+.salon-admin .admin-sidebar-footer {
+  border-top: 1px solid #d8b88a;
+  padding-top: 18px;
+  gap: 12px;
+}
+.salon-admin .admin-sidebar .admin-site-link {
+  color: var(--admin-ink);
+  font-size: 16px;
+}
+.salon-admin .admin-sidebar .button.secondary {
+  background: transparent;
+  border-color: #dfbccb;
+  color: #8f3155;
+}
+.salon-admin .admin-main {
+  padding: 24px clamp(22px, 3vw, 48px);
+  position: relative;
+  isolation: isolate;
+}
+.salon-admin .admin-header-flowers {
+  position: absolute;
+  width: 270px;
+  height: 220px;
+  top: -40px;
+  right: 12%;
+  color: #e6a1b6;
+  opacity: 0.24;
+  z-index: -1;
+  pointer-events: none;
+}
+.salon-admin .admin-sidebar-flowers {
+  position: absolute;
+  bottom: 10px;
+  left: -55px;
+  width: 240px;
+  color: #e2b1b7;
+  opacity: 0.25;
+  z-index: -1;
+  pointer-events: none;
+}
+.salon-admin .admin-topline {
+  padding-bottom: 14px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #f0dfe3;
+}
+.salon-admin .admin-topline .eyebrow {
+  color: #946b4c;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+}
+.salon-admin .admin-account {
+  gap: 10px;
+  color: var(--admin-ink);
+}
+.salon-admin .admin-avatar {
+  background: #fae3e9;
+  color: #9d3156;
+  border: 0;
+  width: 40px;
+  height: 40px;
+}
+.salon-admin .admin-account small {
+  color: var(--admin-muted);
+  font-size: 12px;
+}
+.salon-admin .admin-main :is(.button, button.button, a.button) {
+  min-height: 44px;
+  border-radius: 11px;
+  background: var(--admin-pink);
+  color: #fff;
+  border: 1px solid var(--admin-pink);
+  box-shadow: none;
+  padding: 10px 18px;
+  font:
+    600 14px/1.35 Arial,
+    sans-serif;
+  letter-spacing: 0;
+}
+.salon-admin .admin-main .button.secondary {
+  background: #fffaf8;
+  color: #92345a;
+  border-color: #d9b6c4;
+}
+.salon-admin .admin-main .button:hover:not(:disabled) {
+  background: #a40442;
+  border-color: #a40442;
+  color: white;
+}
+.salon-admin .admin-main .button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.salon-admin :is(input, select, textarea) {
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid #d7bfbf;
+  border-radius: 10px;
+  background: #fffdfb;
+  color: var(--admin-ink);
+  font:
+    15px/1.4 Arial,
+    sans-serif;
+  box-shadow: none;
+}
+.salon-admin label {
+  font-size: 14px;
+  line-height: 1.5;
+  gap: 7px;
+  margin-bottom: 14px;
+}
+.salon-admin input[type='checkbox'] {
+  accent-color: var(--admin-pink);
+  width: 20px;
+  height: 20px;
+  min-height: 20px;
+}
+.salon-admin .checkbox {
+  align-items: center;
+}
+.salon-admin .form-grid {
+  gap: 0 20px;
+}
+.salon-admin :is(fieldset, .form-grid) {
+  min-width: 0;
+}
+.salon-admin .admin-form {
+  border: 1px solid #d8b69b;
+  border-radius: 18px;
+  background: #fffdfb;
+  padding: 26px;
+  margin-block: 0 24px;
+  box-shadow: none;
+}
+.salon-admin .admin-form h2 {
+  margin: 0 0 24px;
+}
+.salon-admin .admin-form .inline-actions {
+  margin-top: 20px;
+}
+.salon-admin .admin-form .inline-actions .button {
+  flex: 1;
+}
+.salon-admin .admin-toolbar {
+  align-items: end;
+  gap: 14px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  margin: 22px 0;
+}
+.salon-admin .admin-toolbar label {
+  min-width: 0;
+  flex: 1;
+  margin: 0;
+}
+.salon-admin .admin-toolbar .button {
+  flex-shrink: 0;
+}
+.salon-admin .salon-tabs {
+  gap: 10px;
+  border-color: #ead1d7;
+  padding-bottom: 18px;
+  margin: 0 0 24px;
+}
+.salon-admin .salon-tabs a {
+  flex: 1;
+  justify-content: center;
+  border: 1px solid #d8b69b;
+  background: transparent;
+  border-radius: 13px;
+  padding: 12px 16px;
+  min-height: 48px;
+  font-size: 16px;
+  color: var(--admin-ink);
+}
+.salon-admin .salon-tabs a.is-active {
+  background: var(--admin-pink);
+  border-color: var(--admin-pink);
+  color: #fff;
+}
+.salon-admin .badge {
+  border-radius: 999px;
+  padding: 5px 11px;
+  font-size: 12px;
+  background: #f9e5ed;
+  color: #8e2a52;
+  border: 0;
+}
+.salon-admin :is(.status-confirmed, .badge-confirmed) {
+  background: #eaf2df;
+  color: #42642a;
+}
+.salon-admin :is(.status-pending, .badge-pending) {
+  background: #fff0d6;
+  color: #885214;
+}
+.salon-admin :is(.notice, .empty-state) {
+  border: 1px solid #efd1db;
+  border-radius: 12px;
+  background: #fff1f5;
+  color: #735064;
+  padding: 16px 18px;
+}
+.salon-admin .error {
+  background: #fff0f2;
+  color: #a41043;
+  padding: 16px;
+  border-radius: 10px;
+}
+.salon-admin :is(.salon-disclosure, .entity-details) {
+  border: 1px solid #ead1d7;
+  border-radius: 12px;
+  padding: 13px 16px;
+  margin-block: 18px;
+}
+.salon-admin summary {
+  cursor: pointer;
+  color: #963553;
+  font-size: 15px;
+}
+.salon-admin .admin-record-grid {
+  margin: 0;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+}
+.salon-admin .admin-record-card {
+  border: 1px solid #e2c9c9;
+  border-radius: 16px;
+  padding: 22px;
+  background: #fffdfb;
+  box-shadow: none;
+  min-width: 0;
+}
+.salon-admin .admin-record-card h3 {
+  margin-top: 0;
+}
+.salon-admin .admin-record-card dl {
+  font-size: 14px;
+}
+.salon-admin .admin-record-card dl dt {
+  color: var(--admin-muted);
+}
+.salon-admin .fatu-admin-section {
+  border: 1px solid #dfc1b2;
+  border-radius: 18px;
+  background: #fffdfb;
+  padding: 24px;
+  margin-block: 0 24px;
+}
+.salon-admin .fatu-admin-section .section-heading {
+  margin-bottom: 20px;
+  align-items: center;
+}
+.salon-admin .fatu-admin-section h2 {
+  margin-top: 0;
+}
+.salon-admin .salon-stats {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin: 24px 0 30px;
+}
+.salon-admin .salon-stats .stat-card {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 4px 16px;
+  padding: 22px;
+  border: 1px solid #dcbca0;
+  border-radius: 17px;
+  background: #fff1f4;
+}
+.salon-admin .stat-card > svg {
+  grid-row: 1 / span 2;
+  align-self: center;
+  width: 38px;
+  height: 38px;
+  color: #b33060;
+  padding: 8px;
+  box-sizing: content-box;
+  background: #fce1ea;
+  border-radius: 14px;
+}
+.salon-admin .salon-stats .stat-card strong {
+  font:
+    48px/1.1 Georgia,
+    serif;
+  color: #46192e;
+}
+.salon-admin .salon-dashboard-columns {
+  grid-template-columns: minmax(0, 1.65fr) minmax(280px, 1fr);
+  align-items: start;
+  gap: 24px;
+}
+.salon-admin .salon-quick-actions {
+  margin-bottom: 24px;
+}
+.salon-admin .salon-quick-actions a {
+  border-color: #ead1d7;
+  background: #fff8f5;
+  color: #9a315b;
+}
+.salon-admin .salon-pending {
+  padding: 18px;
+  border: 1px solid #e7cbd0;
+  border-radius: 13px;
+  background: #fffaf8;
+  margin-bottom: 12px;
+}
+.salon-admin .salon-pending > strong {
+  font:
+    600 22px/1.3 Georgia,
+    serif;
+}
+.salon-admin .salon-pending p {
+  margin-block: 7px;
+  font-size: 14px;
+}
+.salon-admin .salon-agenda > a {
+  border-color: #ecd1d8;
+  border-radius: 13px;
+  background: #fff9f6;
+  padding: 16px 12px;
+}
+.salon-admin .request-actions {
+  margin-top: 14px;
+}
+.salon-admin .request-actions .inline-actions {
+  gap: 8px;
+}
+.salon-admin .calendar-day {
+  border-color: #ead5d9;
+  background: #fffdfb;
+}
+.salon-admin .calendar-event {
+  background: #fce2eb;
+  border-color: #eac4d0;
+  color: #4e2035;
+  border-radius: 10px;
+  font:
+    14px/1.5 Arial,
+    sans-serif;
+  padding: 14px 10px;
+}
+.salon-admin .calendar-weekday {
+  background: #fbe8ed;
+  color: var(--admin-ink);
+  font-size: 14px;
+  padding: 16px 10px;
+}
+.salon-admin .calendar-grid.week .calendar-cell {
+  min-height: 280px;
+  background: #fffdfb;
+}
+.salon-admin .calendar-event strong {
+  font-size: 16px;
+}
+.salon-admin .calendar-event small {
+  font-size: 12px;
+  line-height: 1.5;
+}
+.salon-admin .calendar-event.status-confirmed {
+  background: #eef4e5;
+  border-color: #c9dcb7;
+}
+.salon-admin .calendar-hours {
+  font-size: 14px;
+  font-weight: 600;
+  color: #896f7b;
+}
+.salon-admin .calendar-event .calendar-schedule-warning {
+  color: #825212;
+  background: #fff0d1;
+  border-radius: 6px;
+  padding: 6px;
+  font-size: 12px;
+}
+.salon-admin .calendar-navigation {
+  border: 1px solid #e5cbd0;
+  border-radius: 12px;
+  background: #fff6f4;
+  padding: 16px;
+  font-size: 16px;
+}
+.salon-admin .admin-bottomline {
+  border-color: #ead3d9;
+  color: #987583;
+  margin-top: 32px;
+}
+.salon-admin :is(a, button, input, select, textarea, summary):focus-visible {
+  outline: 2px solid #c90757;
+  outline-offset: 3px;
+}
+.salon-admin .salon-today-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+.salon-admin .salon-today-label svg {
+  color: var(--admin-pink);
+}
+.salon-admin .salon-shortcuts {
+  margin-block: 12px 22px;
+}
+.salon-admin .salon-shortcuts .salon-quick-actions {
+  margin-block: 14px;
+}
+.salon-admin .salon-calendar-link {
+  display: inline-flex;
+  gap: 10px;
+  margin-top: 24px;
+  font-size: 16px;
+}
+.salon-admin .salon-entity-workspace {
+  min-width: 0;
+}
+.salon-admin .salon-entity-workspace > .notice {
+  grid-column: 1 / -1;
+}
+.salon-admin .salon-offer-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-block: 0 24px;
+}
+.salon-admin .salon-offer-filters button {
+  padding: 10px 18px;
+  min-height: 42px;
+  background: #fffaf8;
+  border: 1px solid #d6b796;
+  border-radius: 999px;
+  color: #79314f;
+  font-size: 14px;
+}
+.salon-admin .salon-offer-filters button[aria-pressed='true'] {
+  background: #f8dfe9;
+  border-color: #cc8aa7;
+  color: #8b1c48;
+}
+.salon-admin
+  .salon-entity-workspace:is(
+    [data-entity='services'],
+    [data-entity='promotions'],
+    [data-entity='offers']
+  )[data-editing='true'] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 370px;
+  column-gap: 24px;
+  align-items: start;
+}
+.salon-admin .salon-entity-workspace > .admin-toolbar {
+  grid-column: 1 / -1;
+}
+.salon-admin .salon-entity-workspace > .salon-offer-filters {
+  grid-column: 1 / -1;
+}
+.salon-admin
+  .salon-entity-workspace:is(
+    [data-entity='services'],
+    [data-entity='promotions'],
+    [data-entity='offers']
+  )[data-editing='true']
+  > .admin-form {
+  grid-column: 2;
+  grid-row: 2;
+  position: sticky;
+  top: 20px;
+  max-height: calc(100svh - 40px);
+  overflow-y: auto;
+  padding: 22px;
+}
+.salon-admin
+  .salon-entity-workspace:is(
+    [data-entity='promotions'],
+    [data-entity='offers']
+  )[data-editing='true']
+  > .admin-form {
+  grid-row: 3;
+}
+.salon-admin
+  .salon-entity-workspace:is(
+    [data-entity='services'],
+    [data-entity='promotions'],
+    [data-entity='offers']
+  )[data-editing='true']
+  > .admin-form
+  .form-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+.salon-admin
+  .salon-entity-workspace:is(
+    [data-entity='services'],
+    [data-entity='promotions'],
+    [data-entity='offers']
+  )[data-editing='true']
+  > .admin-record-grid {
+  grid-column: 1;
+  grid-row: 2;
+}
+.salon-admin
+  .salon-entity-workspace:is(
+    [data-entity='promotions'],
+    [data-entity='offers']
+  )[data-editing='true']
+  > .admin-record-grid {
+  grid-row: 3;
+}
+.salon-admin .salon-choice-group {
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 16px;
+  border: 1px solid #ecd2db;
+  border-radius: 12px;
+  margin: 18px 0;
+}
+.salon-admin .salon-choice-group legend {
+  color: #7e3352;
+  padding-inline: 6px;
+  font-size: 14px;
+}
+.salon-admin [data-entity='services'] .admin-record-grid {
+  gap: 0;
+  border: 1px solid #dfc3b9;
+  border-radius: 17px;
+  overflow: hidden;
+}
+.salon-admin [data-entity='services'] .admin-record-card {
+  display: grid;
+  grid-template-columns: 38px minmax(120px, 1fr) 120px 105px 85px 100px;
+  gap: 14px;
+  align-items: center;
+  border: 0;
+  border-bottom: 1px solid #ecd7da;
+  border-radius: 0;
+  padding: 18px;
+}
+.salon-admin [data-entity='services'] .admin-record-card:last-child {
+  border-bottom: 0;
+}
+.salon-admin [data-entity='services'] .admin-record-card > button {
+  white-space: nowrap;
+  padding: 10px 12px;
+  min-width: 94px;
+}
+.salon-admin .admin-main .admin-form label,
+.salon-admin .admin-main .notice {
+  font-size: 14px;
+}
+.salon-admin .salon-stats .stat-card > span {
+  font-size: 15px;
+  line-height: 1.5;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink);
+}
+.salon-admin [data-entity='settings'] .form-grid > label:has(textarea),
+.salon-admin [data-entity='settings'] .form-grid > label[data-field='address'] {
+  grid-column: 1 / -1;
+}
+.salon-admin [data-entity='services'] .admin-record-card h3 {
+  font:
+    600 16px/1.4 Arial,
+    sans-serif;
+  letter-spacing: 0;
+  margin: 0;
+}
+.salon-admin .salon-service-icon {
+  display: grid;
+  place-items: center;
+  background: #fbe7eb;
+  width: 38px;
+  height: 42px;
+  border-radius: 10px;
+  color: #b62b5a;
+}
+.salon-admin .salon-service-category {
+  background: #fae3ea;
+  border-radius: 999px;
+  padding: 5px 10px;
+  text-align: center;
+  font-size: 12px;
+}
+.salon-admin .salon-service-price {
+  font-size: 14px;
+}
+.salon-admin .salon-service-columns {
+  display: grid;
+  grid-template-columns: minmax(172px, 1fr) 120px 105px 85px 100px;
+  gap: 14px;
+  padding: 16px 18px;
+  background: #fff0f3;
+  color: #7b2448;
+  font-size: 13px;
+}
+.salon-admin
+  :is([data-entity='promotions'], [data-entity='offers'])
+  .admin-record-card {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr) auto;
+  gap: 10px 20px;
+  align-items: center;
+}
+.salon-admin .salon-offer-image {
+  grid-column: 1;
+  grid-row: 1 / span 7;
+  width: 150px;
+  height: 180px;
+  object-fit: cover;
+  object-position: center 30%;
+  border-radius: 12px;
+}
+.salon-admin
+  :is([data-entity='promotions'], [data-entity='offers'])
+  .admin-record-card
+  h3 {
+  grid-column: 2;
+  margin: 0;
+}
+.salon-admin
+  :is([data-entity='promotions'], [data-entity='offers'])
+  .admin-record-card
+  > :is(p, .badge) {
+  grid-column: 2;
+  margin: 0;
+  width: fit-content;
+}
+.salon-admin
+  :is([data-entity='promotions'], [data-entity='offers'])
+  .admin-record-card
+  > button {
+  grid-column: 3;
+  grid-row: 1 / span 7;
+}
+.salon-admin .salon-offer-discount {
+  font:
+    26px/1.2 Georgia,
+    serif;
+  color: #b71756;
+}
+.salon-admin .salon-entity-workspace[data-entity='settings'] {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+.salon-admin [data-entity='settings'] > .admin-form {
+  grid-column: 1;
+}
+.salon-admin [data-entity='settings'] > .admin-record-grid {
+  display: none;
+}
+.salon-admin [data-entity='settings']:not(:has(.salon-settings-preview)) {
+  display: block;
+}
+.salon-admin .salon-settings-preview {
+  border: 1px solid #ddbdac;
+  border-radius: 18px;
+  background: #fff7f8;
+  padding: 24px;
+}
+.salon-admin .salon-settings-preview h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 0;
+}
+.salon-admin .salon-settings-preview > img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+.salon-admin .salon-preview-placeholder {
+  min-height: 160px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  border: 1px dashed #dfb3c5;
+  border-radius: 12px;
+  color: #90617a;
+  padding: 20px;
+  text-align: center;
+}
+.salon-admin .salon-preview-placeholder svg {
+  width: 38px;
+  height: 38px;
+}
+.salon-admin .salon-preview-contact {
+  border-bottom: 1px solid #e4c7c7;
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+}
+.salon-admin .salon-preview-contact p {
+  margin: 6px 0;
+  overflow-wrap: anywhere;
+}
+.salon-admin .salon-preview-description {
+  font:
+    italic 18px/1.6 Georgia,
+    serif;
+}
+.salon-admin .salon-client-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.8fr) minmax(280px, 1fr);
+  gap: 24px;
+  align-items: start;
+  margin-block: 24px;
+}
+.salon-admin .registered-clients {
+  display: grid;
+  gap: 14px;
+}
+.salon-admin .registered-client {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  gap: 12px 18px;
+  align-items: center;
+  border: 1px solid #dec7c0;
+  background: #fffdfb;
+  padding: 20px;
+  border-radius: 16px;
+}
+.salon-admin .registered-client.is-selected {
+  border-color: #cd4c7e;
+  background: #fff0f6;
+}
+.salon-admin .registered-client h2 {
+  font-size: 26px;
+  margin: 0 0 4px;
+}
+.salon-admin .registered-client p {
+  font-size: 14px;
+  margin: 4px 0;
+  overflow-wrap: anywhere;
+}
+.salon-admin .salon-client-avatar {
+  display: grid;
+  place-items: center;
+  background: #f9dfe6;
+  color: #8e3355;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  font:
+    30px/1 Georgia,
+    serif;
+}
+.salon-admin .registered-client .salon-profile-button {
+  grid-column: 3;
+  color: #b00d4e;
+  border: 0;
+  background: transparent;
+  min-height: 44px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.salon-admin .registered-client > div:nth-of-type(2) {
+  grid-column: 2;
+}
+.salon-admin .salon-client-profile {
+  border: 1px solid #e5b8ca;
+  padding: 26px;
+  border-radius: 18px;
+  background: #fff0f5;
+  position: sticky;
+  top: 20px;
+}
+.salon-admin .salon-client-profile h2 {
+  margin: 0 0 20px;
+}
+.salon-admin .salon-client-profile h4 {
+  padding-top: 18px;
+  border-top: 1px solid #d5b293;
+  margin-bottom: 12px;
+  font-size: 21px;
+}
+.salon-admin .salon-client-profile h3 {
+  margin: 14px 0 8px;
+}
+.salon-admin .salon-client-profile p {
+  font:
+    14px/1.6 Arial,
+    sans-serif;
+  margin: 8px 0;
+}
+.salon-admin .salon-client-profile p > svg {
+  display: inline-block;
+  margin-inline-end: 6px;
+}
+.salon-admin .salon-client-profile a {
+  overflow-wrap: anywhere;
+}
+.salon-admin .salon-client-profile p > svg {
+  vertical-align: middle;
+}
+@media (max-width: 1500px) {
+  .salon-admin
+    [data-entity='services'][data-editing='true']
+    .admin-record-card {
+    grid-template-columns: 32px minmax(0, 1fr) auto;
+  }
+  .salon-admin
+    [data-entity='services'][data-editing='true']
+    .salon-service-columns {
+    display: none;
+  }
+  .salon-admin
+    [data-entity='services'][data-editing='true']
+    .salon-service-icon {
+    grid-row: 1 / span 3;
+  }
+  .salon-admin
+    [data-entity='services'][data-editing='true']
+    :is(h3, .salon-service-category, .salon-service-price) {
+    grid-column: 2;
+  }
+  .salon-admin
+    [data-entity='services'][data-editing='true']
+    .admin-record-card
+    > button {
+    grid-column: 3;
+    grid-row: 1;
+  }
+  .salon-admin
+    :is([data-entity='promotions'], [data-entity='offers'])[data-editing='true']
+    .admin-record-card {
+    grid-template-columns: 90px minmax(0, 1fr);
+    padding: 16px;
+  }
+  .salon-admin
+    :is([data-entity='promotions'], [data-entity='offers'])[data-editing='true']
+    .salon-offer-image {
+    width: 90px;
+    height: 130px;
+  }
+  .salon-admin
+    :is([data-entity='promotions'], [data-entity='offers'])[data-editing='true']
+    .admin-record-card
+    > button {
+    grid-column: 2;
+    grid-row: auto;
+  }
+}
+@media (max-width: 1100px) {
+  .salon-admin
+    .salon-entity-workspace:is(
+      [data-entity='services'],
+      [data-entity='promotions'],
+      [data-entity='offers']
+    )[data-editing='true'],
+  .salon-admin .salon-entity-workspace[data-entity='settings'],
+  .salon-admin .salon-client-layout {
+    display: block;
+  }
+  .salon-admin
+    .salon-entity-workspace:is(
+      [data-entity='services'],
+      [data-entity='promotions'],
+      [data-entity='offers']
+    )[data-editing='true']
+    > .admin-form {
+    position: static;
+    max-height: none;
+  }
+  .salon-admin .salon-settings-preview {
+    margin-bottom: 24px;
+  }
+  .salon-admin [data-entity='services'] .admin-record-card {
+    grid-template-columns: 32px minmax(0, 1fr) auto;
+  }
+  .salon-admin [data-entity='services'] .salon-service-columns {
+    display: none;
+  }
+  .salon-admin [data-entity='services'] .salon-service-icon {
+    grid-row: 1 / span 3;
+  }
+  .salon-admin
+    [data-entity='services']
+    :is(.salon-service-category, .salon-service-price) {
+    grid-column: 2;
+  }
+  .salon-admin [data-entity='services'] .admin-record-card > button {
+    grid-column: 3;
+    grid-row: 1;
+  }
+  .salon-admin .salon-client-profile {
+    margin-top: 24px;
+    position: static;
+  }
+}
+@media (max-width: 600px) {
+  .salon-admin
+    :is([data-entity='promotions'], [data-entity='offers'])
+    .admin-record-card {
+    grid-template-columns: 80px minmax(0, 1fr);
+    padding: 16px;
+    gap: 10px 14px;
+  }
+  .salon-admin .salon-offer-image {
+    width: 80px;
+    height: 120px;
+  }
+  .salon-admin
+    :is([data-entity='promotions'], [data-entity='offers'])
+    .admin-record-card
+    > button {
+    grid-column: 2;
+    grid-row: auto;
+  }
+  .salon-admin .registered-client {
+    grid-template-columns: 40px minmax(0, 1fr);
+    padding: 16px;
+  }
+  .salon-admin .registered-client .salon-profile-button {
+    grid-column: 2;
+  }
+  .salon-admin .salon-client-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 24px;
+  }
+}
+@media (max-width: 1200px) {
+  .salon-admin {
+    grid-template-columns: 220px minmax(0, 1fr);
+  }
+  .salon-admin .admin-sidebar nav a {
+    font-size: 15px;
+    gap: 10px;
+    padding-inline: 10px;
+  }
+  .salon-admin .admin-main {
+    padding-inline: 24px;
+  }
+  .salon-admin .salon-dashboard-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 800px) {
+  .salon-admin {
+    display: block;
+  }
+  .salon-admin .admin-sidebar {
+    position: static;
+    height: auto;
+    padding: 18px;
+    border-inline-end: 0;
+    border-bottom: 1px solid #e6c8cb;
+    display: flex;
+    flex-flow: row wrap;
+    align-items: center;
+    gap: 12px;
+  }
+  .salon-admin .admin-sidebar > .wordmark {
+    padding: 0;
+    font-size: 23px;
+    text-align: start;
+    flex: 1;
+  }
+  .salon-admin .admin-sidebar .wordmark > svg {
+    display: none;
+  }
+  .salon-admin .admin-sidebar .wordmark small {
+    font-size: 8px;
+    margin-top: 4px;
+  }
+  .salon-admin .admin-sidebar .admin-menu-toggle {
+    display: inline-flex;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 999px;
+  }
+  .salon-admin .admin-sidebar nav {
+    display: none;
+    width: 100%;
+    order: 3;
+  }
+  .salon-admin .admin-sidebar nav.is-open {
+    display: block;
+  }
+  .salon-admin .admin-sidebar-footer {
+    display: none;
+  }
+  .salon-admin .admin-sidebar:has(nav.is-open) .admin-sidebar-footer {
+    display: flex;
+    width: 100%;
+    order: 4;
+    margin: 0;
+  }
+  .salon-admin .admin-main {
+    padding: 20px 18px;
+  }
+  .salon-admin .admin-header-flowers {
+    width: 170px;
+    height: 150px;
+    right: 0;
+    opacity: 0.15;
+  }
+  .salon-admin .admin-topline .eyebrow {
+    display: none;
+  }
+  .salon-admin .admin-topline {
+    justify-content: end;
+    margin-bottom: 20px;
+  }
+  .salon-admin .salon-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 12px;
+  }
+  .salon-admin .salon-tabs a {
+    flex: 0 0 auto;
+    font-size: 15px;
+    padding: 10px 14px;
+  }
+  .salon-admin .salon-stats {
+    gap: 10px;
+  }
+  .salon-admin .salon-stats .stat-card {
+    display: flex;
+    flex-direction: column;
+    padding: 14px;
+    gap: 8px;
+  }
+  .salon-admin .stat-card > svg {
+    width: 26px;
+    height: 26px;
+    padding: 5px;
+  }
+  .salon-admin .salon-stats .stat-card strong {
+    font-size: 36px;
+  }
+  .salon-admin .salon-stats .stat-card span {
+    font-size: 13px;
+  }
+  .salon-admin .admin-form {
+    padding: 20px 16px;
+  }
+  .salon-admin .admin-toolbar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: stretch;
+  }
+  .salon-admin .admin-toolbar label {
+    flex: 1 1 100%;
+  }
+  .salon-admin .admin-toolbar .button {
+    flex: 1 1 100%;
+  }
+  .salon-admin .salon-quick-actions {
+    flex-wrap: wrap;
+  }
+  .salon-admin .fatu-admin-section {
+    padding: 20px 16px;
+  }
+  .salon-admin .form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .salon-admin * {
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

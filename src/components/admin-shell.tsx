@@ -3,6 +3,8 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 import { Logout } from './admin';
 import { AdminNavigation, AdminSectionTabs } from './admin-navigation';
+import { BeautyIcon } from './beauty-icon';
+import { FloralMotif } from './floral-motif';
 export function AdminShell({
   children,
   staff,
@@ -16,17 +18,10 @@ export function AdminShell({
     <div className="admin-shell fatu-admin salon-admin" lang="fr" dir="ltr">
       <aside className="admin-sidebar">
         <Link className="wordmark" href={preview ? '/admin/preview' : '/admin'}>
-          GELIN HOUSE<small>ESPACE DU SALON</small>
+          <BeautyIcon name="heart" />
+          GELIN HOUSE<small>SALON DE BEAUTÉ</small>
         </Link>
-        <div className="admin-workspace">
-          <span className="workspace-symbol" aria-hidden>
-            g.
-          </span>
-          <div>
-            <strong>Votre salon, simplement</strong>
-            <small>Gestion quotidienne</small>
-          </div>
-        </div>
+        <FloralMotif className="admin-sidebar-flowers" />
         <Suspense>
           <AdminNavigation preview={preview} />
         </Suspense>
@@ -42,6 +37,7 @@ export function AdminShell({
         </div>
       </aside>
       <main className="admin-main" id="main">
+        <FloralMotif className="admin-header-flowers" />
         <div className="admin-topline">
           <span className="eyebrow">GELIN HOUSE · Administration</span>
           <div className="admin-account">

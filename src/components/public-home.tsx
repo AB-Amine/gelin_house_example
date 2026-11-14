@@ -33,7 +33,9 @@ export function HomeExperience({
         <section className={styles.hero}>
           <div className={styles.copy}>
             <span className="fatu-eyebrow">
-              {catalog.settings?.name || 'GELIN HOUSE'} ·{' '}
+              <span className={styles.desktopBrand}>
+                {catalog.settings?.name || 'GELIN HOUSE'} ·{' '}
+              </span>
               {t('redesign.location')}
             </span>
             <h1>{catalog.settings?.hero_title || t('premium.heroTitle')}</h1>
@@ -77,7 +79,8 @@ export function HomeExperience({
                   name={(['lotus', 'calendar', 'check'] as const)[index]}
                 />
                 <span>
-                  {index + 1}. {t(`redesign.step.${step}`)}
+                  <span className={styles.stepNumber}>{index + 1}. </span>
+                  {t(`redesign.step.${step}`)}
                 </span>
               </li>
             ))}
@@ -172,7 +175,7 @@ export function HomeExperience({
             <h2>{t('premium.offersTitle')}</h2>
             <span aria-hidden>✦</span>
           </div>
-          <OfferCards catalog={catalog} limit={2} compact />
+          <OfferCards catalog={catalog} compact />
           <Link className={`fatu-text-link ${styles.more}`} href="/offres">
             {t('premium.allOffers')} <span aria-hidden>›</span>
           </Link>
