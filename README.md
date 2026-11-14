@@ -1,4 +1,40 @@
-﻿# Fatu Makeup Artist
+# GELIN HOUSE
+
+Next.js 16 / React 19 / TypeScript public website, protected salon administration and private customer accounts, backed by Supabase PostgreSQL, Auth and Storage. Requires Node.js 24 or newer.
+
+The approved design is preserved. The principal booking flow is a **start-time-only salon diary**: requests await salon confirmation; exact active starts are protected by existing transactions. Legacy duration-based records remain intact. Both calendar views read configured hours, exceptions and closures. The admin has six main sections and five Mon salon tabs.
+
+## Current engineering reference
+
+- [Final audit, actual results, limitations and changed files](docs/FINAL_PRECONTAINER_AUDIT.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Safe testing](docs/TESTING.md)
+- [Deployment and next phase: containerization](docs/DEPLOYMENT.md)
+
+Install with `npm.cmd ci`, configure variables privately from `.env.example`, and run `npm.cmd run dev` (local port 3000). Use `npm.cmd run build` and `npm.cmd run start` for production mode. The current start command binds loopback; container networking changes are deferred.
+
+Configuration names: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, `APP_URL`, `TRUST_PROXY`. `DATABASE_URL` is for separately approved database operations, not app runtime. Test-only opt-ins: `E2E_DATABASE_ISOLATED`, `E2E_OWNER_EMAIL`, `E2E_OWNER_PASSWORD`. Never put server secrets in client variables, source control or image layers. The two `NEXT_PUBLIC_` values are compiled into the build; runtime replacement alone is insufficient.
+
+```powershell
+npm.cmd run typecheck
+npm.cmd run lint
+npm.cmd test
+npm.cmd run test:db
+npm.cmd run test:safe
+npx.cmd playwright test --config playwright.catalogue.config.ts
+npx.cmd playwright test --config playwright.preview.config.ts
+npm.cmd run build
+```
+
+`test:safe` builds and runs an intentionally unconfigured local production instance and disables connected writes even when private local configuration exists. Catalogue tests use a local HTTP fixture; admin preview edits stay browser-local. The SQL suite creates only a disposable local cluster. Do not run connected suites, provisioning, imports or migrations against the salon project as an audit step. Rebuild normally after fixture builds.
+
+## Next phase: containerization
+
+Ready for packaging **planning**, not a production-readiness declaration. The deployment checklist covers a future Dockerfile, ignore rules, non-root runtime, ports, writable image cache, secret injection, external Supabase, ingress and health checks. No container file, image or infrastructure change was created. Hosted authenticated writes, SMTP/recovery, Storage uploads, restore testing and native browser zoom remain explicit verification limits.
+
+## Historical implementation notes (retained)
+
+The records below describe earlier Fatu/predecessor phases. Where they conflict, the current audit above takes precedence. Past test counts and deployment claims are not evidence of a new execution.
 
 An editorial makeup artist website, administrator workspace and private client portal built on the existing Next.js / React / TypeScript / Supabase project.
 

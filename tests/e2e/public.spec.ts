@@ -3,31 +3,31 @@ test.skip(
   process.env.E2E_DATABASE_ISOLATED === 'true',
   'Safe unconfigured-state checks use no external database.',
 );
-test('Fatu editorial homepage loads local optimized photography without horizontal overflow', async ({
+test('GELIN HOUSE homepage loads local optimized photography without horizontal overflow', async ({
   page,
 }, info) => {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto('/');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(
-    'L’art de révéler votre singularité.',
+    'Un moment rien que pour vous.',
   );
-  await expect(page.locator('.fatu-hero img')).toBeVisible();
+  await expect(
+    page.locator('[data-home-first-screen] img:visible'),
+  ).toBeVisible();
   expect(
     await page
-      .locator('.fatu-hero img')
+      .locator('[data-home-first-screen] img:visible')
       .evaluate(
         (img: HTMLImageElement) => img.complete && img.naturalWidth > 0,
       ),
   ).toBe(true);
-  await expect(
-    page
-      .locator('main')
-      .getByText(
-        'Photographie d’inspiration temporaire · Ce n’est pas une réalisation de Fatu.',
-      )
-      .first(),
-  ).toBeVisible();
+  await expect(page.locator('main .premium-photo figcaption')).toHaveCount(0);
+  await page.locator('.public-image-disclosure:visible summary').click();
+  await expect(page.locator('.public-image-disclosure:visible')).toContainText(
+    'images générées par IA',
+  );
+  await page.locator('.public-image-disclosure:visible summary').click();
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
@@ -35,7 +35,7 @@ test('Fatu editorial homepage loads local optimized photography without horizont
   ).toBe(true);
   expect(errors).toEqual([]);
   await page
-    .locator('.fatu-photo img')
+    .locator('.premium-photo img')
     .evaluateAll((imgs) =>
       Promise.all(imgs.map((img) => (img as HTMLImageElement).decode())),
     );
@@ -54,23 +54,26 @@ test('language switching updates actual content, persists and supports Arabic RT
   page,
 }, info) => {
   await page.goto('/');
-  await page
-    .locator('.fatu-header')
-    .getByRole('button', { name: 'EN', exact: true })
-    .click();
+  const switchLanguage = async (code: string, label: string) => {
+    const compact = page.locator('.fatu-header .home-language-select:visible');
+    if (await compact.isVisible()) await compact.selectOption(code);
+    else
+      await page
+        .locator('.fatu-header')
+        .getByRole('button', { name: label, exact: true })
+        .click();
+  };
+  await switchLanguage('en', 'EN');
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(
-    'The art of bringing out your individuality.',
+    'A moment just for you.',
   );
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
-  await page
-    .locator('.fatu-header')
-    .getByRole('button', { name: 'العربية', exact: true })
-    .click();
+  await switchLanguage('ar', 'العربية');
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(
-    'فن إبراز جمالك الفريد.',
+    'لحظة لكِ وحدك.',
   );
   expect(
     await page.evaluate(
@@ -86,25 +89,29 @@ test('public navigation opens on mobile and identifies the active page', async (
   page,
 }) => {
   await page.goto('/');
-  const toggle = page.locator('.fatu-menu');
+  const toggle = page.locator('.fatu-menu:visible');
   if (await toggle.isVisible()) {
     await toggle.click();
     await expect(toggle).toHaveAttribute('aria-expanded', 'true');
   }
   await page
     .locator('#fatu-navigation')
-    .getByRole('link', { name: 'Portfolio', exact: true })
+    .getByRole('link', { name: 'Réalisations', exact: true })
     .click();
   await expect(page).toHaveURL(/\/portfolio$/);
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Portfolio');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(
+    'Réalisations',
+  );
   if (await toggle.isVisible()) await toggle.click();
   await expect(
     page
       .locator('#fatu-navigation')
-      .getByRole('link', { name: 'Portfolio', exact: true }),
+      .getByRole('link', { name: 'Réalisations', exact: true }),
   ).toHaveAttribute('aria-current', 'page');
   await expect(
-    page.getByText('Les photographies autorisées de Fatu seront publiées ici.'),
+    page.getByText(
+      'Les réalisations du salon seront présentées ici dès leur publication.',
+    ),
   ).toBeVisible();
 });
 test('all public pages expose honest empty states and responsive layouts', async ({
@@ -127,7 +134,8 @@ test('all public pages expose honest empty states and responsive layouts', async
       ),
       path,
     ).toBe(true);
-    await expect(page.locator('body')).not.toContainText('GELIN HOUSE');
+    await expect(page.locator('.fatu-header')).toContainText('GELIN HOUSE');
+    await expect(page.locator('main')).not.toContainText(/Fatu|FATU/);
   }
   await page.goto('/services/missing-service');
   await expect(
@@ -157,7 +165,9 @@ test('stale basket selection can be removed while booking remains disabled', asy
   await expect(
     page.getByRole('button', { name: 'Envoyer ma demande' }),
   ).toBeDisabled();
-  await expect(page.getByText(/Les réservations ouvriront après validation/)).toHaveCount(0);
+  await expect(
+    page.getByText(/Les réservations ouvriront après validation/),
+  ).toHaveCount(0);
 });
 test('contact and authentication explain missing configuration without claiming success', async ({
   page,

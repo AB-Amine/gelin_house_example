@@ -43,14 +43,17 @@ export function FatuPublicFrame({
   useEffect(() => {
     if (!open) return;
     const close = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false);
+      if (event.key === 'Escape') {
+        setOpen(false);
+        header.current?.querySelector<HTMLButtonElement>('.fatu-menu')?.focus();
+      }
     };
     window.addEventListener('keydown', close);
     return () => window.removeEventListener('keydown', close);
   }, [open]);
   useEffect(() => {
     const node = header.current;
-    if (path !== '/' || !node) return;
+    if (!node) return;
     const measure = () =>
       node.parentElement?.style.setProperty(
         '--public-header-height',
@@ -67,7 +70,7 @@ export function FatuPublicFrame({
   useEffect(() => {
     if (
       window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
-      !('IntersectionObserver' in window)
+      typeof window.IntersectionObserver !== 'function'
     )
       return;
     const observer = new IntersectionObserver(
@@ -80,10 +83,18 @@ export function FatuPublicFrame({
         }),
       { threshold: 0.12 },
     );
-    main.current?.querySelectorAll('.premium-section').forEach((section) => {
-      section.setAttribute('data-reveal', '');
-      observer.observe(section);
-    });
+    main.current
+      ?.querySelectorAll(
+        '.premium-section, .fatu-page-heading, .premium-category, .premium-offer-card, .fatu-image-button',
+      )
+      .forEach((section, index) => {
+        section.setAttribute('data-reveal', '');
+        (section as HTMLElement).style.setProperty(
+          '--reveal-delay',
+          `${Math.min(index % 4, 3) * 35}ms`,
+        );
+        observer.observe(section);
+      });
     return () => observer.disconnect();
   }, [path]);
   const settings = localizedCatalog(catalog, locale).settings;

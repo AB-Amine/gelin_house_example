@@ -1,0 +1,121 @@
+/* Presentation only. Static design and all operational workspaces are unchanged. */
+html:has(.fatu-public) {
+  scroll-behavior: smooth;
+}
+.fatu-public :where([id]) {
+  scroll-margin-top: calc(var(--public-header-height, 104px) + 16px);
+}
+.fatu-public
+  :is(
+    .fatu-button,
+    .fatu-text-link,
+    .fatu-header nav a,
+    .basket-link,
+    .official-service-card button,
+    .filter-tabs button
+  ) {
+  transition-property:
+    color, background-color, border-color, box-shadow, opacity, transform;
+  transition-duration: 200ms;
+  transition-timing-function: ease-out;
+}
+.fatu-public
+  :is(
+    .premium-category,
+    .premium-offer-card,
+    .official-service-card,
+    .fatu-image-button
+  ) {
+  transition-property: border-color, background-color, box-shadow, transform;
+  transition-duration: 240ms;
+  transition-timing-function: ease-out;
+}
+.fatu-public :is(.premium-category img, .fatu-image-button img) {
+  transition-duration: 320ms;
+}
+.fatu-public .fatu-header nav a::after {
+  transition-duration: 220ms;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .fatu-public :is(.premium-hero-copy, .premium-hero-visual) {
+    animation: salon-enter 360ms ease-out both;
+  }
+  .fatu-public [data-reveal].is-revealed {
+    animation: salon-enter 320ms ease-out both;
+    animation-delay: var(--reveal-delay, 0ms);
+  }
+  .fatu-public #catalogue-results > section {
+    animation: salon-enter 240ms ease-out both;
+  }
+  .fatu-public .official-service-card button[aria-pressed='true'],
+  .fatu-public .basket-link.has-items span {
+    animation: salon-feedback 220ms ease-out;
+  }
+  .fatu-public form :is([role='alert'], .error, .notice),
+  .fatu-public .fatu-empty[role='status'],
+  .fatu-public dialog[open] {
+    animation: salon-feedback 220ms ease-out;
+  }
+  .fatu-public #catalogue-basket:has(button[aria-expanded='true']) {
+    animation: salon-feedback 220ms ease-out;
+  }
+  .fatu-public button[aria-busy='true'] {
+    animation: salon-wait 900ms ease-in-out infinite alternate;
+  }
+  @keyframes salon-enter {
+    from {
+      opacity: 0.78;
+      translate: 0 6px;
+    }
+    to {
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
+  @keyframes salon-feedback {
+    from {
+      opacity: 0.78;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes salon-wait {
+    from {
+      opacity: 0.75;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+/* Keep closed menus immediately unfocusable; only the opening is animated. */
+@media (max-width: 1000px) and (prefers-reduced-motion: no-preference) {
+  .fatu-public .fatu-header nav.is-open {
+    animation: salon-menu 180ms ease-out;
+  }
+  @keyframes salon-menu {
+    from {
+      opacity: 0.8;
+      translate: 0 -4px;
+    }
+    to {
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html:has(.fatu-public) {
+    scroll-behavior: auto;
+  }
+  .fatu-public *,
+  .fatu-public *::before,
+  .fatu-public *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

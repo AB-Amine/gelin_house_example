@@ -8,6 +8,7 @@ import './fatu.css';
 import './catalogue.css';
 import './premium-public.css';
 import './salon-editorial.css';
+import './public-motion.css';
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.APP_URL ?? 'http://127.0.0.1:3000'),
   title: { default: 'GELIN HOUSE', template: '%s | GELIN HOUSE' },

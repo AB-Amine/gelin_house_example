@@ -1,4 +1,19 @@
-> **Current Fatu implementation:** see [Fatu setup](FATU_SETUP.md), [implementation phases](FATU_IMPLEMENTATION.md) and [validation](FATU_VALIDATION.md). The predecessor details below are retained for history and may describe older routes or test counts.
+> **Current GELIN HOUSE readiness:** [final audit](FINAL_PRECONTAINER_AUDIT.md). Older hosting/provisioning instructions below are history, not authorization to migrate or alter the salon project.
+
+## Next phase: containerization — plan only
+
+No containerization was performed. Plan separately:
+
+- A multi-stage Dockerfile with compatible Node.js 24, reproducible `npm ci`, production build, native `sharp` support and non-root runtime. Standalone output is not currently configured.
+- A `.dockerignore` excluding secrets, `.git`, `.next`, `node_modules`, test artifacts and local/private tools. A non-secret environment example may be retained. No credentials in image layers.
+- Build-time `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`; runtime server secrets; externally correct `APP_URL`; `TRUST_PROXY` only for verified ingress. Keep migration credentials outside the web container.
+- The existing start script binds loopback. A future entrypoint must deliberately select its interface and port (normally 3000) before proxying. No network/deployment configuration changed in this audit.
+- External Supabase REST/Auth/Storage, outbound HTTPS/DNS, callback allowlists, SMTP, TLS, trusted forwarded headers and private/API/auth no-store caching.
+- A writable Next image cache with non-root ownership where needed. Database records and uploaded originals stay in Supabase, not ephemeral container storage. Plan database and object backups and a tested restore.
+- Separate liveness and readiness semantics. No dedicated health API exists. A public page can show a fallback while Supabase is down, so HTTP 200 alone is not database readiness.
+- Production image contents, secret exclusion, headers, logout/recovery, disposable-project authenticated writes, uploads, callbacks, monitoring, resource limits, restart policy, log redaction and rollback verification.
+
+Packaging can begin as a separately approved phase. Hosted write/delivery/backup verification remains a launch blocker, not a reason the local application cannot be packaged.
 
 # Deployment and configuration
 

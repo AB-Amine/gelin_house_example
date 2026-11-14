@@ -11,6 +11,7 @@
     "format": "prettier --write .",
     "test": "vitest run",
     "test:e2e": "playwright test",
+    "test:safe": "node scripts/test-safe-browser.mjs",
     "test:db": "node --env-file-if-exists=.env.local scripts/test-db.mjs",
     "catalogue:import": "node --env-file-if-exists=.env.local scripts/import-catalogue.mjs",
     "db:migrate": "node --env-file-if-exists=.env.local scripts/migrate.mjs",

@@ -1,4 +1,6 @@
-> **Current Fatu implementation:** see [Fatu setup](FATU_SETUP.md), [implementation phases](FATU_IMPLEMENTATION.md) and [validation](FATU_VALIDATION.md). The predecessor details below are retained for history and may describe older routes or test counts.
+> **Current GELIN HOUSE reference (14 November 2026):** [final audit](FINAL_PRECONTAINER_AUDIT.md). Details below are retained history. Customers now have accounts; the active public projection is `fatu_catalog`; the principal booking flow is a start-time diary rather than the legacy duration planner.
+
+Current boundaries: `src/app/(public)` renders public content; `src/app/admin/(protected)` verifies active administrators server-side; `/client` verifies ownership-checked sessions. `src/app/api` has origin-checked, validated handlers. `src/lib/supabase.ts` separates public, session and server-only privileged clients. Public catalogue reads are request-scoped and use `no-store`; saved publication/contact/gallery changes do not need a code deployment. Browser baskets and `/admin/preview` do not establish authorization or authoritative prices.
 
 ﻿# Implemented architecture
 

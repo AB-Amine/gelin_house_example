@@ -1,4 +1,14 @@
-> **Current Fatu implementation:** see [Fatu setup](FATU_SETUP.md), [implementation phases](FATU_IMPLEMENTATION.md) and [validation](FATU_VALIDATION.md). The predecessor details below are retained for history and may describe older routes or test counts.
+> **Current GELIN HOUSE audit (14 November 2026):** [results, baseline failures, fixes and limits](FINAL_PRECONTAINER_AUDIT.md). Earlier counts below are historical.
+
+## Current safe execution
+
+Use `npm.cmd run test:safe` for the unconfigured production browser suite. It isolates public configuration at build time and runtime and forces connected scenarios off. Merely clearing variables when starting a build already containing `NEXT_PUBLIC_` values does not isolate it.
+
+Use `npx.cmd playwright test --config playwright.catalogue.config.ts` for public catalogue/booking mocks and the responsive/motion audit. A mocked request is not proof of a hosted write. Use `npx.cmd playwright test --config playwright.preview.config.ts` for browser-local admin preview interactions. It may reuse the owner's dev server; preview mutations remain localStorage-only.
+
+`npm.cmd run test:db` applies existing SQL fixtures only inside its owned disposable PostgreSQL cluster on local port 55439. It does not use `DATABASE_URL` or execute the migration CLI against Supabase. Do not run migrations, imports, connected write verification or cleanup scripts during a production audit. SQL Auth/Storage fixtures do not validate hosted HTTP services.
+
+Run `npm.cmd run build` after safe/fixture browser builds to restore ordinary output. Do not rebuild `.next` while a fixture production server runs. Reports are ignored artifacts under `test-results/`. The audit's 120% checks use an equivalent CSS viewport and DPR, **not native browser zoom**; a native zoom check remains manual.
 
 # Testing
 

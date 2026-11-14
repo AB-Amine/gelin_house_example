@@ -76,24 +76,23 @@ test('preview edits persist locally, preserve public truth and never call a muta
     fullPage: true,
   });
   await page.goto('/services');
-  await expect(
-    page.getByText(/La carte des prestations est en cours de validation/),
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  await expect(page.locator('main')).not.toContainText('Ville de test');
   expect(mutations).toEqual([]);
 });
 test('preview calendar switches views and administration remains French', async ({
   page,
 }, info) => {
-  await page.goto('/admin/preview?section=calendar');
+  await page.goto('/admin/preview?section=calendar&display=details');
   await page
     .getByRole('combobox', { name: 'Vue', exact: true })
     .selectOption('month');
   await page.getByRole('button', { name: 'Filtrer', exact: true }).click();
-  await expect(page.locator('.calendar-grid.month')).toBeVisible();
+  await expect(page.locator('.calendar-grid.month:visible')).toBeVisible();
   await expect(page).toHaveURL(/view=month/);
   await Promise.all([
     page.waitForURL(/view=day/),
-    page.locator('.calendar-date').first().click(),
+    page.locator('.calendar-date:visible').first().click(),
   ]);
   await expect(page).toHaveURL(/view=day/);
   await page

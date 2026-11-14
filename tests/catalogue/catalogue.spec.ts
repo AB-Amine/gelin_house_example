@@ -14,13 +14,21 @@ test('official services render as database-supplied groups with honest prices an
   for (const name of ['Esthétique', 'Coiffure', 'Maquillage', 'Location']) {
     await expect(page.getByRole('button', { name, exact: true })).toBeVisible();
     await page.getByRole('button', { name, exact: true }).click();
+    await expect(
+      page.getByRole('button', { name, exact: true }),
+    ).toHaveAttribute('aria-pressed', 'true');
     await page
       .getByRole('navigation', { name: 'Types de prestations' })
       .getByRole('button', { name: 'Tout voir', exact: true })
       .click();
-    rendered += await page.locator('.official-service-card').count();
+    await expect(
+      page
+        .getByRole('navigation', { name: 'Types de prestations' })
+        .getByRole('button', { name: 'Tout voir', exact: true }),
+    ).toHaveAttribute('aria-pressed', 'true');
+    rendered += await page.locator('.official-service-card:visible').count();
     pricesOnRequest += await page
-      .locator('.official-service-card')
+      .locator('.official-service-card:visible')
       .getByText('Prix sur demande', { exact: true })
       .count();
   }
@@ -120,7 +128,7 @@ test('multi-service basket survives category changes, search, detail navigation 
 
 test('accent-insensitive search and the appointment summary preserve selections and honest totals', async ({
   page,
-}, info) => {
+}) => {
   await page.goto('/services');
   const basket = page.locator('#catalogue-basket');
   const openBasket = async () => {

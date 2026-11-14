@@ -11,11 +11,16 @@ test('preview uses the server date even when the browser clock differs', async (
   await page.clock.install({ time: new Date('2031-01-01T00:00:00Z') });
   const response = await page.goto('/admin/preview');
   const html = await response!.text();
-  const heading = html.match(
-    /class="fatu-admin-heading"[\s\S]*?<p>([^<]+)<\/p>/,
-  )?.[1];
+  const heading = await page.evaluate(
+    (source) =>
+      new DOMParser()
+        .parseFromString(source, 'text/html')
+        .querySelector('.salon-today-label')?.textContent,
+    html,
+  );
   expect(heading).toBeTruthy();
-  await expect(page.locator('.fatu-admin-heading p')).toHaveText(heading!);
+  await expect(page.locator('.salon-today-label')).toHaveText(heading!);
+  expect(heading).not.toContain('2031');
   // Interacting with a hydrated control ensures this isn't merely an SSR snapshot.
   const menu = page.getByRole('button', { name: 'Menu', exact: true });
   if (await menu.isVisible()) await menu.click();

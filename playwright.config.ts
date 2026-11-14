@@ -10,7 +10,14 @@ export default defineConfig({
   use: { baseURL: 'http://127.0.0.1:3100', trace: 'retain-on-failure' },
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
-    {name:'tablet',use:{viewport:{width:820,height:1180},isMobile:true,hasTouch:true}},
+    {
+      name: 'tablet',
+      use: {
+        viewport: { width: 820, height: 1180 },
+        isMobile: true,
+        hasTouch: true,
+      },
+    },
     {
       name: 'mobile',
       use: { ...devices['iPhone 13'], defaultBrowserType: 'chromium' },
@@ -25,9 +32,9 @@ export default defineConfig({
       APP_URL: 'http://127.0.0.1:3100',
       ...(!live
         ? {
-            NEXT_PUBLIC_SUPABASE_URL: '',
-            NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: '',
-            SUPABASE_SECRET_KEY: '',
+            NEXT_PUBLIC_SUPABASE_URL: 'http://127.0.0.1:1',
+            NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'x',
+            SUPABASE_SECRET_KEY: 'disabled-for-local-audit',
           }
         : {}),
     },

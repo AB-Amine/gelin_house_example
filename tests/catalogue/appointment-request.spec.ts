@@ -1,5 +1,49 @@
 import { test, expect } from '@playwright/test';
 
+test('required inputs and invalid phones block submission; rapid clicks send one in-flight request', async ({
+  page,
+}) => {
+  let requests = 0;
+  let release: (() => void) | undefined;
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route('**/api/appointment-requests', async (route) => {
+    requests++;
+    await gate;
+    await route.fulfill({ json: { saved: true, status: 'pending' } });
+  });
+  await page.goto('/reservation?prestation=test-panier-1');
+  const form = page.locator('main:visible .appointment-request-form');
+  const submit = form.getByRole('button', {
+    name: 'Envoyer ma demande',
+    exact: true,
+  });
+  await submit.click();
+  expect(requests).toBe(0);
+  await form
+    .locator('[name=date]')
+    .fill(new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10));
+  await form.locator('[name=time]').fill('14:30');
+  await form.locator('[name=name]').fill('TEST isolated input');
+  await form.locator('[name=phone]').fill('invalid');
+  await form.locator('[name=consent]').check();
+  await submit.click();
+  await expect(form.getByRole('alert')).toBeVisible();
+  expect(requests).toBe(0);
+  await form.locator('[name=phone]').fill('+212612345678');
+  await submit.dblclick();
+  await expect.poll(() => requests).toBe(1);
+  await expect(
+    form.locator('button[type=submit], button.fatu-button').last(),
+  ).toBeDisabled();
+  release!();
+  await expect(page.locator('main:visible').getByRole('status')).toContainText(
+    'en attente de confirmation',
+  );
+  expect(requests).toBe(1);
+});
+
 test('customers can request multiple services and a preferred date without the closed-booking messages', async ({
   page,
 }, info) => {
