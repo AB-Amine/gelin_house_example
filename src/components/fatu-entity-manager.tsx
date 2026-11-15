@@ -11,6 +11,8 @@ import { api, ApiError } from '@/lib/client';
 import { useI18n } from './locale-provider';
 import { CustomerPrivacy } from './customer-privacy';
 import { AdminIcon } from './admin-icon';
+import { PermanentDelete } from './permanent-delete';
+import { ServiceStatus } from './service-status';
 type Row = Record<string, unknown>;
 type Hour = { weekday: number; opens: string; closes: string };
 export type OwnerRelations = { services: string[]; hours: Hour[] };
@@ -1113,11 +1115,7 @@ export function FatuEntityManager({
                 <span
                   className={`badge ${row.published && !row.archived ? 'badge-confirmed' : ''}`}
                 >
-                  {row.archived
-                    ? 'Archivée'
-                    : row.published
-                      ? 'Publiée'
-                      : 'Masquée'}
+                  {row.published && !row.archived ? 'Active' : 'Désactivée'}
                 </span>
               </>
             ) : (
@@ -1182,9 +1180,51 @@ export function FatuEntityManager({
                   .join(' · ') || 'Aucune prestation attribuée'}
               </p>
             )}
-            <button className="button secondary" onClick={() => openForm(row)}>
-              Modifier
-            </button>
+            {config.table === 'services' ||
+            (['categories', 'promotions'].includes(config.table) && !onSave) ? (
+              <div className="permanent-record-actions">
+                <button
+                  className="button secondary"
+                  onClick={() => openForm(row)}
+                >
+                  Modifier
+                </button>
+                {config.table === 'services' && (
+                  <ServiceStatus
+                    id={String(row.id)}
+                    name={String(row.name ?? row.id)}
+                    active={Boolean(row.published && !row.archived)}
+                    onChange={
+                      onSave
+                        ? async (active) =>
+                            onSave({
+                              ...row,
+                              published: active,
+                              ...(active ? { archived: false } : {}),
+                            })
+                        : undefined
+                    }
+                  />
+                )}
+                {!onSave &&
+                  (config.table !== 'services' ||
+                    !row.published ||
+                    Boolean(row.archived)) && (
+                    <PermanentDelete
+                      entity={config.table}
+                      id={String(row.id)}
+                      name={String(row.name ?? row.id)}
+                    />
+                  )}
+              </div>
+            ) : (
+              <button
+                className="button secondary"
+                onClick={() => openForm(row)}
+              >
+                Modifier
+              </button>
+            )}
             {config.table === 'gallery' && !onSave && (
               <button
                 className="button secondary"

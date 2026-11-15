@@ -262,6 +262,74 @@ export async function testAppointmentRequestsDatabase(db, check) {
     },
   );
   await check(
+    'service deactivation and reactivation reuse publication while preserving appointments, history and customers',
+    async () => {
+      const snapshot = async () => {
+        const result = {};
+        for (const table of [
+          'appointments',
+          'appointment_items',
+          'appointment_history',
+          'customers',
+        ])
+          result[table] = (
+            await db.query(
+              `SELECT coalesce(jsonb_agg(to_jsonb(t) ORDER BY id),'[]') AS data FROM ${table} t`,
+            )
+          ).rows[0].data;
+        return result;
+      };
+      const saved = await snapshot();
+      const change = async (active) => {
+        await db.query('SET ROLE authenticated');
+        await db.query("SELECT set_config('request.jwt.claim.sub',$1,false)", [
+          owner,
+        ]);
+        try {
+          return (
+            await db.query(
+              "SELECT admin_save('services',$1::jsonb) AS result",
+              [
+                JSON.stringify({
+                  id: services[0],
+                  published: active,
+                  ...(active ? { archived: false } : {}),
+                }),
+              ],
+            )
+          ).rows[0].result;
+        } finally {
+          await db.query('RESET ROLE');
+        }
+      };
+      assert.equal((await change(false)).published, false);
+      let catalog = (await db.query('SELECT fatu_catalog() AS data')).rows[0]
+        .data;
+      assert(!catalog.services.some((s) => s.id === services[0]));
+      const create = () =>
+        db.query(
+          'SELECT create_diary_appointment($1,$2,$3,$4,$5,$6,$7,$8) AS result',
+          [
+            services,
+            `${day}T20:31:00+01:00`,
+            'TEST reactivation',
+            '+212612345678',
+            '',
+            '',
+            owner,
+            randomUUID(),
+          ],
+        );
+      await assert.rejects(create, /SERVICE_UNAVAILABLE/);
+      assert.deepEqual(await snapshot(), saved);
+      assert.equal((await change(true)).published, true);
+      catalog = (await db.query('SELECT fatu_catalog() AS data')).rows[0].data;
+      assert(catalog.services.some((s) => s.id === services[0]));
+      assert.deepEqual(await snapshot(), saved);
+      assert.equal((await create()).rows[0].result.status, 'confirmed');
+    },
+  );
+  await check(
     'diary operations retain authentication and existing scheduled records',
     async () => {
       await db.query('set role anon');

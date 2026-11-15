@@ -9,6 +9,7 @@ import { api, ApiError } from '@/lib/client';
 import { useI18n } from './locale-provider';
 import { AppointmentNote } from './appointment-note';
 import { CustomerPrivacy } from './customer-privacy';
+import { PermanentDelete } from './permanent-delete';
 type Booking = AppointmentRow & {
   customer_id?: string;
   local_start?: string;
@@ -205,6 +206,11 @@ export function FatuAppointments({
                       : money(b.total_minor, b.currency ?? 'MAD')}
                   </td>
                   <td data-label="Actions">
+                    <PermanentDelete
+                      entity="appointments"
+                      id={b.id}
+                      name={`${b.reference} · ${b.customers?.name ?? 'Cliente'}`}
+                    />
                     <button
                       className="button secondary"
                       aria-expanded={expanded === b.id}

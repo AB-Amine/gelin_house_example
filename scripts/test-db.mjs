@@ -1069,6 +1069,65 @@ try {
   await testCatalogueDatabase(client, check);
   await testAppointmentRequestsDatabase(client, check);
   await testSalonAccountsDatabase(client, check);
+  await check(
+    'review-only SECURITY DEFINER proposal installs on the full migrated schema and deletes an empty category through session authorization',
+    async () => {
+      await client.query(
+        await readFile('supabase/proposals/safe-deletion.sql', 'utf8'),
+      );
+      await client.query(
+        await readFile('supabase/proposals/activate-safe-deletion.sql', 'utf8'),
+      );
+      assert.deepEqual(
+        (
+          await client.query(`SELECT p.proname FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
+        WHERE n.nspname='public' AND p.prosecdef AND p.prorettype<>'trigger'::regtype
+        AND has_function_privilege('gelin_cleanup_executor',p.oid,'EXECUTE') ORDER BY p.proname`)
+        ).rows.map((r) => r.proname),
+        ['gelin_cleanup_expired_offers'],
+      );
+      const admin = (
+        await client.query('SELECT id FROM admin_profiles WHERE active LIMIT 1')
+      ).rows[0].id;
+      const category = (
+        await client.query(
+          "INSERT INTO categories(name,slug) VALUES('LOCAL deletion test',$1) RETURNING id",
+          [`delete-${randomUUID()}`],
+        )
+      ).rows[0].id;
+      await client.query('SET ROLE authenticated');
+      await client.query(
+        "SELECT set_config('request.jwt.claim.sub',$1,false)",
+        [admin],
+      );
+      try {
+        const info = (
+          await client.query(
+            'SELECT public.gelin_preview_category($1) AS info',
+            [category],
+          )
+        ).rows[0].info;
+        const result = (
+          await client.query(
+            "SELECT public.gelin_delete_category($1,$2,'SUPPRIMER') AS result",
+            [category, info.fingerprint],
+          )
+        ).rows[0].result;
+        assert.equal(result.deleted, true);
+      } finally {
+        await client.query('RESET ROLE');
+      }
+      assert.equal(
+        (
+          await client.query(
+            'SELECT count(*)::int n FROM categories WHERE id=$1',
+            [category],
+          )
+        ).rows[0].n,
+        0,
+      );
+    },
+  );
   console.log(
     `${passed} database integration checks passed. Auth/Storage HTTP integrations still require Supabase.`,
   );

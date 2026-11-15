@@ -8,6 +8,10 @@ const env = {
   NEXT_PUBLIC_SUPABASE_URL: 'http://127.0.0.1:1',
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'x', // Fails publicConfig's existing key validation.
   SUPABASE_SECRET_KEY: 'disabled-for-local-audit',
+  PERMANENT_DELETION_ENABLED: 'false',
+  OFFER_CLEANUP_ENABLED: 'false',
+  OFFER_CLEANUP_DATABASE_URL: '',
+  OFFER_CLEANUP_SECRET: '',
   APP_URL: 'http://127.0.0.1:3100',
 };
 for (const args of [
