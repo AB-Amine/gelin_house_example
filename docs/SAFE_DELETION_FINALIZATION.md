@@ -1,5 +1,12 @@
 # Safe deletion finalization — current implementation
 
+> Latest production outcome: [production status](SAFE_PRODUCTION_STATUS.md)
+> confirms the corrected inactive base installed and verified on PostgreSQL
+> 17.11. The historical installation blockers below are resolved. Destructive
+> execution and cleanup remain disabled; no business records were changed.
+
+> 16 November installer update: [Auth permission fix](SUPABASE_AUTH_PERMISSION_FIX.md) supersedes the historical Auth/SET installer blockers below. The corrected SQL is locally tested, with production installation and destructive activation still pending. Use the separate manual activation artifact, not the historical combined cleanup activation file.
+
 > Current restricted-scope outcome: [Safe production status](SAFE_PRODUCTION_STATUS.md) records live catalogue/Auth checks, 27 focused test passes and the missing installation privilege. No new backup or destructive activation was attempted.
 
 > Production review update: [Pre-production review](DELETION_PREPRODUCTION_REVIEW.md) found installer/provider compatibility blockers and no verified recovery backup. Do not install or activate the current SQL artifacts. The implementation/test evidence below remains local evidence only.

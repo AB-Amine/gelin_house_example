@@ -23,9 +23,11 @@ type Booking = AppointmentRow & {
 export function FatuAppointments({
   rows,
   timezone,
+  asOf,
 }: {
   rows: Booking[];
   timezone: string;
+  asOf: number;
 }) {
   const { t, date, money } = useI18n();
   const actionLabel: Record<string, string> = {
@@ -47,6 +49,7 @@ export function FatuAppointments({
     rows.length === 1 ? rows[0].id : null,
   );
   const [message, setMessage] = useState('');
+  const [success, setSuccess] = useState('');
   const [history, setHistory] = useState<
     Record<string, { action: string; created_at: string }[]>
   >({});
@@ -58,6 +61,11 @@ export function FatuAppointments({
   }, [selected]);
   return (
     <>
+      {success && (
+        <p className="notice" role="status">
+          {success}
+        </p>
+      )}
       {message && (
         <p className="error" role="alert">
           {t(message)}
@@ -179,50 +187,74 @@ export function FatuAppointments({
               </tr>
             </thead>
             <tbody>
-              {rows.map((b) => (
-                <tr key={b.id}>
-                  <td data-label="Référence">{b.reference}</td>
-                  <td data-label="Cliente">{b.customers?.name}</td>
-                  <td data-label="Ville">{b.city_name ?? '—'}</td>
-                  <td data-label="Prestations">
-                    {b.appointment_items.map((i) => i.name).join(' · ')}
-                  </td>
-                  <td data-label="Date et heure">
-                    {b.local_start?.replace('T', ' à ') ??
-                      date(b.starts_at, { timeZone: timezone })}
-                  </td>
-                  <td data-label="Statut">
-                    <span className={`badge status-${b.status}`}>
-                      {t(
-                        b.pending_request_kind === 'reschedule'
-                          ? 'status.reschedule_requested'
-                          : `status.${b.status}`,
-                      )}
-                    </span>
-                  </td>
-                  <td data-label="Prix estimé">
-                    {b.uncertain
-                      ? 'Prix à confirmer'
-                      : money(b.total_minor, b.currency ?? 'MAD')}
-                  </td>
-                  <td data-label="Actions">
-                    <PermanentDelete
-                      entity="appointments"
-                      id={b.id}
-                      name={`${b.reference} · ${b.customers?.name ?? 'Cliente'}`}
-                    />
-                    <button
-                      className="button secondary"
-                      aria-expanded={expanded === b.id}
-                      onClick={() =>
-                        setExpanded(expanded === b.id ? null : b.id)
-                      }
-                    >
-                      {t('common.details')}
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {rows.map((b) => {
+                return (
+                  <tr key={b.id}>
+                    <td data-label="Référence">{b.reference}</td>
+                    <td data-label="Cliente">{b.customers?.name}</td>
+                    <td data-label="Ville">{b.city_name ?? '—'}</td>
+                    <td data-label="Prestations">
+                      {b.appointment_items.map((i) => i.name).join(' · ')}
+                    </td>
+                    <td data-label="Date et heure">
+                      {b.local_start?.replace('T', ' à ') ??
+                        date(b.starts_at, { timeZone: timezone })}
+                    </td>
+                    <td data-label="Statut">
+                      <span className={`badge status-${b.status}`}>
+                        {t(
+                          b.pending_request_kind === 'reschedule'
+                            ? 'status.reschedule_requested'
+                            : `status.${b.status}`,
+                        )}
+                      </span>
+                    </td>
+                    <td data-label="Prix estimé">
+                      {b.uncertain
+                        ? 'Prix à confirmer'
+                        : money(b.total_minor, b.currency ?? 'MAD')}
+                    </td>
+                    <td data-label="Actions">
+                      <PermanentDelete
+                        entity="appointments"
+                        id={b.id}
+                        name={`${b.reference} · ${b.customers?.name ?? 'Cliente'}`}
+                        triggerLabel="Supprimer"
+                        onDeleted={() => {
+                          setMessage('');
+                          setSuccess(
+                            `Le rendez-vous ${b.reference} a été supprimé définitivement.`,
+                          );
+                        }}
+                      />
+                      {b.status === 'confirmed' &&
+                        Date.parse(b.starts_at) > asOf && (
+                          <button
+                            className="button secondary"
+                            disabled={busy}
+                            onClick={() =>
+                              setSelected({
+                                id: b.id,
+                                action: 'cancelled_by_salon',
+                              })
+                            }
+                          >
+                            Annuler le rendez-vous
+                          </button>
+                        )}
+                      <button
+                        className="button secondary"
+                        aria-expanded={expanded === b.id}
+                        onClick={() =>
+                          setExpanded(expanded === b.id ? null : b.id)
+                        }
+                      >
+                        {t('common.details')}
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

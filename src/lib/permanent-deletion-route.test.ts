@@ -4,6 +4,10 @@ const mocks = vi.hoisted(() => ({
   staff: vi.fn(),
   rpc: vi.fn(),
   refresh: vi.fn(),
+  finish: vi.fn(),
+}));
+vi.mock('@/lib/account-deletion', () => ({
+  finishAccountDeletion: mocks.finish,
 }));
 vi.mock('@/lib/auth', () => ({ requireStaff: mocks.staff }));
 vi.mock('@/lib/supabase', () => ({
@@ -32,18 +36,79 @@ function request(payload: object, origin = 'http://localhost') {
 beforeEach(() => {
   vi.clearAllMocks();
   vi.stubEnv('PERMANENT_DELETION_ENABLED', 'true');
+  vi.stubEnv('EXPANDED_DELETION_ENABLED', 'false');
   mocks.staff.mockResolvedValue({ id });
   mocks.rpc.mockResolvedValue({ data: { deleted: true, id }, error: null });
 });
 afterEach(() => vi.unstubAllEnvs());
 describe('session-authorized deletion RPC boundary', () => {
-  it('defaults to inactive without invoking database functions', async () => {
+  it('keeps destructive execution inactive without invoking database functions', async () => {
     vi.stubEnv('PERMANENT_DELETION_ENABLED', 'false');
     expect(
-      (await POST(request({ entity: 'categories', id, mode: 'preview' })))
-        .status,
+      (
+        await POST(
+          request({
+            entity: 'appointments',
+            id,
+            mode: 'delete',
+            fingerprint,
+            confirmation: 'SUPPRIMER',
+          }),
+        )
+      ).status,
     ).toBe(503);
     expect(mocks.rpc).not.toHaveBeenCalled();
+  });
+  it.each([true, false])(
+    'allows a read-only preview while disabled and preserves eligibility=%s',
+    async (eligible) => {
+      vi.stubEnv('PERMANENT_DELETION_ENABLED', 'false');
+      const info = {
+        id,
+        eligible,
+        reasons: eligible ? [] : ['Écritures financières protégées.'],
+        fingerprint,
+      };
+      mocks.rpc.mockResolvedValue({ data: info, error: null });
+      const response = await POST(
+        request({ entity: 'appointments', id, mode: 'preview' }),
+      );
+      expect(response.status).toBe(200);
+      expect(await response.json()).toEqual({
+        ...info,
+        deletionEnabled: false,
+        expanded: false,
+      });
+      expect(mocks.rpc).toHaveBeenCalledExactlyOnceWith(
+        'gelin_preview_appointment',
+        { p_id: id },
+      );
+      expect(mocks.refresh).not.toHaveBeenCalled();
+    },
+  );
+  it('distinguishes missing database permission from the application flag', async () => {
+    mocks.rpc.mockResolvedValue({
+      data: null,
+      error: { code: '42501', message: 'internal function details' },
+    });
+    const response = await POST(
+      request({ entity: 'appointments', id, mode: 'preview' }),
+    );
+    expect(response.status).toBe(403);
+    expect((await response.json()).error).toContain('autorisations');
+  });
+  it('reports unavailable preview functions without an installation claim', async () => {
+    mocks.rpc.mockResolvedValue({
+      data: null,
+      error: { code: 'PGRST202', message: 'internal schema details' },
+    });
+    const response = await POST(
+      request({ entity: 'appointments', id, mode: 'preview' }),
+    );
+    expect(response.status).toBe(503);
+    expect((await response.json()).error).toContain(
+      'vérification de suppression n’est pas disponible',
+    );
   });
   it('rejects cross-origin', async () => {
     expect(
@@ -78,7 +143,7 @@ describe('session-authorized deletion RPC boundary', () => {
     expect(mocks.rpc).not.toHaveBeenCalled();
   });
   it.each(['services', 'clients'])(
-    'keeps %s deletion blocked regardless of flags',
+    'keeps %s protected on a legacy deployment without expanded CRUD',
     async (entity) => {
       expect(
         (
@@ -181,5 +246,93 @@ describe('session-authorized deletion RPC boundary', () => {
       }),
     );
     expect(await response.json()).toEqual({ error: 'Historique protégé.' });
+  });
+  it.each(['services', 'categories', 'promotions', 'appointments'])(
+    'uses the expanded plan for %s with explicit dependent confirmation',
+    async (entity) => {
+      vi.stubEnv('EXPANDED_DELETION_ENABLED', 'true');
+      const response = await POST(
+        request({
+          entity,
+          id,
+          mode: 'delete',
+          fingerprint,
+          confirmation: 'SUPPRIMER',
+          dependentsConfirmed: true,
+        }),
+      );
+      expect(response.status).toBe(200);
+      expect(mocks.rpc).toHaveBeenCalledWith('gelin_crud_delete', {
+        p_kind: entity,
+        p_id: id,
+        p_fingerprint: fingerprint,
+        p_phrase: 'SUPPRIMER',
+        p_dependents: true,
+      });
+      expect(mocks.refresh).toHaveBeenCalled();
+    },
+  );
+  it('never reports account completion while Auth removal is pending', async () => {
+    vi.stubEnv('EXPANDED_DELETION_ENABLED', 'true');
+    const target = '00000000-0000-4000-8000-000000000002',
+      job = '00000000-0000-4000-8000-000000000003';
+    mocks.rpc.mockResolvedValue({
+      data: { pending: true, deleted: false, id: target, jobId: job },
+      error: null,
+    });
+    mocks.finish.mockResolvedValue({
+      pending: true,
+      deleted: false,
+      id: target,
+      jobId: job,
+      message: 'En attente.',
+    });
+    const response = await POST(
+      request({
+        entity: 'clients',
+        id: target,
+        mode: 'delete',
+        fingerprint,
+        confirmation: 'SUPPRIMER',
+        dependentsConfirmed: true,
+      }),
+    );
+    expect((await response.json()).deleted).toBe(false);
+    expect(mocks.finish).toHaveBeenCalledWith(target, job);
+  });
+  it('will not retry an unverified or substituted account job', async () => {
+    vi.stubEnv('EXPANDED_DELETION_ENABLED', 'true');
+    mocks.rpc.mockResolvedValue({ data: [], error: null });
+    const response = await POST(
+      request({
+        entity: 'clients',
+        id: '00000000-0000-4000-8000-000000000002',
+        mode: 'retry',
+        jobId: '00000000-0000-4000-8000-000000000003',
+      }),
+    );
+    expect(response.status).toBe(404);
+    expect(mocks.finish).not.toHaveBeenCalled();
+  });
+  it('does not accept database-only success as proof that an Auth account was removed', async () => {
+    vi.stubEnv('EXPANDED_DELETION_ENABLED', 'true');
+    const target = '00000000-0000-4000-8000-000000000002';
+    mocks.rpc.mockResolvedValue({
+      data: { deleted: true, id: target },
+      error: null,
+    });
+    const response = await POST(
+      request({
+        entity: 'clients',
+        id: target,
+        mode: 'delete',
+        fingerprint,
+        confirmation: 'SUPPRIMER',
+        dependentsConfirmed: true,
+      }),
+    );
+    expect(response.status).toBe(409);
+    expect(mocks.finish).not.toHaveBeenCalled();
+    expect(mocks.refresh).not.toHaveBeenCalled();
   });
 });

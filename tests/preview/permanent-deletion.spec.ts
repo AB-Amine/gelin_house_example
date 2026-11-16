@@ -88,7 +88,7 @@ test('service status confirmation preserves the record and reactivates without a
   await expect(card.locator('.badge')).toHaveText('Active');
   expect(writes).toBe(0);
 });
-test('registered customer management has no delete control', async ({
+test('registered customer deletion shows a guarded preview without enabling deletion', async ({
   page,
 }) => {
   await page.addInitScript(() =>
@@ -110,10 +110,28 @@ test('registered customer management has no delete control', async ({
     ),
   );
   await page.goto('/admin/preview?section=clients');
+  await page.route('**/api/admin/permanent-deletion', (route) =>
+    route.fulfill({
+      json: {
+        entity: 'clients',
+        id: '00000000-0000-4000-8000-000000000001',
+        name: 'Cliente locale test',
+        fingerprint: 'a'.repeat(64),
+        eligible: true,
+        reasons: [],
+        owned: [],
+        details: {},
+        deletionEnabled: false,
+      },
+    }),
+  );
   await expect(
     page.getByRole('heading', { name: 'Profil cliente' }),
   ).toBeVisible();
+  await page.getByRole('button', { name: 'Supprimer', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Suppression définitive' });
+  await expect(dialog).toContainText('suppression définitive est désactivée');
   await expect(
-    page.getByRole('button', { name: 'Supprimer', exact: true }),
+    dialog.getByRole('button', { name: 'Supprimer définitivement' }),
   ).toHaveCount(0);
 });

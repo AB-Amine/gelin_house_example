@@ -49,6 +49,32 @@ export async function testAdminFormsDatabase(client, check) {
           links.map((r) => r.service_id),
           [service],
         );
+        const unlinked = await call(
+          'promotion',
+          {
+            ...offer,
+            name: 'TEST informational offer',
+            starts_at: '2026-11-01T00:00:00Z',
+            ends_at: '2026-12-01T00:00:00Z',
+            active: true,
+          },
+          [],
+        );
+        assert.equal(unlinked.id, offer.id);
+        assert.equal(
+          (await client.query('select active from promotions where id=$1', [offer.id])).rows[0].active,
+          true,
+        );
+        assert.equal(
+          (await client.query('select count(*)::int n from promotion_services where promotion_id=$1', [offer.id])).rows[0].n,
+          0,
+        );
+        const relinked = await call('promotion', unlinked, [service]);
+        assert.equal(relinked.id, offer.id);
+        assert.equal(
+          (await client.query('select count(*)::int n from promotion_services where promotion_id=$1', [offer.id])).rows[0].n,
+          1,
+        );
         await assert.rejects(
           () =>
             call(

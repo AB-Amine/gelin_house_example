@@ -5,6 +5,7 @@ import { entities, entitySchema } from '@/lib/admin-config';
 import { sessionDb } from '@/lib/supabase';
 import { body, failure, ok, sameOrigin } from '@/lib/http';
 import { phoneSchema } from '@/lib/domain';
+import { revalidatePath } from 'next/cache';
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ entity: string }> },
@@ -32,6 +33,10 @@ export async function POST(
       p_data: input,
     });
     if (error) throw error;
+    if (['services', 'categories', 'offers', 'eligibility', 'settings', 'hours', 'exceptions', 'closures', 'gallery', 'content'].includes(entity)) {
+      for (const path of ['/', '/services', '/offres', '/reservation', '/galerie', '/contact', '/a-propos', '/faq'])
+        revalidatePath(path, 'page');
+    }
     return ok(data);
   } catch (e) {
     return failure(e);

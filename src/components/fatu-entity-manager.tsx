@@ -394,8 +394,6 @@ export function FatuEntityManager({
       if (edit) payload.id = edit.id;
       if (settings) payload.id = 1;
       const related = { services: selectedServices, hours };
-      if (promotion && !selectedServices.length)
-        throw Error('Choisissez au moins une prestation pour cette offre.');
       if (onSave) await onSave(payload, related);
       else if (promotion || employee)
         await api('/api/admin/owner-form', {
@@ -886,6 +884,12 @@ export function FatuEntityManager({
                     ? 'Prestations concernées'
                     : 'Prestations réalisées'}
                 </legend>
+                {promotion && (
+                  <p className="small">
+                    Facultatif : une offre sans prestation associée reste visible
+                    sur la page Offres, mais ne modifie aucun tarif.
+                  </p>
+                )}
                 {!(refs.services ?? []).length && (
                   <p>Ajoutez d’abord vos prestations dans le catalogue.</p>
                 )}
@@ -1206,16 +1210,18 @@ export function FatuEntityManager({
                     }
                   />
                 )}
-                {!onSave &&
-                  (config.table !== 'services' ||
-                    !row.published ||
-                    Boolean(row.archived)) && (
-                    <PermanentDelete
-                      entity={config.table}
-                      id={String(row.id)}
-                      name={String(row.name ?? row.id)}
-                    />
-                  )}
+                {!onSave && (
+                  <PermanentDelete
+                    entity={config.table}
+                    id={String(row.id)}
+                    name={String(row.name ?? row.id)}
+                    onDeleted={() =>
+                      setMessage(
+                        `${String(row.name ?? 'Cet élément')} a été supprimé définitivement.`,
+                      )
+                    }
+                  />
+                )}
               </div>
             ) : (
               <button

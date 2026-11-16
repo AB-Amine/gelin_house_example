@@ -4,6 +4,7 @@ import { requireStaff } from '@/lib/auth';
 import { entitySchema } from '@/lib/admin-config';
 import { sessionDb } from '@/lib/supabase';
 import { body, failure, ok, sameOrigin } from '@/lib/http';
+import { revalidatePath } from 'next/cache';
 const schema = z.strictObject({
   kind: z.enum(['promotion', 'employee']),
   data: z.unknown(),
@@ -27,15 +28,15 @@ const schema = z.strictObject({
 export async function POST(req: NextRequest) {
   try {
     sameOrigin(req);
-    await requireStaff();
+    const staff = await requireStaff();
     const v = schema.parse(await body(req, 256000));
+    if (v.kind === 'promotion' && staff.role !== 'owner')
+      throw Error('OWNER_REQUIRED');
     const data = entitySchema(
       v.kind === 'promotion' ? 'promotions' : 'staff',
     ).parse(v.data);
     if (v.kind === 'employee' && data.kind !== 'staff')
       throw Error('FORBIDDEN');
-    if (v.kind === 'promotion' && !v.services.length)
-      throw Error('INVALID_SERVICES');
     const { data: result, error } = await (
       await sessionDb()
     ).rpc('admin_owner_form', {
@@ -45,6 +46,11 @@ export async function POST(req: NextRequest) {
       p_hours: v.hours,
     });
     if (error) throw error;
+    if (v.kind === 'promotion') {
+      revalidatePath('/', 'page');
+      revalidatePath('/offres', 'page');
+      revalidatePath('/services', 'page');
+    }
     return ok(result);
   } catch (error) {
     return failure(error);

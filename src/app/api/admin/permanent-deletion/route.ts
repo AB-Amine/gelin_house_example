@@ -9,6 +9,7 @@ import {
   deletionFailure,
 } from '@/lib/permanent-deletion';
 import { revalidatePath } from 'next/cache';
+import { finishAccountDeletion } from '@/lib/account-deletion';
 export const runtime = 'nodejs';
 const schema = z
   .object({
@@ -20,7 +21,9 @@ const schema = z
       'clients',
     ]),
     id: z.uuid(),
-    mode: z.enum(['preview', 'delete']),
+    mode: z.enum(['preview', 'delete', 'retry']),
+    jobId: z.uuid().optional(),
+    dependentsConfirmed: z.boolean().optional(),
     fingerprint: z
       .string()
       .regex(/^[a-f0-9]{64}$/)
@@ -33,45 +36,102 @@ export async function POST(req: NextRequest) {
     sameOrigin(req);
     const staff = await requireStaff();
     const input = schema.parse(await body(req, 2000));
-    // Account deletion remains blocked even when no SQL connection is enabled.
-    if (input.entity === 'clients')
+    const expanded = process.env.EXPANDED_DELETION_ENABLED === 'true';
+    // Keep legacy deployments compatible; expanded SQL checks all admin identities.
+    if (input.entity === 'clients' && (input.id === staff.id || !expanded))
       throw new DeletionBlocked(
         input.id === staff.id
           ? 'Votre compte administrateur est protégé.'
-          : 'Suppression de compte bloquée : Auth et les liens de réservation ne peuvent pas être supprimés de façon atomique avec le schéma actuel. Aucun compte ni profil ne sera supprimé.',
+          : 'La suppression complète des comptes nécessite la mise à jour approuvée de ce site. Aucun compte ni profil n’a été supprimé.',
       );
-    if (input.entity === 'services' && input.mode === 'delete')
+    if (!expanded && input.entity === 'services' && input.mode === 'delete')
       throw new DeletionBlocked(
-        'Suppression de prestation bloquée : une demande concurrente peut encore enregistrer ses identifiants sans clé étrangère. La coordination du flux de demandes doit être approuvée avant activation.',
+        'La suppression des prestations nécessite la mise à jour complète approuvée du site. Aucune prestation n’a été supprimée.',
       );
-    if (process.env.PERMANENT_DELETION_ENABLED !== 'true')
+    const deletionEnabled = process.env.PERMANENT_DELETION_ENABLED === 'true';
+    // Read-only previews remain useful while destructive execution is disabled.
+    if (input.mode !== 'preview' && !deletionEnabled)
       throw new DeletionBlocked(
-        'Suppression non activée. Les fonctions sécurisées doivent être installées après approbation.',
+        'La suppression définitive est désactivée sur ce site. La vérification des conditions reste disponible ; aucun élément ne sera supprimé.',
         503,
       );
-    const functions = deletionFunctions[input.entity];
-    const fn = functions[input.mode];
+    const db = await sessionDb();
+    if (input.mode === 'retry') {
+      if (!expanded || input.entity !== 'clients' || !input.jobId)
+        throw new DeletionBlocked(
+          'Reprise de suppression non disponible.',
+          400,
+        );
+      const jobs = await db.rpc('gelin_account_deletion_jobs');
+      if (jobs.error) throw deletionFailure(jobs.error);
+      if (
+        !Array.isArray(jobs.data) ||
+        !jobs.data.some(
+          (job) => job.jobId === input.jobId && job.id === input.id,
+        )
+      )
+        throw new DeletionBlocked('Suppression en attente introuvable.', 404);
+      const result = await finishAccountDeletion(input.id, input.jobId);
+      revalidatePath('/admin', 'layout');
+      return ok(result);
+    }
+    const functions =
+      input.entity === 'clients' ? null : deletionFunctions[input.entity];
+    const fn = expanded
+      ? input.mode === 'preview'
+        ? 'gelin_crud_preview'
+        : 'gelin_crud_delete'
+      : functions?.[input.mode];
     if (!fn) throw new DeletionBlocked('Cette suppression reste bloquée.');
     if (
       input.mode === 'delete' &&
       (!input.fingerprint || input.confirmation !== 'SUPPRIMER')
     )
       throw new DeletionBlocked('Confirmation requise.', 400);
-    const db = await sessionDb();
     const { data: result, error } = await db.rpc(fn, {
       p_id: input.id,
+      ...(expanded ? { p_kind: input.entity } : {}),
       ...(input.mode === 'delete'
-        ? { p_fingerprint: input.fingerprint, p_phrase: input.confirmation }
+        ? {
+            p_fingerprint: input.fingerprint,
+            p_phrase: input.confirmation,
+            ...(expanded
+              ? { p_dependents: input.dependentsConfirmed === true }
+              : {}),
+          }
         : {}),
     });
     if (error) throw deletionFailure(error);
+    if (input.mode === 'preview' && !result)
+      throw new DeletionBlocked(
+        'La vérification n’a pas pu être confirmée. Actualisez puis réessayez.',
+        503,
+      );
+    if (input.entity === 'clients' && input.mode === 'delete') {
+      if (
+        result?.pending !== true ||
+        result.deleted !== false ||
+        result.id !== input.id ||
+        typeof result.jobId !== 'string'
+      )
+        throw new DeletionBlocked(
+          'La suppression des données du compte n’a pas été confirmée.',
+        );
+      const completion = await finishAccountDeletion(input.id, result.jobId);
+      revalidatePath('/admin', 'layout');
+      return ok(completion);
+    }
     if (input.mode === 'delete') {
       if (!result?.deleted || result.id !== input.id)
         throw new DeletionBlocked('Suppression non confirmée.');
-      for (const path of ['/admin', '/', '/prestations', '/offres'])
+      for (const path of ['/admin', '/', '/services', '/offres'])
         revalidatePath(path, 'layout');
     }
-    return ok(result);
+    return ok(
+      input.mode === 'preview'
+        ? { ...result, deletionEnabled, expanded }
+        : result,
+    );
   } catch (error) {
     if (error instanceof DeletionBlocked)
       return NextResponse.json(

@@ -3,20 +3,22 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --hostname 127.0.0.1",
-    "build": "next build",
-    "start": "next start --hostname 127.0.0.1",
-    "typecheck": "tsc --noEmit",
-    "lint": "eslint .",
+    "dev": "node scripts/run-with-node.mjs node_modules/next/dist/bin/next dev --hostname 127.0.0.1",
+    "build": "node scripts/run-with-node.mjs node_modules/next/dist/bin/next build",
+    "start": "node scripts/run-with-node.mjs node_modules/next/dist/bin/next start --hostname 127.0.0.1",
+    "typecheck": "node scripts/run-with-node.mjs node_modules/typescript/bin/tsc --noEmit",
+    "lint": "node scripts/run-with-node.mjs node_modules/eslint/bin/eslint.js .",
     "format": "prettier --write .",
-    "test": "vitest run",
+    "test": "node scripts/run-with-node.mjs node_modules/vitest/vitest.mjs run",
     "test:e2e": "playwright test",
     "test:safe": "node scripts/test-safe-browser.mjs",
     "test:db": "node --env-file-if-exists=.env.local scripts/test-db.mjs",
     "catalogue:import": "node --env-file-if-exists=.env.local scripts/import-catalogue.mjs",
     "db:migrate": "node --env-file-if-exists=.env.local scripts/migrate.mjs",
     "owner:create": "node --env-file-if-exists=.env.local scripts/provision-owner.mjs",
-    "test:deletion": "node --conditions=react-server scripts/test-permanent-deletion.mjs"
+    "test:deletion": "node --conditions=react-server scripts/test-permanent-deletion.mjs",
+    "test:crud-db": "node scripts/run-with-node.mjs scripts/test-expanded-deletion.mjs",
+    "test:crud-ui": "node scripts/run-with-node.mjs scripts/test-admin-deletion-ui.mjs"
   },
   "engines": {
     "node": ">=24.0.0"

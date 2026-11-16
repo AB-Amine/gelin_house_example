@@ -6,12 +6,22 @@ The approved design is preserved. The principal booking flow is a **start-time-o
 
 ## Current engineering reference
 
+- [Expanded administrator CRUD proposal, effects and tests](docs/EXPANDED_ADMIN_CRUD.md) — prepared locally; production SQL/permissions require the separate confirmation requested in the latest owner brief.
+
 - [Final audit, actual results, limitations and changed files](docs/FINAL_PRECONTAINER_AUDIT.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Safe testing](docs/TESTING.md)
 - [Deployment and next phase: containerization](docs/DEPLOYMENT.md)
 
 Install with `npm.cmd ci`, configure variables privately from `.env.example`, and run `npm.cmd run dev` (local port 3000). Use `npm.cmd run build` and `npm.cmd run start` for production mode. The current start command binds loopback; container networking changes are deferred.
+
+The dev/build/start, typecheck, lint and unit-test commands enforce Node 24+.
+If an older terminal Node is selected, they use the existing ignored runtime at
+`.tools/node_modules/node/bin/node.exe` when available. Otherwise switch to Node
+24 (see `.nvmrc`) and reopen the terminal before installing dependencies. Node
+20.18 cannot load the current Tailwind ESM dependency and causes repeated CSS
+compilation errors. Run only one dev server per checkout; reuse its URL or stop
+that server before starting another.
 
 Configuration names: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, `APP_URL`, `TRUST_PROXY`. `DATABASE_URL` is for separately approved database operations, not app runtime. Test-only opt-ins: `E2E_DATABASE_ISOLATED`, `E2E_OWNER_EMAIL`, `E2E_OWNER_PASSWORD`. Never put server secrets in client variables, source control or image layers. The two `NEXT_PUBLIC_` values are compiled into the build; runtime replacement alone is insufficient.
 

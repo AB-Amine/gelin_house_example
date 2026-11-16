@@ -16,7 +16,6 @@ declare saved jsonb; row_id uuid; sid uuid; old_link record; h jsonb; allowed te
  else raise exception 'INVALID_INPUT'; end if;
  if exists(select 1 from jsonb_object_keys(p_data) k where not k=any(allowed)) then raise exception 'INVALID_INPUT'; end if;
  if p_kind='promotion' then
-  if cardinality(p_services)=0 then raise exception 'INVALID_SERVICES'; end if;
   saved:=admin_save('promotions',p_data); row_id:=(saved->>'id')::uuid;
   foreach sid in array p_services loop
    if not exists(select 1 from promotion_services where promotion_id=row_id and service_id=sid) then

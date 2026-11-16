@@ -4,6 +4,16 @@ export type DeletionInfo = {
   name: string;
   fingerprint: string;
   eligible: boolean;
+  deletionEnabled?: boolean;
+  expanded?: boolean;
+  affected?: {
+    table: string;
+    count: number;
+    rows: { id: string; label: string }[];
+  }[];
+  preserved?: string[];
+  notices?: string[];
+  requiresDependenciesConfirmation?: boolean;
   reasons: string[];
   owned: { table: string; count: number }[];
   details: {
@@ -22,7 +32,8 @@ export class DeletionBlocked extends Error {
     super(message);
   }
 }
-// No actor argument: the database derives identity from the verified JWT.
+// Legacy RPC map while the expanded proposal awaits production approval.
+// Both versions derive administrator identity from the verified session.
 export const deletionFunctions = {
   services: { preview: 'gelin_preview_service', delete: null },
   categories: {
@@ -38,8 +49,43 @@ export const deletionFunctions = {
 export function deletionFailure(error: {
   message: string;
   details?: string;
+  code?: string;
 }): DeletionBlocked {
+  if (error.code === '55P03' || error.code === '40P01')
+    return new DeletionBlocked(
+      'Un élément associé est en cours de modification. Aucune suppression n’a été validée ; actualisez puis réessayez.',
+    );
+  if (error.code === '57014')
+    return new DeletionBlocked(
+      'L’opération a dépassé le délai autorisé. Aucune suppression n’a été validée. Actualisez le récapitulatif avant de réessayer.',
+    );
+  if (error.code === '23503')
+    return new DeletionBlocked(
+      'Une relation supplémentaire empêche cette suppression. Aucune modification n’a été validée ; actualisez le récapitulatif avant de réessayer.',
+    );
+  if (error.code === '42501')
+    return new DeletionBlocked(
+      'Les autorisations nécessaires à cette opération ne sont pas activées en base de données. Aucun élément n’a été supprimé.',
+      403,
+    );
+  if (error.code === 'PGRST202' || error.code === '42883')
+    return new DeletionBlocked(
+      'La vérification de suppression n’est pas disponible sur ce site. Contactez l’administrateur.',
+      503,
+    );
   const messages: Record<string, [string, number]> = {
+    GH_ADMIN_ACCOUNT_PROTECTED: [
+      'Les comptes administrateurs, y compris votre propre compte et le dernier administrateur actif, sont protégés.',
+      409,
+    ],
+    GH_DEPENDENCY_CONFIRMATION: [
+      'Confirmez explicitement le traitement des éléments associés indiqués dans le récapitulatif.',
+      400,
+    ],
+    GH_RELATED_RECORD_DELETED: [
+      'Un élément associé a été supprimé. Actualisez avant de réessayer.',
+      409,
+    ],
     GH_FORBIDDEN: ['Accès non autorisé ou session expirée.', 403],
     GH_NOT_FOUND: ['Cet élément est introuvable ou déjà supprimé.', 404],
     GH_CONFIRMATION: ['Confirmation explicite requise.', 400],

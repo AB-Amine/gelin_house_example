@@ -57,6 +57,10 @@ export async function rateLimit(req: NextRequest, scope: string, limit = 30) {
   if (!data) throw Error('RATE_LIMIT');
 }
 const messages: Record<string, string> = {
+  BOOKING_DELETED:
+    'Cette réservation a été supprimée. La même demande ne peut pas la recréer.',
+  ACCOUNT_DELETION_IN_PROGRESS:
+    'La suppression de ce compte est en cours. Contactez le salon.',
   SALON_CLOSED:
     'Le salon est fermé à cette date ou à cette heure. Choisissez une heure d’ouverture. La demande reste en attente.',
   START_TIME_TAKEN:
@@ -90,7 +94,7 @@ const messages: Record<string, string> = {
   INVALID_SLOT: 'Choisissez un créneau proposé par le salon.',
   SERVICE_UNAVAILABLE:
     'Une prestation n’est plus disponible. Modifiez votre sélection.',
-  INVALID_SERVICES: 'Vérifiez les prestations sélectionnées.',
+  INVALID_SERVICES: 'Vérifiez les prestations associées à cette offre.',
   IDEMPOTENCY_MISMATCH:
     'Cette demande a déjà été utilisée avec des informations différentes.',
   POLICY_BLOCKED:
@@ -100,6 +104,7 @@ const messages: Record<string, string> = {
   EXISTING_APPOINTMENTS:
     'Des rendez-vous existants sont concernés. Résolvez-les avant de modifier cette disponibilité.',
   ARCHIVE_INSTEAD: 'Archivez cet élément pour préserver l’historique.',
+  OWNER_REQUIRED: 'Seul un propriétaire actif peut enregistrer les offres.',
   RATE_LIMIT: 'Trop de tentatives. Patientez une minute.',
   TOO_LARGE: 'Le contenu envoyé est trop volumineux.',
 };

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useI18n } from './locale-provider';
 import { useState } from 'react';
 import { AdminIcon } from './admin-icon';
+import { PermanentDelete } from './permanent-delete';
 export type ClientRecord = {
   id: string;
   kind: 'account';
@@ -27,10 +28,16 @@ export function FatuClients({
 }) {
   const { date } = useI18n();
   const [selected, setSelected] = useState('');
+  const [message, setMessage] = useState('');
   const profile = rows.find((row) => row.id === selected) ?? rows[0];
   return (
     <>
       <h1>Clientes inscrites</h1>
+      {message && (
+        <p className="notice" role="status">
+          {message}
+        </p>
+      )}
       <p className="salon-page-intro">
         Uniquement les clientes qui possèdent un compte Mon espace.
       </p>
@@ -85,6 +92,16 @@ export function FatuClients({
               {(profile.name || profile.email).charAt(0).toUpperCase()}
             </span>
             <h3>{profile.name || 'Cliente inscrite'}</h3>
+            <PermanentDelete
+              entity="clients"
+              id={profile.id}
+              name={profile.name || profile.email}
+              onDeleted={() =>
+                setMessage(
+                  'Le compte cliente et ses données associées ont été supprimés définitivement.',
+                )
+              }
+            />
             <span className="badge">Compte Mon espace</span>
             <h4>Coordonnées</h4>
             <p>

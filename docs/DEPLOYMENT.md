@@ -1,5 +1,7 @@
 > **Current GELIN HOUSE readiness:** [final audit](FINAL_PRECONTAINER_AUDIT.md). Older hosting/provisioning instructions below are history, not authorization to migrate or alter the salon project.
 
+> Deletion installer update, 16 November 2026: review [the Supabase Auth permission fix](SUPABASE_AUTH_PERMISSION_FIX.md) and its exact SQL artifacts before production execution. Installation and destructive activation are separate; automatic cleanup remains disabled.
+
 ## Next phase: containerization — plan only
 
 No containerization was performed. Plan separately:

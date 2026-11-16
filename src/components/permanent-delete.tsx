@@ -3,16 +3,22 @@ import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api, errorMessage } from '@/lib/client';
 import type { DeletionInfo } from '@/lib/permanent-deletion';
+import { useI18n } from './locale-provider';
 
 export function PermanentDelete({
   entity,
   id,
   name,
+  triggerLabel = 'Supprimer',
+  onDeleted,
 }: {
   entity: string;
   id: string;
   name: string;
+  triggerLabel?: string;
+  onDeleted?: () => void;
 }) {
+  const { t } = useI18n();
   const dialog = useRef<HTMLDialogElement>(null);
   const cancel = useRef<HTMLButtonElement>(null);
   const guard = useRef(false);
@@ -22,8 +28,12 @@ export function PermanentDelete({
   const [busy, setBusy] = useState(false);
   const [confirmation, setConfirmation] = useState('');
   const [deleted, setDeleted] = useState(false);
+  const [dependentsConfirmed, setDependentsConfirmed] = useState(false);
+  const canDelete = info?.eligible && info.deletionEnabled === true;
   const request = (mode: string, extra = {}) =>
-    api<DeletionInfo & { deleted?: boolean }>('/api/admin/permanent-deletion', {
+    api<
+      DeletionInfo & { deleted?: boolean; pending?: boolean; message?: string }
+    >('/api/admin/permanent-deletion', {
       entity,
       id,
       mode,
@@ -34,6 +44,7 @@ export function PermanentDelete({
       <button
         type="button"
         className="button secondary"
+        disabled={deleted}
         onClick={async () => {
           if (guard.current) return;
           guard.current = true;
@@ -42,6 +53,7 @@ export function PermanentDelete({
           setMessage('');
           setConfirmation('');
           setDeleted(false);
+          setDependentsConfirmed(false);
           dialog.current?.showModal();
           cancel.current?.focus();
           try {
@@ -54,15 +66,12 @@ export function PermanentDelete({
           }
         }}
       >
-        Supprimer
+        {deleted ? 'Supprimé' : triggerLabel}
       </button>
       <dialog
         ref={dialog}
         className="permanent-delete-dialog"
         aria-labelledby={`delete-title-${id}`}
-        onClose={() => {
-          if (deleted) router.refresh();
-        }}
         onCancel={(e) => {
           if (guard.current) e.preventDefault();
         }}
@@ -71,11 +80,29 @@ export function PermanentDelete({
         <p>
           <strong>{info?.name ?? name}</strong>
         </p>
+        <p>Type : {deletionLabels[entity] ?? entity}</p>
         <p>
-          Cette action est irréversible. Les éléments associés indiqués
-          ci-dessous seront également supprimés. Les fichiers image restent dans
-          le stockage.
+          {canDelete
+            ? 'Êtes-vous sûr de vouloir supprimer définitivement cet élément ? Cette action est irréversible.'
+            : 'Cette vérification ne modifie aucun élément et ne supprime aucun rendez-vous.'}
         </p>
+        {info && !info.deletionEnabled && (
+          <p role="status">
+            La vérification est disponible. La suppression définitive est
+            désactivée sur ce site ; aucune suppression n’est autorisée.
+          </p>
+        )}
+        {info && !info.eligible && (
+          <p>
+            Cette fiche ne peut pas être supprimée définitivement pour les
+            raisons suivantes.
+          </p>
+        )}
+        {info?.eligible && (
+          <p>
+            Aucune dépendance bloquante détectée lors de cette vérification.
+          </p>
+        )}
         {info?.details.reference && (
           <p>
             {info.details.reference} · {info.details.customer}
@@ -86,7 +113,7 @@ export function PermanentDelete({
               timeStyle: 'short',
             }).format(new Date(info.details.starts_at!))}
             <br />
-            Statut : {info.details.status}
+            Statut : {t(`status.${info.details.status}`)}
             <br />
             {info.details.services?.join(' · ')}
           </p>
@@ -102,6 +129,29 @@ export function PermanentDelete({
               ))}
           </ul>
         )}
+        {info?.notices?.map((text) => (
+          <p key={text} className="notice">
+            {text}
+          </p>
+        ))}
+        {info?.affected?.map((group) => (
+          <details key={group.table}>
+            <summary>
+              {deletionLabels[group.table] ?? 'Éléments associés'} :{' '}
+              {group.count} à supprimer
+            </summary>
+            <ul>
+              {group.rows.map((row) => (
+                <li key={row.id}>
+                  {row.label} <small>({row.id})</small>
+                </li>
+              ))}
+            </ul>
+          </details>
+        ))}
+        {info?.preserved?.map((text) => (
+          <p key={text}>{text}</p>
+        ))}
         {info?.reasons.map((reason) => (
           <p key={reason} className="error">
             {reason}
@@ -109,11 +159,13 @@ export function PermanentDelete({
         ))}
         {entity === 'clients' && (
           <p>
-            Le compte Auth et le profil doivent être traités ensemble ; aucune
-            suppression partielle n’est permise.
+            Les données de l’application et le compte de connexion sont
+            supprimés en deux étapes distinctes. En cas d’interruption, une
+            action « Terminer la suppression » restera disponible dans Clientes
+            inscrites.
           </p>
         )}
-        {info?.eligible && (
+        {canDelete && (
           <label>
             Pour confirmer, saisissez SUPPRIMER
             <input
@@ -122,6 +174,18 @@ export function PermanentDelete({
               disabled={busy}
               onChange={(e) => setConfirmation(e.target.value)}
             />
+          </label>
+        )}
+        {canDelete && info.requiresDependenciesConfirmation && (
+          <label>
+            <input
+              type="checkbox"
+              checked={dependentsConfirmed}
+              disabled={busy}
+              onChange={(event) => setDependentsConfirmed(event.target.checked)}
+            />
+            Je confirme également la suppression de tous les éléments associés
+            répertoriés ci-dessus.
           </label>
         )}
         <p role="status" aria-live="polite">
@@ -137,38 +201,87 @@ export function PermanentDelete({
               if (!guard.current) dialog.current?.close();
             }}
           >
-            {deleted ? 'Fermer' : 'Annuler'}
+            {canDelete && !deleted ? 'Annuler' : 'Fermer'}
           </button>
-          <button
-            type="button"
-            className="button"
-            disabled={busy || !info?.eligible || confirmation !== 'SUPPRIMER'}
-            onClick={async () => {
-              if (guard.current || !info) return;
-              guard.current = true;
-              setBusy(true);
-              try {
-                const result = await request('delete', {
-                  fingerprint: info.fingerprint,
-                  confirmation,
-                });
-                if (!result.deleted) throw Error('Suppression non confirmée.');
-                setMessage('Suppression définitive effectuée.');
-                setInfo(null);
-                setDeleted(true);
-              } catch (e) {
-                setMessage(errorMessage(e));
-                setInfo(null);
-              } finally {
-                setBusy(false);
-                guard.current = false;
+          {canDelete && (
+            <button
+              type="button"
+              className="button"
+              disabled={
+                busy ||
+                confirmation !== 'SUPPRIMER' ||
+                (info.requiresDependenciesConfirmation && !dependentsConfirmed)
               }
-            }}
-          >
-            {busy ? 'Traitement…' : 'Confirmer la suppression'}
-          </button>
+              onClick={async () => {
+                if (
+                  guard.current ||
+                  !info ||
+                  !canDelete ||
+                  (info.requiresDependenciesConfirmation &&
+                    !dependentsConfirmed)
+                )
+                  return;
+                guard.current = true;
+                setBusy(true);
+                try {
+                  const result = await request('delete', {
+                    fingerprint: info.fingerprint,
+                    confirmation,
+                    dependentsConfirmed,
+                  });
+                  if (result.pending && result.id === id) {
+                    setMessage(
+                      result.message ??
+                        'La suppression du compte de connexion reste à terminer dans Clientes inscrites.',
+                    );
+                    setInfo(null);
+                    router.refresh();
+                    return;
+                  }
+                  if (!result.deleted || result.id !== id)
+                    throw Error('Suppression non confirmée.');
+                  setMessage('Suppression définitive effectuée.');
+                  setInfo(null);
+                  setDeleted(true);
+                  onDeleted?.();
+                  router.refresh();
+                } catch (e) {
+                  setMessage(errorMessage(e));
+                  setInfo(null);
+                } finally {
+                  setBusy(false);
+                  guard.current = false;
+                }
+              }}
+            >
+              {busy ? 'Traitement…' : 'Supprimer définitivement'}
+            </button>
+          )}
         </div>
       </dialog>
     </>
   );
 }
+
+const deletionLabels: Record<string, string> = {
+  services: 'Prestations',
+  categories: 'Catégories',
+  promotions: 'Offres',
+  appointments: 'Rendez-vous',
+  clients: 'Compte cliente',
+  appointment_items: 'Prestations réservées',
+  allocations: 'Créneaux réservés',
+  appointment_history: 'Historique des rendez-vous',
+  contact_messages: 'Messages et demandes',
+  change_requests: 'Demandes de modification',
+  payment_records: 'Écritures financières',
+  notification_outbox: 'Notifications',
+  promotion_services: 'Liens entre offres et prestations',
+  qualifications: 'Qualifications',
+  service_resources: 'Équipements associés',
+  service_cities: 'Lieux associés',
+  translations: 'Traductions',
+  customers: 'Coordonnées des réservations',
+  client_profiles: 'Profil cliente',
+  'auth.users': 'Compte de connexion',
+};

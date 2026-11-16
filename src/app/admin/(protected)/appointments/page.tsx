@@ -196,6 +196,7 @@ export default async function Page({
       ) : (
         <FatuAppointments
           timezone={timezone}
+          asOf={Temporal.Now.instant().epochMilliseconds}
           rows={
             (data?.rows ?? []).map((row: Record<string, unknown>) => ({
               ...row,

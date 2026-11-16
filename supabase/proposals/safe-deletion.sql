@@ -2,13 +2,29 @@
 -- until a separate production installation is explicitly approved.
 -- Requires PostgreSQL 17+ MAINTAIN privilege support (tested on PostgreSQL 18).
 BEGIN;
+-- Run as the existing postgres installer, never as an application credential.
+DO $$ BEGIN
+ IF current_user <> 'postgres' THEN RAISE EXCEPTION 'GH_INSTALL_AS_POSTGRES'; END IF;
+END $$;
 CREATE ROLE gelin_delete_owner NOLOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION BYPASSRLS;
 CREATE ROLE gelin_cleanup_owner NOLOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION BYPASSRLS;
 CREATE ROLE gelin_cleanup_executor NOLOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS CONNECTION LIMIT 2 PASSWORD NULL;
-CREATE SCHEMA gelin_delete_private AUTHORIZATION gelin_delete_owner;
+-- CREATEROLE does not imply SET when createrole_self_grant is empty.
+-- Only these newly created, non-login owners receive temporary SET membership.
+GRANT gelin_delete_owner,gelin_cleanup_owner TO CURRENT_USER WITH SET TRUE, INHERIT FALSE;
+CREATE SCHEMA gelin_delete_private;
 REVOKE ALL ON SCHEMA gelin_delete_private FROM PUBLIC;
-GRANT USAGE ON SCHEMA public, auth TO gelin_delete_owner;
-GRANT EXECUTE ON FUNCTION auth.uid() TO gelin_delete_owner;
+-- Supabase's protected auth schema cannot be delegated by postgres.
+-- Keep this parameterless helper owned by postgres, outside exposed schemas.
+CREATE FUNCTION gelin_delete_private.current_user_id() RETURNS uuid
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path='' AS $$ SELECT auth.uid() $$;
+REVOKE ALL ON FUNCTION gelin_delete_private.current_user_id()
+ FROM PUBLIC,anon,authenticated,service_role,gelin_cleanup_owner,gelin_cleanup_executor;
+GRANT EXECUTE ON FUNCTION gelin_delete_private.current_user_id() TO gelin_delete_owner;
+-- Retain installer ownership of the helper's schema; delegate CREATE only until
+-- the deletion owner's invoker helpers have been installed.
+GRANT USAGE,CREATE ON SCHEMA gelin_delete_private TO gelin_delete_owner;
+GRANT USAGE ON SCHEMA public TO gelin_delete_owner;
 GRANT USAGE ON SCHEMA public, gelin_delete_private TO gelin_cleanup_owner;
 GRANT USAGE ON SCHEMA public TO gelin_cleanup_executor;
 GRANT SELECT ON public.appointments,public.categories,public.services,public.promotions TO gelin_delete_owner;
@@ -44,7 +60,7 @@ LANGUAGE plpgsql SECURITY INVOKER SET search_path='' AS $$
 BEGIN
  PERFORM pg_catalog.pg_advisory_xact_lock(711042);
  LOCK TABLE public.admin_profiles IN SHARE MODE;
- IF auth.uid() IS NULL OR NOT EXISTS (SELECT 1 FROM public.admin_profiles WHERE id=auth.uid() AND active) THEN
+ IF gelin_delete_private.current_user_id() IS NULL OR NOT EXISTS (SELECT 1 FROM public.admin_profiles WHERE id=gelin_delete_private.current_user_id() AND active) THEN
   RAISE EXCEPTION 'GH_FORBIDDEN';
  END IF;
 END $$;
@@ -174,7 +190,9 @@ CREATE FUNCTION public.gelin_delete_offer(p_id uuid,p_fingerprint text,p_phrase 
 CREATE FUNCTION public.gelin_delete_appointment(p_id uuid,p_fingerprint text,p_phrase text) RETURNS jsonb LANGUAGE sql SECURITY DEFINER SET search_path='' SET lock_timeout='3s' SET statement_timeout='8s' SET timezone='Africa/Casablanca'
  AS $$ SELECT gelin_delete_private.manual('appointments',p_id,true,p_fingerprint,p_phrase) $$;
 
-REVOKE ALL ON ALL FUNCTIONS IN SCHEMA gelin_delete_private FROM PUBLIC;
+REVOKE ALL ON FUNCTION gelin_delete_private.require_admin(),gelin_delete_private.lock_entity(text),
+ gelin_delete_private.inspect(text,uuid),gelin_delete_private.remove_offer(uuid),
+ gelin_delete_private.manual(text,uuid,boolean,text,text) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.gelin_preview_service(uuid),public.gelin_preview_category(uuid),public.gelin_preview_offer(uuid),public.gelin_preview_appointment(uuid),
  public.gelin_delete_category(uuid,text,text),public.gelin_delete_offer(uuid,text,text),public.gelin_delete_appointment(uuid,text,text) FROM PUBLIC,anon,authenticated,service_role;
 GRANT EXECUTE ON FUNCTION public.gelin_preview_service(uuid),public.gelin_preview_category(uuid),public.gelin_preview_offer(uuid),public.gelin_preview_appointment(uuid) TO authenticated;
@@ -209,4 +227,6 @@ REVOKE ALL ON FUNCTION public.gelin_cleanup_expired_offers() FROM PUBLIC,anon,au
 -- Application flags alone do not protect direct REST RPC invocation.
 RESET ROLE;
 REVOKE CREATE ON SCHEMA public FROM gelin_delete_owner,gelin_cleanup_owner;
+REVOKE CREATE ON SCHEMA gelin_delete_private FROM gelin_delete_owner;
+REVOKE gelin_delete_owner,gelin_cleanup_owner FROM CURRENT_USER;
 COMMIT;

@@ -1,5 +1,13 @@
 # Production deletion review — STOP / not approved for installation
 
+> Latest outcome: the subsequently authorized inactive base installation is
+> complete and verified on production PostgreSQL 17.11. See
+> [production status](SAFE_PRODUCTION_STATUS.md). This review's STOP decision and
+> installer blockers below are historical. Destructive activation and cleanup
+> remain disabled; their remaining recovery/hosting gates were not bypassed.
+
+> 16 November update: see [Auth permission fix](SUPABASE_AUTH_PERMISSION_FIX.md) for the corrected base installer, separate manual-only activation artifact and targeted local non-superuser tests. The installer Auth/SET blockers below describe the earlier SQL. Production has not been altered or freshly reverified; cleanup and the other activation gates remain outstanding.
+
 > Latest restricted-scope request: see [Safe production status](SAFE_PRODUCTION_STATUS.md). Safe read-only production checks and 27 focused tests were completed without creating a backup. Function installation is blocked by missing Auth-schema grant authority; destructive activation stays off. Earlier approval gates below are historical, not a request for another general confirmation.
 
 ## Earlier activation request — backup prerequisite still blocked

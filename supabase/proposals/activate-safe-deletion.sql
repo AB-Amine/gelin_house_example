@@ -1,4 +1,6 @@
 -- DESTRUCTIVE AUTHORITY ACTIVATION. REVIEW ONLY. Never run in production
+-- Historical combined local-test artifact. For the current manual-only production
+-- sequence, review activate-manual-deletion.sql instead; cleanup stays disabled.
 -- without separate explicit approval. Disposable tests load this after the base.
 BEGIN;
 GRANT EXECUTE ON FUNCTION public.gelin_delete_category(uuid,text,text),
