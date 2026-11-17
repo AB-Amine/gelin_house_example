@@ -1,17 +1,21 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
-const mocks = vi.hoisted(() => ({
-  staff: vi.fn(),
-  rpc: vi.fn(),
-  refresh: vi.fn(),
-  finish: vi.fn(),
-}));
+const mocks = vi.hoisted(() => {
+  const rpc = vi.fn();
+  return {
+    staff: vi.fn(),
+    rpc,
+    db: { rpc },
+    refresh: vi.fn(),
+    finish: vi.fn(),
+  };
+});
 vi.mock('@/lib/account-deletion', () => ({
   finishAccountDeletion: mocks.finish,
 }));
 vi.mock('@/lib/auth', () => ({ requireStaff: mocks.staff }));
 vi.mock('@/lib/supabase', () => ({
-  sessionDb: async () => ({ rpc: mocks.rpc }),
+  sessionDb: async () => mocks.db,
 }));
 vi.mock('@/lib/http', () => ({
   sameOrigin: (r: NextRequest) => {
@@ -87,6 +91,7 @@ describe('session-authorized deletion RPC boundary', () => {
     },
   );
   it('distinguishes missing database permission from the application flag', async () => {
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {});
     mocks.rpc.mockResolvedValue({
       data: null,
       error: { code: '42501', message: 'internal function details' },
@@ -96,6 +101,37 @@ describe('session-authorized deletion RPC boundary', () => {
     );
     expect(response.status).toBe(403);
     expect((await response.json()).error).toContain('autorisations');
+    expect(log).toHaveBeenCalledWith('[admin/permanent-deletion] rpc-failed', {
+      rpc: 'gelin_preview_appointment',
+      entity: 'appointments',
+      mode: 'preview',
+      code: '42501',
+    });
+    log.mockRestore();
+  });
+  it('uses the admin-verified session client for the expanded service preview', async () => {
+    vi.stubEnv('EXPANDED_DELETION_ENABLED', 'true');
+    mocks.rpc.mockResolvedValue({
+      data: {
+        id,
+        entity: 'services',
+        eligible: true,
+        fingerprint,
+        reasons: [],
+        owned: [],
+        details: {},
+      },
+      error: null,
+    });
+    const response = await POST(
+      request({ entity: 'services', id, mode: 'preview' }),
+    );
+    expect(response.status).toBe(200);
+    expect(mocks.staff).toHaveBeenCalledWith(mocks.db);
+    expect(mocks.rpc).toHaveBeenCalledWith('gelin_crud_preview', {
+      p_kind: 'services',
+      p_id: id,
+    });
   });
   it('reports unavailable preview functions without an installation claim', async () => {
     mocks.rpc.mockResolvedValue({

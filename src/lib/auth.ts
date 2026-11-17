@@ -6,15 +6,16 @@ export async function requirePageStaff() {
   if (!staff) redirect('/admin/login');
   return staff;
 }
-export async function getStaff() {
+type SessionClient = Awaited<ReturnType<typeof sessionDb>>;
+export async function getStaff(db?: SessionClient) {
   try {
-    const db = await sessionDb();
+    const client = db ?? (await sessionDb());
     const {
       data: { user },
       error,
-    } = await db.auth.getUser();
+    } = await client.auth.getUser();
     if (error || !user) return null;
-    const { data: profile } = await db
+    const { data: profile } = await client
       .from('admin_profiles')
       .select('id,display_name,role,active')
       .eq('id', user.id)
@@ -24,8 +25,8 @@ export async function getStaff() {
     return null;
   }
 }
-export async function requireStaff() {
-  const staff = await getStaff();
+export async function requireStaff(db?: SessionClient) {
+  const staff = await getStaff(db);
   if (!staff) throw Error('FORBIDDEN');
   return staff;
 }

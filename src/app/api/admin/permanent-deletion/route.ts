@@ -34,7 +34,8 @@ const schema = z
 export async function POST(req: NextRequest) {
   try {
     sameOrigin(req);
-    const staff = await requireStaff();
+    const db = await sessionDb();
+    const staff = await requireStaff(db);
     const input = schema.parse(await body(req, 2000));
     const expanded = process.env.EXPANDED_DELETION_ENABLED === 'true';
     // Keep legacy deployments compatible; expanded SQL checks all admin identities.
@@ -55,7 +56,6 @@ export async function POST(req: NextRequest) {
         'La suppression définitive est désactivée sur ce site. La vérification des conditions reste disponible ; aucun élément ne sera supprimé.',
         503,
       );
-    const db = await sessionDb();
     if (input.mode === 'retry') {
       if (!expanded || input.entity !== 'clients' || !input.jobId)
         throw new DeletionBlocked(
@@ -101,7 +101,18 @@ export async function POST(req: NextRequest) {
           }
         : {}),
     });
-    if (error) throw deletionFailure(error);
+    if (error) {
+      const code = /^[0-9A-Z]{5}$/.test(error.code ?? '')
+        ? error.code
+        : 'UNKNOWN';
+      console.error('[admin/permanent-deletion] rpc-failed', {
+        rpc: fn,
+        entity: input.entity,
+        mode: input.mode,
+        code,
+      });
+      throw deletionFailure(error);
+    }
     if (input.mode === 'preview' && !result)
       throw new DeletionBlocked(
         'La vérification n’a pas pu être confirmée. Actualisez puis réessayez.',
